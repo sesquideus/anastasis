@@ -38,18 +38,35 @@ class Imager:
     def pad(self, top, height):
         return np.pad(self._data, ((top, height - top), (0, 0)))
 
-    @staticmethod
-    def pad_vertical(data: np.ndarray[float], top: int, height: int):
-        return self.pad(data, )
-
-    def shift_bin(self, offsets: tuple[int, ...], steps: tuple[int, ...]):
+    def shift_bin_grid(self, offsets: tuple[int, ...], steps: tuple[int, ...]):
         return np.repeat(self._data, height, axis=0)
+
+
+class MatrixComposer:
+    def __init__(self,
+                 pixels: tuple[int, int],
+                 pixsizes: tuple[int, int],
+                 rotation: float = None,
+                 ):
+        xpixels, ypixels = pixels
+        xsize, ysize = sizes
+
+        xs = np.linspace(0, xpixels, xsize, endpoint=False)
+        ys = np.linspace(0, ypixels, ysize, endpoint=False)
+
+        xgrid, ygrid = np.meshgrid(xs, ys)
+
+    def solution(self):
+        Cinv = np.linalg.inv(C)
+        ATCinv = A.T @ Cinv
+        return np.linalg.inv(ATCinv @ A) @ ATCinv
+
 
 
 imager = Imager('pingvys.bmp')
 i = 0
-for image in imaging.shift_bin(imager.data, (128, 32), (4, 1)):
-    plt.imshow(image, extent=[0, 32, 0, 48])
-    print(image.shape)
-    plt.savefig(f'{i:02}.png')
+for image in imaging.shift_bin_grid(imager.data, (32, 8), (16, 1)):
+    fig, ax = plt.subplots(figsize=(8, 12))
+    ax.imshow(image, extent=[0, 128, 0, 192])
+    fig.savefig(f'{i:02d}.png')
     i += 1

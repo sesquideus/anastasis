@@ -34,12 +34,17 @@ def bin_padded(data: np.ndarray[float],
     return bin(data, bins)
 
 
-def shift_bin(data: np.ndarray[float],
+def shift_bin_grid(data: np.ndarray[float],
               sizes: tuple[int, ...],
               steps: tuple[int, ...]
              ) -> np.ndarray[float]:
+
+    assert len(sizes) == data.ndim,\
+        f"Bin sizes must have the same dimension as the data: sizes are {sizes}, data shape is {data.shape}"
+
     assert len(sizes) == len(steps),\
         f"Sizes and steps should be of equal length: sizes are {sizes}, steps are {steps}"
+
     for size, step in zip(sizes, steps):
         assert size % step == 0,\
             f"Each size must be divisible by the number of corresponding steps: offset is {offset}, step is {step}"
@@ -47,7 +52,24 @@ def shift_bin(data: np.ndarray[float],
     ranges = itertools.product(*list([list(range(0, offset, offset // step)) for offset, step in zip(sizes, steps)]))
 
     for offset in ranges:
-        print(sizes, offset)
-        padding = tuple([(off, size - off) for size, off in zip(sizes, offset)])
-        print(padding)
+        padding = tuple([(off, (((off - 1) // size) + 1) * size - off) for size, off in zip(sizes, offset)])
         yield bin_padded(data, sizes, padding)
+
+
+def shift_bin_list(data: np.ndarray[float],
+                   sizes: tuple[int, ...],
+                   offsets: list[tuple[int, ...]]
+                  ) -> np.ndarray[float]:
+
+    for offset in offsets:
+        assert len(offset) == len(data.shape),\
+            f"Each offset tuple must have the same dimension as data: offset is {offset}, data shape is {data.shape}"
+        assert min(offset) >= 0,\
+            f"All offsets must be positive"
+
+    for offset in offsets:
+        offset = np.array(offset)
+        other_side = (np.floor_divide(offset - 1, sizes) + 1) * sizes - offset
+        padding = tuple(zip(offset, other_side))
+        yield bin_padded(data, sizes, padding)
+
