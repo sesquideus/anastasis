@@ -99,14 +99,15 @@ class MatrixComposer:
 
     def single_matrix(self, data, model):
         dist = np.expand_dims(data.pixels(), (0, 1)) - np.expand_dims(model.pixels(), (2, 3))
-        dist = dist.reshape(model.width * model.height, data.width * data.height, 2)
-        xover = self.overlap(dist[:, :, 0], data.pixel_width, model.pixel_width)
-        yover = self.overlap(dist[:, :, 1], data.pixel_height, model.pixel_height)
-
+        xover = self.overlap(dist[..., 0], data.pixel_width, model.pixel_width)
+        yover = self.overlap(dist[..., 1], data.pixel_height, model.pixel_height)
         return xover * yover
 
     def multi_matrix(self, data, model):
-        return np.concatenate([self.single_matrix(single, model) for single in data], axis=0)
+        return np.concatenate([
+            self.single_matrix(single, model).reshape(model.size, single.size) for single in data],
+            axis=0
+        )
 
     def solution(self):
         Cinv = np.linalg.inv(C)
