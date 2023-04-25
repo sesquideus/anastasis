@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
 import numpy as np
-import scipy as sp
-import operator
 import matplotlib as mpl
 
 from PIL import Image
 from matplotlib import pyplot as plt
-
-from typing import Self
+from typing import Iterable
 
 import imaging
 import composer
+
+from grid import Grid
 
 mpl.use('agg')
 np.set_printoptions(threshold=1000)
@@ -40,12 +39,6 @@ class Imager:
     def pad(self, top, height):
         return np.pad(self._data, ((top, height - top), (0, 0)))
 
-    def shift_bin_grid(self,
-                       offsets: tuple[int, ...],
-                       steps: tuple[int, ...]
-                      ) -> np.ndarray[float]:
-        return np.repeat(self._data, height, axis=0)
-
 
 class Generator:
     def __init__(self, imager):
@@ -60,31 +53,63 @@ class Generator:
             i += 1
 
 
-def render_slices(matrix):
+def render_slices(matrix, datasize, modelsize):
+    modelxsize, modelysize = modelsize
     assert matrix.ndim == 4
-    for i in range(0, 8):
-        for j in range(0, 8):
+    print(matrix.shape)
+
+    for i in range(0, modelysize):
+        for j in range(0, modelxsize):
             fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-            ax.imshow(matrix[..., i, j], cmap='hot', vmax=1)
-            fig.savefig(f'out/mat{i}{j}.png', dpi=300)
+            ax.imshow(matrix[i, j, ...], extent=[0, 10, 0, 10], cmap='hot', vmin=0, vmax=1, alpha=1)
+            ax.imshow(np.indices(modelsize).sum(axis=0) % 2, extent=[0, 10, 0, 10], cmap='gray', alpha=0.1)
+            fig.savefig(f'out/mat{i:03d}-{j:03d}.png', dpi=300)
             plt.close('all')
+            print(f"Matrix plotted for {i} {j}")
+
+def subshift_and_rotate(xlim: tuple[int, int],
+                        ylim: tuple[int, int],
+                        count: tuple[int, int],
+                        shifts: tuple[int, int],
+                        rotations: Iterable[float] = (0,)):
+    xmin, xmax = xlim
+    ymin, ymax = ylim
+    xcount, ycount = count
+    xshift, yshift = shifts
+    for rotation in rotations:
+        for ys in ((np.arange(0, 2 * yshift, 2) - yshift + 1) / (2 * yshift)):
+            for xs in ((np.arange(0, 2 * xshift, 2) - xshift + 1) / (2 * xshift)):
+                if rotation == 0:
+                    print((xmin + xs, xmax + xs), (ymin + ys, ymax + ys), (xcount, ycount))
+                    yield Grid((xmin + xs, xmax + xs), (ymin + ys, ymax + ys), shape=(xcount, ycount))
+                elif rotation == 90:
+                    yield Grid((ymin + ys, ymax + ys), (xmin + xs, xmax + xs), shape=(ycount, xcount))
+                else:
+                    raise NotImplementedError("Rotation must be either 0 or 90 degrees")
 
 
-imager = Imager('pingvys.bmp')
-#generator = Generator(imager)
-#generator('out/A')
+def main():
+    imager = Imager('pingvys.bmp')
+    #generator = Generator(imager)
+    #generator('out/A')
 
-comp = composer.MatrixComposer((0, 0), (0, 0))
+    comp = composer.MatrixComposer((0, 0), (0, 0))
 
-data = composer.Grid((0, 10), (0, 10), (8, 8))
-model = composer.Grid((0, 10), (0, 10), (5, 5))
-multidata = [composer.Grid((-1 + i / 3, 10 + i / 3), (0, 10), (2, 10)) for i in range(0, 3)] +\
-            [composer.Grid((0, 10), (-1 + i / 3, 10 + i / 3), (10, 2)) for i in range(0, 3)]
+    DATASIZE = (7, 12)
+    MODELSIZE = (5, 5)
+    data = Grid((0, 10), (0, 10), shape=DATASIZE)
+    model = Grid((0, 10), (0, 10), shape=MODELSIZE)
+    multidata = list(subshift_and_rotate((-3, 13), (3, 7), (16, 4), (3, 3), [0]))
 
-mat = comp.single_matrix(data, model)
-mat2d = mat.reshape(data.size, model.size)
-multimat = comp.multi_matrix(multidata, model)
+    mat = comp.single_matrix(data, model)
+    mat2d = mat.reshape(data.size, model.size)
+    multimatrix = comp.stacked_matrix(multidata, model)
 
-fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-ax.imshow(multimat, cmap='hot')
-fig.savefig('out/multimat.png', dpi=300)
+    #render_slices(mat, DATASIZE, MODELSIZE)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+    print(multimatrix.shape)
+    ax.imshow(multimatrix, cmap='hot')
+    fig.savefig('out/multimat.png', dpi=300)
+
+main()

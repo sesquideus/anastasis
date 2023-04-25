@@ -13,4 +13,4 @@ class TestComposer:
         assert True
 
     def test_overlap(self, composer):
-        assert composer.overlap(0.3, 0.5, 0.8) == 1
+        assert composer.overlap(0.0, 0.9, 0.8) == 1
