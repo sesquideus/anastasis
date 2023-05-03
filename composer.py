@@ -37,7 +37,7 @@ class MatrixComposer:
 
 
     def single_matrix(self, data, model):
-        dist = np.expand_dims(data.grid_pixels(), (0, 1)) - np.expand_dims(model.grid_pixels(), (2, 3))
+        dist = np.expand_dims(data.grid_coords(), (0, 1)) - np.expand_dims(model.grid_coords(), (2, 3))
         xover = self.overlap(dist[..., 0], data.pixel_width, model.pixel_width)
         yover = self.overlap(dist[..., 1], data.pixel_height, model.pixel_height)
         return xover * yover

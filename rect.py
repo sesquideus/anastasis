@@ -12,9 +12,9 @@ class Rect:
         self.rot = rot
 
     @property
-    def topleft(self):
+    def points(self) -> np.ndarray[2, 2, 2]:
         tl = (-self.w / 2, self.h / 2)
-        tl =
+
         return self.cx - self.w / 2
 
 
