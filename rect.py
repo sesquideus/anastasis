@@ -19,3 +19,4 @@ class Rect:
 
 
     def __matmul__(self, other: Self) -> float:
+        pass

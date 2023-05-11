@@ -12,22 +12,87 @@ def unit():
 
 
 @pytest.fixture
+def large():
+    return Grid.from_centre((0, 0), (20, 10), 35, shape=(10, 5))
+
+
+@pytest.fixture
 def rot90():
     return Grid.from_centre((0, 0), (2, 2), math.tau / 4, shape=(3, 3))
+
+
+class TestShape:
+    def test_grid_centres_shape(self, unit):
+        assert unit.grid_centres().shape == (3, 3, 2)
+
+    def test_grid_vertices_shape(self, unit):
+        assert unit.grid_vertices().shape == (3, 3, 2, 2, 2)
+
+    def test_grid_centres(self, unit):
+        assert np.allclose(unit.grid_centres()[0][0], (-2 / 3, -2 / 3))
+
+    def test_grid_vertices_bottom_left(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[1][1][0][0], (-1 / 3, -1 / 3))
+
+    def test_grid_vertices_top_left(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[1][1][0][1], (-1 / 3, 1 / 3))
+
+    def test_grid_vertices_bottom_right(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[0][0][1][0], (-1 / 3, -1))
+
+    def test_grid_vertices_top_right(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[2][0][1][1], (-1 / 3, 1))
+
+    def test_grid_vertices_extra(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=0.1)[0][0][0][0], (-22 / 30, -22 / 30))
+
+
+class TestProperties:
+    def test_size(self, large):
+        assert large.shape == (10, 5)
+
+    def test_pixel_size(self, large):
+        assert np.allclose(large.pixel_size, (2, 2))
+
+    def test_limits(self, large):
+        assert large.width, large.height == (20, 10)
+
+    def test_grid_centres(self, large):
+        assert np.allclose(large.grid_centres()[3][7], (5, 2))
+
+
+class TestCreation:
+    def test_data_provided(self):
+        grid = Grid.from_centre((0, 0), (5, 3), 0, data=np.zeros((3, 3)))
+        assert grid.shape == (3, 3)
+
+    def test_shape_provided(self):
+        grid = Grid.from_centre((0, 0), (5, 3), 0, data=np.ones((3, 3)))
+        assert np.allclose(grid._data, np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]))
+
+    def test_both_provided_correct(self):
+        assert Grid.from_centre((0, 0), (5, 3), 0, shape=(3, 3), data=np.zeros((3, 3)))
+
+    def test_both_provided_incorrect(self):
+        with pytest.raises(AssertionError):
+            _ = Grid.from_centre((0, 0), (5, 3), 0, shape=(3, 3), data=np.zeros((4, 5)))
+
+    def test_none_provided(self):
+        with pytest.raises(AssertionError):
+            _ = Grid.from_centre((0, 0), (3, 8), math.tau / 2)
 
 
 class TestRotation:
     def test_top_left(self, unit):
         c = np.cos(math.tau)
         s = np.sin(math.tau)
-        assert np.allclose(unit.world_coords(), unit.grid_coords())
+        assert np.allclose(unit.world_centres(), unit.grid_centres())
 
     def test_rot90(self, unit, rot90):
-        assert np.allclose(rot90.world_coords(), np.rot90(unit.world_coords()))
+        assert np.allclose(rot90.world_centres(), np.rot90(unit.world_centres()))
 
     def test_rot90_static(self, unit, rot90):
-        assert np.allclose(rot90.grid_coords(), unit.world_coords())
-
+        assert np.allclose(rot90.grid_centres(), unit.world_centres())
 
 
 class TestIntersection:
@@ -46,7 +111,8 @@ class TestIntersection:
             np.array([[[0, 1], [4, 2], [1, 0]], [[-4, 10], [7, 7], [4, 2]]]),
             np.array([[[1, 0], [2, 7], [0, 1]], [[9, 12], [5, 5], [2, 7]]]),
         )
-        assert np.allclose(inter,
+        assert np.allclose(
+            inter,
             np.array([
                 [
                     [1.0, 0.0],
