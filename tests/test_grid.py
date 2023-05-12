@@ -32,19 +32,19 @@ class TestShape:
         assert np.allclose(unit.grid_centres()[0][0], (-2 / 3, -2 / 3))
 
     def test_grid_vertices_bottom_left(self, unit):
-        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[1][1][0][0], (-1 / 3, -1 / 3))
-
-    def test_grid_vertices_top_left(self, unit):
-        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[1][1][0][1], (-1 / 3, 1 / 3))
+        assert np.allclose(unit.grid_vertices(pixfrac=1)[1][1][0][0], (-1 / 3, -1 / 3))
 
     def test_grid_vertices_bottom_right(self, unit):
-        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[0][0][1][0], (-1 / 3, -1))
+        assert np.allclose(unit.grid_vertices(pixfrac=1)[1][1][0][1], (1 / 3, -1 / 3))
+
+    def test_grid_vertices_top_left(self, unit):
+        assert np.allclose(unit.grid_vertices(pixfrac=1)[1][1][1][0], (-1 / 3, 1 / 3))
 
     def test_grid_vertices_top_right(self, unit):
-        assert np.allclose(unit.grid_vertices(pixfrac=0.5)[2][0][1][1], (-1 / 3, 1))
+        assert np.allclose(unit.grid_vertices(pixfrac=1)[1][1][1][1], (1 / 3, 1 / 3))
 
     def test_grid_vertices_extra(self, unit):
-        assert np.allclose(unit.grid_vertices(pixfrac=0.1)[0][0][0][0], (-22 / 30, -22 / 30))
+        assert np.allclose(unit.grid_vertices(pixfrac=0.1)[0][0][0][0], (-21 / 30, -21 / 30))
 
 
 class TestProperties:

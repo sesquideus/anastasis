@@ -12,12 +12,69 @@ def segment_intersection(p0, p1, q0, q1):
     return np.where(
         np.expand_dims(det == 0, det.ndim),
         _segment_intersection_degenerate(p, q, b),
-        p0 + _segment_intersection_nondegenerate(p, q, b, det) * p,
+        p0 + _segment_intersection_nondegenerate(p, q, b) * p,
     )
 
+def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> float:
+    assert r1.shape == (2, 2, 2), r1.shape
+    assert r2.shape == (2, 2, 2), r2.shape
+    print(r1)
+    print(r2)
+    is1in2 = [[
+        _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[0][0]),
+        _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[0][1]),
+    ], [
+        _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[1][0]),
+        _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[1][1]),
+    ]]
+    is2in1 = [[
+        _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[0][0]),
+        _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[0][1]),
+    ], [
+        _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[1][0]),
+        _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[1][1]),
+    ]]
+    inter1 = [[
+        _segment_intersection_general(r1[0][0], r1[0][1], r2[0][0], r2[0][1]),
+        _segment_intersection_general(r1[0][1], r1[1][1], r2[0][0], r2[0][1]),
+        _segment_intersection_general(r1[1][1], r1[1][0], r2[0][0], r2[0][1]),
+        _segment_intersection_general(r1[1][0], r1[0][0], r2[0][0], r2[0][1]),
+    ], [
+        _segment_intersection_general(r1[0][0], r1[0][1], r2[0][1], r2[1][1]),
+        _segment_intersection_general(r1[0][1], r1[1][1], r2[0][1], r2[1][1]),
+        _segment_intersection_general(r1[1][1], r1[1][0], r2[0][1], r2[1][1]),
+        _segment_intersection_general(r1[1][0], r1[0][0], r2[0][1], r2[1][1]),
+    ],[
+        _segment_intersection_general(r1[0][0], r1[0][1], r2[1][1], r2[1][0]),
+        _segment_intersection_general(r1[0][1], r1[1][1], r2[1][1], r2[1][0]),
+        _segment_intersection_general(r1[1][1], r1[1][0], r2[1][1], r2[1][0]),
+        _segment_intersection_general(r1[1][0], r1[0][0], r2[1][1], r2[1][0]),
+    ],[
+        _segment_intersection_general(r1[0][0], r1[0][1], r2[1][0], r2[0][0]),
+        _segment_intersection_general(r1[0][1], r1[1][1], r2[1][0], r2[0][0]),
+        _segment_intersection_general(r1[1][1], r1[1][0], r2[1][0], r2[0][0]),
+        _segment_intersection_general(r1[1][0], r1[0][0], r2[1][0], r2[0][0]),
+    ]]
+    print(is1in2)
+    print(is2in1)
+    print(inter1)
+
+    return is1in2, is2in1, inter1
+
+
+def _is_inside_parallelogram(o, p, q, x):
+    return _is_inside_parallelogram_origin(p - o, q - o, x - o)
+
+def _is_inside_parallelogram_origin(p, q, x):
+    print("PQX", p, q, x)
+    t = np.dot(p, x) / np.dot(p, p)
+    u = np.dot(q, x) / np.dot(q, q)
+    print("TU", t, u)
+    return np.where((0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), x, np.full(shape=(2,), fill_value=np.nan))
 
 def _segment_intersection_general(p0, p1, q0, q1):
-    t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0, 1)
+    t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
+    print(p0, p1, q0, q1, t)
     return np.where(np.isnan(t), np.full((2,), np.nan), p0 + t * (p1 - p0))
 
 
@@ -25,7 +82,9 @@ def _segment_intersection_degenerate(p, q, b):
     return np.full(p.shape, np.nan)
 
 
-def _segment_intersection_nondegenerate(p, q, b, det):
+def _segment_intersection_nondegenerate(p, q, b):
+    print("PQB", p, q, b)
+    det = np.cross(p, q)
     t = np.divide(np.cross(b, q), det, where=det != 0)
     u = np.divide(np.cross(b, p), det, where=det != 0)
     t = np.expand_dims(t, t.ndim)
@@ -77,10 +136,6 @@ class Grid:
                 rotation_model: float,                  # rotation of the model pixels
                 rotation_data: float)\
                 -> np.ndarray[float]:                   # (M, N, P, Q)
-        #mnw = centre_model + rotate(0.5 * size_model * np.ndarray((1, 1)), rotation_model)
-        #mne = centre_model + rotate(0.5 * size_model * np.ndarray((-1, 1)), rotation_model)
-        #msw =
-        #mse =
 
         pass
 
@@ -119,14 +174,14 @@ class Grid:
         xsize, ysize = (xmax - xmin) / xcount, (ymax - ymin) / ycount
 
         centres = Grid.pixel_centres(xlim, ylim, count)
-        bottom_left     = centres + pixfrac * np.array((-xsize, -ysize))
-        bottom_right    = centres + pixfrac * np.array(( xsize, -ysize))
-        top_left        = centres + pixfrac * np.array((-xsize,  ysize))
-        top_right       = centres + pixfrac * np.array(( xsize,  ysize))
+        bottom_left     = centres + pixfrac * np.array((-xsize / 2, -ysize / 2))
+        bottom_right    = centres + pixfrac * np.array(( xsize / 2, -ysize / 2))
+        top_left        = centres + pixfrac * np.array((-xsize / 2,  ysize / 2))
+        top_right       = centres + pixfrac * np.array(( xsize / 2,  ysize / 2))
         # Stack bottom and top together, keeping row-major order within pixels
-        bottom = np.stack((bottom_left, bottom_right), axis=2)
-        top    = np.stack((top_left, top_right), axis=2)
-        total = np.stack((bottom, top), axis=3)
+        left = np.stack((bottom_left, top_left), axis=2)
+        right = np.stack((bottom_right, top_right), axis=2)
+        total = np.stack((left, right), axis=3)
         return total
 
     @staticmethod
@@ -182,29 +237,56 @@ class Grid:
     def world_centres(self):
         mat = np.expand_dims(self.rot_matrix(self.rotation), (0, 1))
         pix = self.grid_centres()
-        return np.squeeze(mat @ np.expand_dims(pix, 3))
+        return np.squeeze(mat @ np.expand_dims(pix, 3), axis=3)
 
     def world_vertices(self, *, pixfrac: float = 1):
-        mat = np.expand_dims(self.rot_matrix(self.rotation), (0, 1))
-        pix = self.pixel_vertices(pixfrac=pixfrac)
-        return np.squeeze(mat @ np.expand_dims(pix, 3))
+        mat = self.rot_matrix(self.rotation)
+        pix = self.grid_vertices(pixfrac=pixfrac)
+        print("Rotation matrix:", mat)
+        print("Pixel matrix:", pix)
+        a = mat @ np.swapaxes(pix, 3, 4)
+        a = np.swapaxes(a, 3, 4)
+        print("Rotated matrix:", a)
+        return a
 
     def __str__(self):
         return f"Grid {self.width}×{self.height}, {self._xmin} to {self._xmax}, rotated by {self.rotation:.6f}"
 
+    def _print(self, func):
+        vertices = self.world_vertices(pixfrac=1)
+        for row in range(self.height):
+            for col in range(self.width):
+                print(vertices)
+                rect = vertices[row][col]
+                for v in [1, 0]:
+                    for h in [0, 1]:
+                        print(f"{h} {v} {rect[v][h][0]:+.6f}, {rect[v][h][1]:+.6f}", end=' | ' if h == 0 else '')
+                    print()
+
+    def print_grid(self):
+        return self._print(self.grid_vertices(pixfrac=1))
+
+    def print_world(self):
+        return self._print(self.world_vertices(pixfrac=1))
+
     def _intersect_trivial(self, other: Self) -> np.ndarray[float]:
-        assert math.abs(math.fmod(self.rotation - other.rotation, math.tau)) < 1e-12,\
+        assert np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-12,\
             f"{__name__} should not be used when rotations are not the same"
 
     def _intersect_general(self, other: Self) -> np.ndarray[float]:
-        assert math.abs(math.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
+        assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
             f"{__name__} should not be used when rotations are very similar to each other"
+
+        result = _
+
+        assert result.shape == (self.height, self.width, other.height, other.width)
+        return result
 
     def __matmul__(self, other: Self) -> np.ndarray[float]:
         """
         Project this grid onto another grid and return a 4D overlap matrix
         """
-        if math.abs(math.fmod(self.rotation - other.rotation, math.tau)) < 1e-15:
+        if np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-15:
             return self._intersect_trivial(other)
         else:
             return self._intersect_general(other)
