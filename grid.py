@@ -4,6 +4,9 @@ import numpy as np
 from typing import Optional, Self
 
 
+def filter_nans(array, *, axis=0):
+    return array[~np.isnan(array).any(axis=axis)]
+
 def segment_intersection(p0, p1, q0, q1):
     p = p1 - p0
     q = q1 - q0
@@ -16,65 +19,72 @@ def segment_intersection(p0, p1, q0, q1):
     )
 
 def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> float:
-    assert r1.shape == (2, 2, 2), r1.shape
-    assert r2.shape == (2, 2, 2), r2.shape
-    print(r1)
-    print(r2)
-    is1in2 = [[
+    assert r1.shape[-3:] == (2, 2, 2), r1.shape
+    assert r2.shape[-3:] == (2, 2, 2), r2.shape
+    #print(r1)
+    #print(r2)
+    is1in2 = np.array([
         _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[0][0]),
         _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[0][1]),
-    ], [
         _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[1][0]),
         _is_inside_parallelogram(r1[0][0], r1[0][1], r1[1][0], r2[1][1]),
-    ]]
-    is2in1 = [[
+    ])
+    is2in1 = np.array([
         _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[0][0]),
         _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[0][1]),
-    ], [
         _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[1][0]),
         _is_inside_parallelogram(r2[0][0], r2[0][1], r2[1][0], r1[1][1]),
-    ]]
-    inter1 = [[
+    ])
+    inter = np.array([
         _segment_intersection_general(r1[0][0], r1[0][1], r2[0][0], r2[0][1]),
         _segment_intersection_general(r1[0][1], r1[1][1], r2[0][0], r2[0][1]),
         _segment_intersection_general(r1[1][1], r1[1][0], r2[0][0], r2[0][1]),
         _segment_intersection_general(r1[1][0], r1[0][0], r2[0][0], r2[0][1]),
-    ], [
         _segment_intersection_general(r1[0][0], r1[0][1], r2[0][1], r2[1][1]),
         _segment_intersection_general(r1[0][1], r1[1][1], r2[0][1], r2[1][1]),
         _segment_intersection_general(r1[1][1], r1[1][0], r2[0][1], r2[1][1]),
         _segment_intersection_general(r1[1][0], r1[0][0], r2[0][1], r2[1][1]),
-    ],[
         _segment_intersection_general(r1[0][0], r1[0][1], r2[1][1], r2[1][0]),
         _segment_intersection_general(r1[0][1], r1[1][1], r2[1][1], r2[1][0]),
         _segment_intersection_general(r1[1][1], r1[1][0], r2[1][1], r2[1][0]),
         _segment_intersection_general(r1[1][0], r1[0][0], r2[1][1], r2[1][0]),
-    ],[
         _segment_intersection_general(r1[0][0], r1[0][1], r2[1][0], r2[0][0]),
         _segment_intersection_general(r1[0][1], r1[1][1], r2[1][0], r2[0][0]),
         _segment_intersection_general(r1[1][1], r1[1][0], r2[1][0], r2[0][0]),
         _segment_intersection_general(r1[1][0], r1[0][0], r2[1][0], r2[0][0]),
-    ]]
-    print(is1in2)
-    print(is2in1)
-    print(inter1)
+    ])
 
-    return is1in2, is2in1, inter1
-
+    # Add all 4 + 4 + 16 intersections points together, at most 8 of them are not nan
+    vertices = np.concatenate((is1in2, is2in1, inter), axis=0)
+    # Shift the frame to centre of mass, which is guaranteed to be inside the polygon
+    centre = np.nansum(vertices, axis=0) / 24
+    shifted = vertices - centre
+    # Sort the vertices by azimuth from the centre
+    azimuths = np.arctan2(shifted[:, 1], shifted[:, 0])
+    shifted = shifted[azimuths.argsort()]
+    # Replace all empty vertices with centre
+    isok = np.any(~np.isnan(shifted), axis=1)
+    first = np.tile(shifted[0, :], (24, 1)).T
+    shifted = np.where(isok, shifted.T, first).T
+    shoelace = 0.5 * np.abs(
+        np.sum(shifted[:, 0] * np.roll(shifted[:, 1], -1)) -
+        np.sum(shifted[:, 1] * np.roll(shifted[:, 0], -1))
+    )
+    return shoelace
 
 def _is_inside_parallelogram(o, p, q, x):
     return _is_inside_parallelogram_origin(p - o, q - o, x - o)
 
 def _is_inside_parallelogram_origin(p, q, x):
-    print("PQX", p, q, x)
+    #print("PQX", p, q, x)
     t = np.dot(p, x) / np.dot(p, p)
     u = np.dot(q, x) / np.dot(q, q)
-    print("TU", t, u)
+    #print("TU", t, u)
     return np.where((0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), x, np.full(shape=(2,), fill_value=np.nan))
 
 def _segment_intersection_general(p0, p1, q0, q1):
     t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
-    print(p0, p1, q0, q1, t)
+    #print("Intersect", p0, p1, q0, q1, t)
     return np.where(np.isnan(t), np.full((2,), np.nan), p0 + t * (p1 - p0))
 
 
@@ -83,7 +93,7 @@ def _segment_intersection_degenerate(p, q, b):
 
 
 def _segment_intersection_nondegenerate(p, q, b):
-    print("PQB", p, q, b)
+    #print("PQB", p, q, b)
     det = np.cross(p, q)
     t = np.divide(np.cross(b, q), det, where=det != 0)
     u = np.divide(np.cross(b, p), det, where=det != 0)
@@ -242,11 +252,11 @@ class Grid:
     def world_vertices(self, *, pixfrac: float = 1):
         mat = self.rot_matrix(self.rotation)
         pix = self.grid_vertices(pixfrac=pixfrac)
-        print("Rotation matrix:", mat)
-        print("Pixel matrix:", pix)
+      #  print("Rotation matrix:", mat)
+      #  print("Pixel matrix:", pix)
         a = mat @ np.swapaxes(pix, 3, 4)
         a = np.swapaxes(a, 3, 4)
-        print("Rotated matrix:", a)
+      #  print("Rotated matrix:", a)
         return a
 
     def __str__(self):
@@ -273,11 +283,13 @@ class Grid:
         assert np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-12,\
             f"{__name__} should not be used when rotations are not the same"
 
+        return 0
+
     def _intersect_general(self, other: Self) -> np.ndarray[float]:
         assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
             f"{__name__} should not be used when rotations are very similar to each other"
 
-        result = _
+        result = intersect_rectangles(self.world_vertices(), other.world_vertices())
 
         assert result.shape == (self.height, self.width, other.height, other.width)
         return result
@@ -286,7 +298,7 @@ class Grid:
         """
         Project this grid onto another grid and return a 4D overlap matrix
         """
-        if np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-15:
+        if np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12:
             return self._intersect_trivial(other)
         else:
             return self._intersect_general(other)

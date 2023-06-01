@@ -21,6 +21,16 @@ def rot90():
     return Grid.from_centre((0, 0), (2, 2), math.tau / 4, shape=(3, 3))
 
 
+@pytest.fixture
+def straight_unit():
+    return Grid.from_centre((0, 0), (1, 1), 0, shape=(1, 1))
+
+
+@pytest.fixture
+def diagonal_unit():
+    return Grid.from_centre((0, 0), (1, 1), math.tau / 8, shape=(1, 1))
+
+
 class TestShape:
     def test_grid_centres_shape(self, unit):
         assert unit.grid_centres().shape == (3, 3, 2)
@@ -135,3 +145,18 @@ class TestIntersection:
                                       np.array([7, 0]),
                                       np.array([8, 0])),
             np.array([np.nan, np.nan]), equal_nan=True)
+
+    def test_shape(self, unit, large):
+        assert (unit @ large).shape == (10, 5, 3, 3)
+
+    def test_octagon(self, straight_unit, diagonal_unit):
+        assert np.allclose(
+            grid.intersect_rectangles(
+                straight_unit.world_vertices()[0, 0], diagonal_unit.world_vertices()[0, 0]
+            ), np.sqrt(8) - 2)
+
+    def test_identity(self, straight_unit):
+        assert np.allclose(
+            grid.intersect_rectangles(
+                straight_unit.world_vertices()[0, 0], straight_unit.world_vertices()[0, 0]
+            ), 1)

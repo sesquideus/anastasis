@@ -15,12 +15,12 @@ import grid
 
 big = grid.Grid.from_centre((1, 2), (3, 5), math.tau / 8, shape=(3, 2))
 
-unit = grid.Grid.from_centre((0, 0), (1, 1), 0, shape=(1, 1))
-unit.print_grid()
-unit.print_world()
-rotated = grid.Grid.from_centre((0, 0), (1, 1), math.tau / 8, shape=(1, 1))
-rotated.print_grid()
-rotated.print_world()
+unit = grid.Grid.from_centre((0, 0), (1, 1), 0, shape=(2, 2))
+#unit.print_grid()
+#unit.print_world()
+rotated = grid.Grid.from_centre((0, 0), (1, 1), math.tau / 8, shape=(2, 2))
+#rotated.print_grid()
+#rotated.print_world()
 
 print(grid.intersect_rectangles(
     unit.world_vertices()[0][0], rotated.world_vertices()[0][0]
