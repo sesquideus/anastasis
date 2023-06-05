@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 
 from typing import Optional
 
@@ -54,9 +55,13 @@ class MatrixComposer:
             axis=0,
         )
 
-    def solution(self):
-        Cinv = np.linalg.inv(C)
-        ATCinv = A.T @ Cinv
-        return np.linalg.inv(ATCinv @ A) @ ATCinv
+    def solution(self, covariance=None):
+        overlap = self.model @ self.data
+        if covariance is None:
+            inv_covariance = np.identity(self.model.size)
+        else:
+            inv_covariance = np.linalg.inv(covariance)
 
+        ATCinv = A.T @ inv_covariance
+        return np.linalg.inv(ATCinv @ A) @ ATCinv
 
