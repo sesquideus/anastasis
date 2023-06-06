@@ -13,10 +13,40 @@ def segment_intersection(p0, p1, q0, q1):
     b = q0 - p0
     det = np.cross(p, q)
     return np.where(
-        np.expand_dims(det == 0, det.ndim),
+        np.expand_dims(np.abs(det) < 1e-12, det.ndim),
         _segment_intersection_degenerate(p, q, b),
         p0 + _segment_intersection_nondegenerate(p, q, b) * p,
     )
+
+def _segment_intersection_general(p0, p1, q0, q1):
+    """
+    Finds the intersection of two line segments (p0, p1) and (q0, q1)
+    Returns the coordinates of the intersection if it exists, np.ndarray([nan, nan]) otherwise
+    """
+    p0 = np.expand_dims(p0, 0)
+    p1 = np.expand_dims(p1, 0)
+    q0 = np.expand_dims(q0, 1)
+    q1 = np.expand_dims(q1, 1)
+    t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
+    return np.where(
+        np.isnan(t),
+        np.full((2,), np.nan),
+        p0 + t * (p1 - p0)
+    ).reshape(-1, 2)
+
+
+def _segment_intersection_degenerate(p, q, b):
+    return np.full(p.shape, np.nan)
+
+
+def _segment_intersection_nondegenerate(p, q, b):
+    det = np.cross(p, q)
+    t = np.divide(np.cross(b, q), det, where=np.abs(det) > 1e-12)
+    u = np.divide(np.cross(b, p), det, where=np.abs(det) > 1e-12)
+    t = np.expand_dims(t, t.ndim)
+    u = np.expand_dims(u, u.ndim)
+    return np.where((np.expand_dims(det, det.ndim) != 0) & (0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), t, np.nan)
+
 
 def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.ndarray[float]:
     """
@@ -26,7 +56,7 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
     assert r1.shape[-3:] == (2, 2, 2), f"r1 shape is {r1.shape}, expected (..., 2, 2, 2)"
     assert r2.shape[-3:] == (2, 2, 2), f"r2 shape is {r2.shape}, expected (..., 2, 2, 2)"
 
-    # Find vertices of one rectangle that lie within the other, and vice versa
+    # Find all vertices of one rectangle that lie within the other, and vice versa
     inside = np.concatenate([
         np.array([
             _is_inside_parallelogram(r1[:, 0, 0, :], r1[:, 0, 1, :], r1[:, 1, 0, :], r2[:, (x & 2) >> 1, x & 1, :]),
@@ -48,17 +78,19 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
 
     # Add all 4 + 4 + 16 intersections points together, at most 8 of them are not nan
     vertices = np.concatenate((inside, intersections), axis=0)
-    print(vertices)
+    # If there are no intersections, replace everything by zeroes
+    intersecting = ~np.all(np.isnan(vertices), axis=0)
+    vertices = np.where(intersecting, vertices, 0)
     # Shift the frame to centre of mass, which is guaranteed to be inside the (convex) polygon
-    centre = np.nansum(vertices, axis=0) / 24
+    centre = np.nanmean(vertices, axis=0)
     shifted = vertices - centre
     # Sort the vertices by azimuth from the centre of mass
     azimuths = np.arctan2(shifted[..., 1], shifted[..., 0])
     shifted = np.take_along_axis(shifted, azimuths.argsort(axis=0)[..., np.newaxis], 0)
     # Replace all empty vertices with the zeroth vertex
-    isok = np.expand_dims(np.any(~np.isnan(shifted), axis=2), 2)
+    has_intersection = np.expand_dims(np.any(~np.isnan(shifted), axis=2), 2)
     zeroth = np.tile(shifted[0, :], (24, 1, 1))
-    shifted = np.where(isok, shifted, zeroth)
+    shifted = np.where(has_intersection, shifted, zeroth)
     # It is enough to take first 8 points as there cannot be more intersections:
     # all further points are now guaranteed to be same as the zeroth
     #shifted = shifted[:8, ...]
@@ -94,36 +126,6 @@ def _is_inside_parallelogram_origin(p, q, x):
         x,
         np.full((*t.shape, 2), fill_value=np.nan)
     )
-
-def _segment_intersection_general(p0, p1, q0, q1):
-    """
-    Finds the intersection of two line segments (p0, p1) and (q0, q1)
-    Returns the coordinates of the intersection if it exists, np.ndarray([nan, nan]) otherwise
-    """
-    p0 = np.expand_dims(p0, 0)
-    p1 = np.expand_dims(p1, 0)
-    q0 = np.expand_dims(q0, 1)
-    q1 = np.expand_dims(q1, 1)
-    t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
-    return np.where(
-        np.isnan(t),
-        np.full((2,), np.nan),
-        p0 + t * (p1 - p0)
-    ).reshape(-1, 2)
-
-
-def _segment_intersection_degenerate(p, q, b):
-    return np.full(p.shape, np.nan)
-
-
-def _segment_intersection_nondegenerate(p, q, b):
-    det = np.cross(p, q)
-    t = np.divide(np.cross(b, q), det, where=det != 0)
-    u = np.divide(np.cross(b, p), det, where=det != 0)
-    t = np.expand_dims(t, t.ndim)
-    u = np.expand_dims(u, u.ndim)
-    return np.where((0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), t, np.nan)
-
 
 class Grid:
     def __init__(self,
@@ -271,6 +273,22 @@ class Grid:
     def rotation(self):
         return self._rotation
 
+    @property
+    def left(self):
+        return self._xmin
+
+    @property
+    def right(self):
+        return self._xmax
+
+    @property
+    def bottom(self):
+        return self._ymin
+
+    @property
+    def top(self):
+        return self._ymax
+
     def grid_centres(self):
         return self.pixel_centres(
             (self._xmin, self._xmax),
@@ -296,8 +314,7 @@ class Grid:
         pix = self.grid_vertices()
       #  print("Rotation matrix:", mat)
       #  print("Pixel matrix:", pix)
-        a = mat @ np.swapaxes(pix, 3, 4)
-        a = np.swapaxes(a, 3, 4)
+        a = np.swapaxes(mat @ np.swapaxes(pix, 3, 4), 3, 4)
       #  print("Rotated matrix:", a)
         return a
 
@@ -305,21 +322,21 @@ class Grid:
         return f"Grid {self.width}×{self.height}, {self._xmin} to {self._xmax}, rotated by {self.rotation:.6f}"
 
     def _print(self, func):
-        vertices = self.world_vertices(pixfrac=1)
+        vertices = self.world_vertices()
         for row in range(self.height):
             for col in range(self.width):
                 print(vertices)
-                rect = vertices[row][col]
+                rect = vertices[row, col]
                 for v in [1, 0]:
                     for h in [0, 1]:
                         print(f"{h} {v} {rect[v][h][0]:+.6f}, {rect[v][h][1]:+.6f}", end=' | ' if h == 0 else '')
                     print()
 
     def print_grid(self):
-        return self._print(self.grid_vertices(pixfrac=1))
+        return self._print(self.grid_vertices())
 
     def print_world(self):
-        return self._print(self.world_vertices(pixfrac=1))
+        return self._print(self.world_vertices())
 
     def _overlap_aligned(self, other: Self) -> np.ndarray[float]:
         assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12,\
@@ -346,17 +363,14 @@ class Grid:
         return np.clip(intercept + slope * np.abs(delta), 0.0, 1.0)
 
     def _overlap_generic(self, other: Self) -> np.ndarray[float]:
-       # assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
-       #     f"{__name__} should not be used when rotations are very similar to each other"
+        # assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
+        #     f"{__name__} should not be used when rotations are very similar to each other"
 
         result = intersect_rectangles(
-            self.world_vertices().reshape(-1, 2, 2, 2),
             other.world_vertices().reshape(-1, 2, 2, 2),
-        ).reshape((*self.shape, *other.shape))
-
-        assert result.shape == (self.height, self.width, other.height, other.width),\
-            f"{__name__} returns wrong shape {result.shape},"\
-            f"should be {(self.height, self.width, other.height, other.width)}"
+            self.world_vertices().reshape(-1, 2, 2, 2),
+        )
+        result = result.reshape((*self.shape, *other.shape))
         return result
 
     def __matmul__(self, other: Self) -> np.ndarray[float]:

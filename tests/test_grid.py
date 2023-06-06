@@ -107,6 +107,17 @@ class TestCreation:
         with pytest.raises(AssertionError):
             _ = Grid.from_centre((0, 0), (3, 8), rotation=math.tau / 2)
 
+    def test_grid_coordinates(self):
+        grid = Grid.from_centre((0, 0), (1.1, 1.3), shape=(1, 1))
+        assert np.allclose(grid.grid_vertices(), np.array([
+            [
+                [-0.55, -0.65],
+                [ 0.55, -0.65],
+            ], [
+                [-0.55,  0.65],
+                [ 0.55,  0.65],
+            ]
+        ]))
 
 class TestRotation:
     def test_top_left(self, unit):
@@ -236,6 +247,5 @@ class TestOverlap:
     ])
     def test_overlapped(self, two_by_three, three_by_four, x, y, expected):
         overlap = two_by_three @ three_by_four
-        print(overlap)
         assert np.allclose(overlap[0, 0, x, y], expected)
 
