@@ -3,129 +3,9 @@ import numpy as np
 
 from typing import Optional, Self, Union
 
+from linesegment import _segment_intersection_general
+from rectangle import intersect_rectangles
 
-def filter_nans(array, *, axis=0):
-    return array[~np.isnan(array).any(axis=axis)]
-
-def segment_intersection(p0, p1, q0, q1):
-    p = p1 - p0
-    q = q1 - q0
-    b = q0 - p0
-    det = np.cross(p, q)
-    return np.where(
-        np.expand_dims(np.abs(det) < 1e-12, det.ndim),
-        _segment_intersection_degenerate(p, q, b),
-        p0 + _segment_intersection_nondegenerate(p, q, b) * p,
-    )
-
-def _segment_intersection_general(p0, p1, q0, q1):
-    """
-    Finds the intersection of two line segments (p0, p1) and (q0, q1)
-    Returns the coordinates of the intersection if it exists, np.ndarray([nan, nan]) otherwise
-    """
-    p0 = np.expand_dims(p0, 0)
-    p1 = np.expand_dims(p1, 0)
-    q0 = np.expand_dims(q0, 1)
-    q1 = np.expand_dims(q1, 1)
-    t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
-    return np.where(
-        np.isnan(t),
-        np.full((2,), np.nan),
-        p0 + t * (p1 - p0)
-    ).reshape(-1, 2)
-
-
-def _segment_intersection_degenerate(p, q, b):
-    return np.full(p.shape, np.nan)
-
-
-def _segment_intersection_nondegenerate(p, q, b):
-    det = np.cross(p, q)
-    t = np.divide(np.cross(b, q), det, where=np.abs(det) > 1e-12)
-    u = np.divide(np.cross(b, p), det, where=np.abs(det) > 1e-12)
-    t = np.expand_dims(t, t.ndim)
-    u = np.expand_dims(u, u.ndim)
-    return np.where((np.expand_dims(det, det.ndim) != 0) & (0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), t, np.nan)
-
-
-def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.ndarray[float]:
-    """
-    Takes two arrays of rectangles and computes the area of their overlap
-    Works when none of the edges are aligned
-    """
-    assert r1.shape[-3:] == (2, 2, 2), f"r1 shape is {r1.shape}, expected (..., 2, 2, 2)"
-    assert r2.shape[-3:] == (2, 2, 2), f"r2 shape is {r2.shape}, expected (..., 2, 2, 2)"
-
-    # Find all vertices of one rectangle that lie within the other, and vice versa
-    inside = np.concatenate([
-        np.array([
-            _is_inside_parallelogram(r1[:, 0, 0, :], r1[:, 0, 1, :], r1[:, 1, 0, :], r2[:, (x & 2) >> 1, x & 1, :]),
-            _is_inside_parallelogram(r2[:, 0, 0, :], r2[:, 0, 1, :], r2[:, 1, 0, :], r1[:, (x & 2) >> 1, x & 1, :]),
-        ]) for x in range(0, 4)
-    ], axis=0)
-    # Find nontrivial intersections of all pairs of edges
-    # The index cycles through the edges of both rectangles in a clever way
-    # See https://ksvi.mff.cuni.cz/~kryl/dokumentace.htm#koment, last line:
-    # "Definitely add comments to lines where you are proud of how clever your solution is.
-    # From my own experience, it pays off to start looking for insidious bugs right there."
-    intersections = np.array([
-        _segment_intersection_general(r1[:, (      x & 2) >> 1, ((x + 1) & 2) >> 1, :],
-                                      r1[:, ((x + 1) & 2) >> 1, ((x + 2) & 2) >> 1, :],
-                                      r2[:, (      x & 8) >> 3, ((x + 4) & 8) >> 3, :],
-                                      r2[:, ((x + 4) & 8) >> 3, ((x + 8) & 8) >> 3, :])
-        for x in range(0, 16)
-    ])
-
-    # Add all 4 + 4 + 16 intersections points together, at most 8 of them are not nan
-    vertices = np.concatenate((inside, intersections), axis=0)
-    # If there are no intersections, replace everything by zeroes
-    intersecting = ~np.all(np.isnan(vertices), axis=0)
-    vertices = np.where(intersecting, vertices, 0)
-    # Shift the frame to centre of mass, which is guaranteed to be inside the (convex) polygon
-    centre = np.nanmean(vertices, axis=0)
-    shifted = vertices - centre
-    # Sort the vertices by azimuth from the centre of mass
-    azimuths = np.arctan2(shifted[..., 1], shifted[..., 0])
-    shifted = np.take_along_axis(shifted, azimuths.argsort(axis=0)[..., np.newaxis], 0)
-    # Replace all empty vertices with the zeroth vertex
-    has_intersection = np.expand_dims(np.any(~np.isnan(shifted), axis=2), 2)
-    zeroth = np.tile(shifted[0, :], (24, 1, 1))
-    shifted = np.where(has_intersection, shifted, zeroth)
-    # It is enough to take first 8 points as there cannot be more intersections:
-    # all further points are now guaranteed to be same as the zeroth
-    #shifted = shifted[:8, ...]
-    # Compute the quasideterminant: total area is given by the sum of areas of all triangles
-    # (centre -- p_x -- p_(x+1))
-    shoelace = 0.5 * np.abs(
-        np.sum(shifted[..., 0] * np.roll(shifted[..., 1], -1, axis=0), axis=0) -
-        np.sum(shifted[..., 1] * np.roll(shifted[..., 0], -1, axis=0), axis=0)
-    )
-    # Finally reshape to the shape of Cartesian product of the original inputs
-    return shoelace.reshape((r1.shape[0], r2.shape[0]))
-
-def _is_inside_parallelogram(o, p, q, x):
-    """
-    Determine whether point x is within the parallelogram determined by points o, p, q,
-    that is (o, p, q, p+q-o) = o + (0, p, q, p+q)
-    """
-    o = np.expand_dims(o, 0)
-    p = np.expand_dims(p, 0)
-    q = np.expand_dims(q, 0)
-    x = np.expand_dims(x, 1)
-    return (o + _is_inside_parallelogram_origin(p - o, q - o, x - o)).reshape(-1, 2)
-
-def _is_inside_parallelogram_origin(p, q, x):
-    """
-    Determine whether point x is within the oriented parallelogram determined by vectors p and q
-    Returns x if True, np.ndarray([nan, nan]) if false
-    """
-    t = np.multiply(p, x).sum(axis=2) / np.multiply(p, p).sum(axis=2)
-    u = np.multiply(q, x).sum(axis=2) / np.multiply(q, q).sum(axis=2)
-    return np.where(
-        np.expand_dims((0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), 2),
-        x,
-        np.full((*t.shape, 2), fill_value=np.nan)
-    )
 
 class Grid:
     def __init__(self,
@@ -147,7 +27,8 @@ class Grid:
             the number of pixels in the grid (height, width)
         data:
             array of shape (height, width)
-        pixfrac
+        pixfrac:
+            scaling factor for pixels, either a single float or 2-tuple
         """
         self._xmin, self._xmax = xlim
         self._ymin, self._ymax = ylim
@@ -237,8 +118,8 @@ class Grid:
     @staticmethod
     def rot_matrix(angle: float):
         return np.array([
-            [np.cos(angle), -np.sin(angle)],
-            [np.sin(angle), np.cos(angle)]
+            [np.cos(angle), np.sin(angle)],
+            [-np.sin(angle), np.cos(angle)]
         ])
 
     @property
@@ -366,12 +247,10 @@ class Grid:
         # assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
         #     f"{__name__} should not be used when rotations are very similar to each other"
 
-        result = intersect_rectangles(
-            other.world_vertices().reshape(-1, 2, 2, 2),
-            self.world_vertices().reshape(-1, 2, 2, 2),
+        return intersect_rectangles(
+            other.world_vertices(),
+            self.world_vertices(),
         )
-        result = result.reshape((*self.shape, *other.shape))
-        return result
 
     def __matmul__(self, other: Self) -> np.ndarray[float]:
         """

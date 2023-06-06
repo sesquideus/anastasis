@@ -4,7 +4,8 @@ import numpy as np
 
 import grid
 from grid import Grid
-
+from linesegment import segment_intersection
+from rectangle import intersect_rectangles
 
 @pytest.fixture
 def unit():
@@ -126,7 +127,7 @@ class TestRotation:
         assert np.allclose(unit.world_centres(), unit.grid_centres())
 
     def test_rot90(self, unit, rot90):
-        assert np.allclose(rot90.world_centres(), np.rot90(unit.world_centres()))
+        assert np.allclose(rot90.world_centres(), -np.rot90(unit.world_centres()))
 
     def test_rot90_static(self, unit, rot90):
         assert np.allclose(rot90.grid_centres(), unit.world_centres())
@@ -135,7 +136,7 @@ class TestRotation:
 class TestLineSegment:
     def test_trivial(self):
         assert np.allclose(
-            grid.segment_intersection(np.array([0, 0]),
+            segment_intersection(np.array([0, 0]),
                                       np.array([3, 6]),
                                       np.array([3, 0]),
                                       np.array([0, 6])),
@@ -143,7 +144,7 @@ class TestLineSegment:
 
     def test_generic(self):
         assert np.allclose(
-            grid.segment_intersection(np.array([1, 1]),
+            segment_intersection(np.array([1, 1]),
                                       np.array([3, 6]),
                                       np.array([4, 2]),
                                       np.array([2, 7])),
@@ -152,7 +153,7 @@ class TestLineSegment:
 
 class TestLineSegmentIntersection:
     def test_intersection(self):
-        inter = grid.segment_intersection(
+        inter = segment_intersection(
             np.array([[[0, 0], [1, 1], [-1, -1]], [[ 5,  7], [   3, 4],   [4, 2]]]),
             np.array([[[2, 0], [3, 6], [ 1,  1]], [[ 1, -3], [-9.5, 2.5], [4, 2]]]),
             np.array([[[0, 1], [4, 2], [ 1,  0]], [[-4, 10], [   7, 7],   [4, 2]]]),
@@ -182,7 +183,7 @@ class TestLineSegmentIntersection:
     ])
     def test_no_intersection(self, p0, p1, q0, q1):
         assert np.allclose(
-            grid.segment_intersection(p0, p1, q0, q1),
+            segment_intersection(p0, p1, q0, q1),
             np.array([np.nan, np.nan]), equal_nan=True)
 
 
@@ -207,8 +208,8 @@ class TestOverlap:
     def test_squares(self, straight_unit, angle, expected):
         microrotated = Grid.from_centre((0, 0), (1, 1), rotation=angle, shape=(1, 1))
         assert np.allclose(
-            grid.intersect_rectangles(
-                straight_unit.world_vertices().reshape(-1, 2, 2, 2), microrotated.world_vertices().reshape(-1, 2, 2, 2)
+            intersect_rectangles(
+                straight_unit.world_vertices(), microrotated.world_vertices()
             ), expected, rtol=1e-6)
 
     @pytest.mark.parametrize("r,c", [(4, 4), (7, 9), (10, 20)])
