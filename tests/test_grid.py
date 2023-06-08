@@ -9,108 +9,185 @@ from rectangle import intersect_rectangles
 
 @pytest.fixture
 def unit():
-    return Grid.from_centre((0, 0), (2, 2), rotation=0, shape=(3, 3))
+    return Grid((0, 0), (2, 2), rotation=0, shape=(3, 3))
 
 
 @pytest.fixture
 def small():
-    return Grid.from_centre((0, 0), (2, 2), rotation=1, shape=(2, 5))
+    return Grid((0, 0), (2, 2), rotation=1, shape=(2, 5))
 
 
 @pytest.fixture
 def two_by_three():
-    return Grid((0, 2), (0, 3), rotation=0, shape=(3, 2))
+    return Grid((1, 1.5), (2, 3), rotation=0, shape=(3, 2))
+
+
+@pytest.fixture
+def lucia():
+    """
+    Lucia is a 2×2 grid at (1, 1) of physical size 1×1, without rotation
+    """
+    return Grid((1, 1), (1, 1), rotation=0, shape=(2, 2), pixfrac=0.8)
+
+
+@pytest.fixture
+def maria():
+    """
+    Maria is like Lucia, but rotated 30°
+    """
+    return Grid((1, 1), (1, 1), rotation=np.radians(30), shape=(2, 2), pixfrac=0.8)
 
 
 @pytest.fixture
 def three_by_four():
-    return Grid((0, 3), (0, 4), rotation=0, shape=(4, 3))
+    return Grid((1.5, 2), (3, 4), rotation=0, shape=(4, 3))
 
 
 @pytest.fixture
 def large():
-    return Grid.from_centre((0, 0), (20, 10), rotation=35, shape=(10, 5))
+    return Grid((0, 0), (20, 10), rotation=np.radians(35), shape=(5, 10))
 
 
 @pytest.fixture
 def rot90():
-    return Grid.from_centre((0, 0), (2, 2), rotation=math.tau / 4, shape=(3, 3))
+    return Grid((0, 0), (2, 2), rotation=math.tau / 4, shape=(3, 3))
 
 
 @pytest.fixture
 def straight_unit():
-    return Grid.from_centre((0, 0), (1, 1), rotation=0, shape=(1, 1))
+    return Grid((0, 0), (1, 1), rotation=0, shape=(1, 1))
 
 
 @pytest.fixture
 def diagonal_unit():
-    return Grid.from_centre((0, 0), (1, 1), rotation=math.tau / 8, shape=(1, 1))
+    return Grid((0, 0), (1, 1), rotation=math.tau / 8, shape=(1, 1))
 
 
 class TestShape:
     def test_grid_centres_shape(self, unit):
-        assert unit.grid_centres().shape == (3, 3, 2)
+        assert unit.grid_centres.shape == (3, 3, 2)
 
     def test_grid_vertices_shape(self, unit):
-        assert unit.grid_vertices().shape == (3, 3, 2, 2, 2)
+        assert unit.grid_vertices.shape == (3, 3, 2, 2, 2)
 
     def test_grid_centres(self, unit):
-        assert np.allclose(unit.grid_centres()[0][0], (-2 / 3, -2 / 3))
+        assert np.allclose(unit.grid_centres[0, 0], (-2 / 3, -2 / 3))
 
     def test_grid_vertices_bottom_left(self, unit):
-        assert np.allclose(unit.grid_vertices()[1][1][0][0], (-1 / 3, -1 / 3))
+        assert np.allclose(unit.grid_vertices[1, 1, 0, 0], (-1 / 3, -1 / 3))
 
     def test_grid_vertices_bottom_right(self, unit):
-        assert np.allclose(unit.grid_vertices()[1][1][0][1], (1 / 3, -1 / 3))
+        assert np.allclose(unit.grid_vertices[1, 1, 0, 1], (1 / 3, -1 / 3))
 
     def test_grid_vertices_top_left(self, unit):
-        assert np.allclose(unit.grid_vertices()[1][1][1][0], (-1 / 3, 1 / 3))
+        assert np.allclose(unit.grid_vertices[1, 1, 1, 0], (-1 / 3, 1 / 3))
 
     def test_grid_vertices_top_right(self, unit):
-        assert np.allclose(unit.grid_vertices()[1][1][1][1], (1 / 3, 1 / 3))
+        assert np.allclose(unit.grid_vertices[1, 1, 1, 1], (1 / 3, 1 / 3))
 
     def test_grid_vertices_extra(self, unit):
-        unit._pixfrac = 0.1
-        assert np.allclose(unit.grid_vertices()[0][0][0][0], (-21 / 30, -21 / 30))
+        unit._pixfrac_w = 0.1
+        unit._pixfrac_h = 0.1
+        assert np.allclose(unit.grid_vertices[0, 0, 0, 0], (-21 / 30, -21 / 30))
+
+
+class TestLucia:
+    def test_centre(self, lucia):
+        assert np.allclose(lucia.centre, (1, 1))
+
+    def test_borders(self, lucia):
+        assert lucia.left == -0.5
+        assert lucia.right == 0.5
+        assert lucia.bottom == -0.5
+        assert lucia.top == 0.5
+
+    def test_grid_centres(self, lucia):
+        assert np.allclose(lucia.grid_centres,
+                           [
+                               [[-0.25, -0.25], [0.25, -0.25]],
+                               [[-0.25, 0.25], [0.25, 0.25]],
+                           ])
+
+    def test_world_centres(self, lucia):
+        assert np.allclose(lucia.world_centres,
+                           [
+                               [[0.75, 0.75], [1.25, 0.75]],
+                               [[0.75, 1.25], [1.25, 1.25]],
+                           ])
+
+    def test_world_vertices(self, lucia):
+        assert np.allclose(lucia.grid_vertices,
+                           [
+                               [
+                                   [
+                                       [[-0.45, -0.45], [-0.05, -0.45]],
+                                       [[-0.45, -0.05], [-0.05, -0.05]],
+                                   ],
+                                   [
+                                       [[ 0.05, -0.45], [ 0.45, -0.45]],
+                                       [[ 0.05, -0.05], [ 0.45, -0.05]],
+                                   ],
+                               ], [
+                                   [
+                                       [[-0.45,  0.05], [-0.05,  0.05]],
+                                       [[-0.45,  0.45], [-0.05,  0.45]],
+                                   ],
+                                   [
+                                       [[ 0.05,  0.05], [ 0.45,  0.05]],
+                                       [[ 0.05,  0.45], [ 0.45,  0.45]],
+                                   ],
+                               ]
+                           ])
+
+
+class TestMaria:
+    def test_world_centres(self, maria):
+        sin = np.sin(np.radians(30)) * 0.25
+        cos = np.cos(np.radians(30)) * 0.25
+        assert np.allclose(maria.world_centres,
+                           [
+                               [[1 - sin - cos, 1 + sin - cos], [1 - sin + cos, 1 - sin - cos]],
+                               [[1 + sin - cos, 1 + sin + cos], [1 + sin + cos, 1 - sin + cos]],
+                           ])
 
 
 class TestProperties:
     def test_size(self, large):
-        assert large.shape == (10, 5)
+        assert large.shape == (5, 10)
 
     def test_pixel_size(self, large):
-        assert np.allclose(large.pixel_size, (1, 4))
+        assert np.allclose(large.pixel_size, (2.0, 2.0))
 
     def test_limits(self, large):
         assert large.width, large.height == (20, 10)
 
     def test_grid_centres(self, large):
-        assert np.allclose(large.grid_centres()[7][3], (4, 2.5))
+        assert np.allclose(large.grid_centres[3, 7], (5, 2))
 
 
 class TestCreation:
     def test_data_provided(self):
-        grid = Grid.from_centre((0, 0), (5, 3), data=np.zeros((3, 3)))
+        grid = Grid((0, 0), (5, 3), data=np.zeros((3, 3)))
         assert grid.shape == (3, 3)
 
     def test_shape_provided(self):
-        grid = Grid.from_centre((0, 0), (5, 3), data=np.ones((3, 3)))
+        grid = Grid((0, 0), (5, 3), data=np.ones((3, 3)))
         assert np.allclose(grid._data, np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]))
 
     def test_both_provided_correct(self):
-        assert Grid.from_centre((0, 0), (5, 3), shape=(3, 3), data=np.zeros((3, 3)))
+        assert Grid((0, 0), (5, 3), shape=(3, 3), data=np.zeros((3, 3)))
 
     def test_both_provided_incorrect(self):
         with pytest.raises(AssertionError):
-            _ = Grid.from_centre((0, 0), (5, 3), shape=(3, 3), data=np.zeros((4, 5)))
+            _ = Grid((0, 0), (5, 3), shape=(3, 3), data=np.zeros((4, 5)))
 
     def test_none_provided(self):
         with pytest.raises(AssertionError):
-            _ = Grid.from_centre((0, 0), (3, 8), rotation=math.tau / 2)
+            _ = Grid((0, 0), (3, 8), rotation=math.tau / 2)
 
     def test_grid_coordinates(self):
-        grid = Grid.from_centre((0, 0), (1.1, 1.3), shape=(1, 1))
-        assert np.allclose(grid.grid_vertices(), np.array([
+        grid = Grid((0, 0), (1.1, 1.3), shape=(1, 1))
+        assert np.allclose(grid.grid_vertices, np.array([
             [
                 [-0.55, -0.65],
                 [ 0.55, -0.65],
@@ -124,13 +201,13 @@ class TestRotation:
     def test_top_left(self, unit):
         c = np.cos(math.tau)
         s = np.sin(math.tau)
-        assert np.allclose(unit.world_centres(), unit.grid_centres())
+        assert np.allclose(unit.world_centres, unit.grid_centres)
 
     def test_rot90(self, unit, rot90):
-        assert np.allclose(rot90.world_centres(), -np.rot90(unit.world_centres()))
+        assert np.allclose(rot90.world_centres, -np.rot90(unit.world_centres))
 
     def test_rot90_static(self, unit, rot90):
-        assert np.allclose(rot90.grid_centres(), unit.world_centres())
+        assert np.allclose(rot90.grid_centres, unit.world_centres)
 
 
 class TestLineSegment:
@@ -195,8 +272,8 @@ class TestOverlap:
         assert (small @ unit).shape == (2, 5, 3, 3)
 
     def test_shape_random(self):
-        first = Grid.from_centre((0, 0), (1, 1), rotation=3.4, shape=(7, 8))
-        second = Grid.from_centre((0, 0), (1, 1), rotation=math.tau / 2, shape=(9, 10))
+        first = Grid((0, 0), (1, 1), rotation=3.4, shape=(7, 8))
+        second = Grid((0, 0), (1, 1), rotation=math.tau / 2, shape=(9, 10))
         assert (first @ second).shape == (7, 8, 9, 10)
 
     @pytest.mark.parametrize("angle,expected", [
@@ -206,10 +283,10 @@ class TestOverlap:
         (math.tau / 8, np.sqrt(8) - 2) # for 45° we get an octagon
     ])
     def test_squares(self, straight_unit, angle, expected):
-        microrotated = Grid.from_centre((0, 0), (1, 1), rotation=angle, shape=(1, 1))
+        microrotated = Grid((0, 0), (1, 1), rotation=angle, shape=(1, 1))
         assert np.allclose(
             intersect_rectangles(
-                straight_unit.world_vertices(), microrotated.world_vertices()
+                straight_unit.world_vertices, microrotated.world_vertices
             ), expected, rtol=1e-6)
 
     @pytest.mark.parametrize("r,c", [(4, 4), (7, 9), (10, 20)])
@@ -233,8 +310,8 @@ class TestOverlap:
         """
         Test simple aligned grids -- this can be visualized easily
         """
-        model = Grid((0, 10), (0, 10), shape=(8, 8))
-        data = Grid((0, 10), (0, 10), shape=(10, 10))
+        model = Grid((5, 5), (10, 10), shape=(8, 8))
+        data = Grid((5, 5), (10, 10), shape=(10, 10))
 
         overlap = model._overlap_aligned(data)
         assert np.allclose(overlap[0, 0, x, y], expected)

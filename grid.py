@@ -9,34 +9,39 @@ from rectangle import intersect_rectangles
 
 class Grid:
     def __init__(self,
-                 xlim: tuple[float, float],
-                 ylim: tuple[float, float],
+                 centre: tuple[float, float],
+                 extent: tuple[float, float],
                  *,
                  rotation: float = 0,
                  pixfrac: Union[float, tuple[float, float]] = 1,
                  shape: Optional[tuple[int, int]] = None,
                  data: Optional[np.ndarray] = None):
         """
-        xlim:
-            x limits of the entire grid in grid coordinates
-        ylim:
-            y limits of the entire grid in grid coordinates
+        centre:
+            x, y coordinates of the physical centre of the grid
+        extent:
+            physical size of the entire grid
         rotation:
-            oriented angle between the grid and world coordinates
+            oriented angle between the grid and world coordinates (positive anti-clockwise)
         shape:
             the number of pixels in the grid (height, width)
         data:
-            array of shape (height, width)
+            optional, pixel values array of shape (height, width)
         pixfrac:
-            scaling factor for pixels, either a single float or 2-tuple
+            scaling factor for pixels (horizontal, vertical), either a single float or 2-tuple
         """
-        self._xmin, self._xmax = xlim
-        self._ymin, self._ymax = ylim
+        self._cx, self._cy = centre
+        self._pwidth, self._pheight = extent
+        assert self.physical_width > 0, f"Physical width of the grid must be > 0, is {self.physical_width}"
+        assert self.physical_height > 0, f"Physical height of the grid must be > 0, is {self.physical_height}"
+
         self._rotation = rotation
+
         if isinstance(pixfrac, float) or isinstance(pixfrac, int):
-            self._pixfrac = (pixfrac, pixfrac)
+            self._pixfrac_w = pixfrac
+            self._pixfrac_h = pixfrac
         elif isinstance(pixfrac, tuple):
-            self._pixfrac = pixfrac
+            self._pixfrac_w, self._pixfrac_h = pixfrac
         else:
             raise TypeError(f"{__name__}: pixfrac must be a float or a 2-tuple of floats")
 
@@ -50,20 +55,6 @@ class Grid:
             assert data.ndim == 2, "Data must form a 2D array"
             self._data = data
             self._height, self._width = data.shape
-
-    @staticmethod
-    def from_centre(centre: tuple[float, float],
-                    size: tuple[float, float],
-                    *,
-                    rotation: float = 0,
-                    pixfrac: Union[float, tuple[float, float]] = 1,
-                    shape: tuple[int, int] = None,
-                    data: Optional[np.ndarray] = None):
-        cx, cy = centre
-        sx, sy = size
-        return Grid((cx - sx / 2, cx + sx / 2),
-                    (cy - sy / 2, cy + sy / 2),
-                    rotation=rotation, shape=shape, data=data, pixfrac=pixfrac)
 
     @staticmethod
     def pixel_centres(xlim: tuple[float, float],
@@ -123,11 +114,52 @@ class Grid:
         ])
 
     @property
-    def width(self):
+    def cx(self):
+        """
+        Centre of the physical grid, x coordinate
+        """
+        return self._cx
+
+    @property
+    def cy(self):
+        """
+        Centre of the physical grid, y coordinate
+        """
+        return self._cy
+
+    @property
+    def centre(self) -> np.ndarray[float]:
+        """
+        Coordinates of the centre of the grid
+        """
+        return np.array([self.cx, self.cy], dtype=float)
+
+    @property
+    def physical_width(self):
+        """
+        Physical width of the grid
+        """
+        return self._pwidth
+
+    @property
+    def physical_height(self):
+        """
+        Physical height of the grid
+        """
+        return self._pheight
+
+    @property
+    def width(self) -> int:
+        """
+        Number of pixels in horizontal direction (grid coordinates)
+        """
         return self._width
 
     @property
-    def height(self):
+    def height(self) -> int:
+        """
+        Number of pixels in vertical direction (grid coordinates)
+        """
         return self._height
 
     @property
@@ -139,68 +171,104 @@ class Grid:
         return self._width * self._height
 
     @property
+    def left(self):
+        """
+        Left border in grid coordinates
+        """
+        return -self.physical_width / 2.0
+
+    @property
+    def right(self):
+        """
+        Right border in grid coordinates
+        """
+        return self.physical_width / 2.0
+
+    @property
+    def bottom(self):
+        """
+        Bottom border in grid coordinates
+        """
+        return -self.physical_height / 2.0
+
+    @property
+    def top(self):
+        """
+        Top border in grid coordinates
+        """
+        return self.physical_height / 2.0
+
+    @property
+    def pixfrac_w(self):
+        return self._pixfrac_w
+
+    @property
+    def pixfrac_h(self):
+        return self._pixfrac_h
+
+    @property
+    def pixfrac(self) -> tuple[float, float]:
+        return (self.pixfrac_w, self.pixfrac_h)
+
+    @property
+    def element_width(self):
+        return self.physical_width / self.width
+
+    @property
+    def element_height(self):
+        return self.physical_height / self.height
+
+    @property
     def pixel_width(self):
-        return (self._xmax - self._xmin) / self.width
+        return self.element_width * self.pixfrac_w
 
     @property
     def pixel_height(self):
-        return (self._ymax - self._ymin) / self.height
+        return self.element_height * self.pixfrac_h
 
     @property
     def pixel_size(self):
         return (self.pixel_height, self.pixel_width)
 
     @property
+    def pixel_area(self):
+        return self.pixel_height * self.pixel_width
+
+    @property
     def rotation(self):
         return self._rotation
 
     @property
-    def left(self):
-        return self._xmin
-
-    @property
-    def right(self):
-        return self._xmax
-
-    @property
-    def bottom(self):
-        return self._ymin
-
-    @property
-    def top(self):
-        return self._ymax
-
     def grid_centres(self):
         return self.pixel_centres(
-            (self._xmin, self._xmax),
-            (self._ymin, self._ymax),
+            (self.left, self.right),
+            (self.bottom, self.top),
             (self.width, self.height),
         )
 
+    @property
     def grid_vertices(self):
         return self.pixel_vertices(
-            (self._xmin, self._xmax),
-            (self._ymin, self._ymax),
+            (self.left, self.right),
+            (self.bottom, self.top),
             (self.width, self.height),
-            pixfrac=self._pixfrac,
+            pixfrac=(self._pixfrac_w, self._pixfrac_h),
         )
 
+    @property
     def world_centres(self):
         mat = np.expand_dims(self.rot_matrix(self.rotation), (0, 1))
-        pix = self.grid_centres()
-        return np.squeeze(mat @ np.expand_dims(pix, 3), axis=3)
+        return np.squeeze(mat @ np.expand_dims(self.grid_centres, 3), axis=3) + self.centre
 
+    @property
     def world_vertices(self):
         mat = self.rot_matrix(self.rotation)
-        pix = self.grid_vertices()
-      #  print("Rotation matrix:", mat)
-      #  print("Pixel matrix:", pix)
-        a = np.swapaxes(mat @ np.swapaxes(pix, 3, 4), 3, 4)
-      #  print("Rotated matrix:", a)
-        return a
+        vertices = self.grid_vertices
+        return np.swapaxes(mat @ np.swapaxes(vertices, 3, 4), 3, 4) + self.centre
 
     def __str__(self):
-        return f"Grid {self.width}×{self.height}, {self._xmin} to {self._xmax}, rotated by {self.rotation:.6f}"
+        return f"Grid at {self.cx}, {self.cy} of physical size {self.width}×{self.height}, "\
+            f"shape {self.shape}, rotated by {self.rotation:.6f}"
 
     def _print(self, func):
         vertices = self.world_vertices()
@@ -214,23 +282,22 @@ class Grid:
                     print()
 
     def print_grid(self):
-        return self._print(self.grid_vertices())
+        return self._print(self.grid_vertices)
 
     def print_world(self):
-        return self._print(self.world_vertices())
+        return self._print(self.world_vertices)
 
     def _overlap_aligned(self, other: Self) -> np.ndarray[float]:
         assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12,\
-            f"{__name__} should not be used when rotations are not the same"
+            f"{__name__} must not be used when rotations are not the same"
 
-        model = self.grid_centres().reshape((-1, 2))
-        data = other.grid_centres().reshape((-1, 2))
-        delta = model[:, np.newaxis] - data[np.newaxis, :]
-
+        model = self.grid_centres
+        data = other.grid_centres
+        delta = np.expand_dims(model, (2, 3)) - np.expand_dims(data, (0, 1))
         return (
             self._overlap_single(delta[..., 0], self.pixel_width, other.pixel_width) *
             self._overlap_single(delta[..., 1], self.pixel_height, other.pixel_height)
-        ).reshape((*self.shape, *other.shape))
+        )
 
     @staticmethod
     def _overlap_single(delta, data, model) -> np.ndarray[float]:
@@ -247,10 +314,7 @@ class Grid:
         # assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
         #     f"{__name__} should not be used when rotations are very similar to each other"
 
-        return intersect_rectangles(
-            other.world_vertices(),
-            self.world_vertices(),
-        )
+        return intersect_rectangles(other.world_vertices, self.world_vertices) / other.pixel_area
 
     def __matmul__(self, other: Self) -> np.ndarray[float]:
         """
