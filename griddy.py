@@ -1,4 +1,4 @@
-#!/usr/env/bin python
+#!/usr/bin/env python
 
 import math
 import numpy as np
@@ -31,15 +31,15 @@ overlap = data @ model
 print(data.world_vertices[10, 5])
 print(model.world_vertices[20, 19])
 print(overlap[10, 5, 20, 19])
-#
-#
-#
-#for x in range(0, 20):
-#    for y in range(0, 11):
-overlap = data @ model
-plt.imshow(np.sum(overlap, axis=(0, 1)),
-           extent=(model.left, model.right, model.bottom, model.top),
-           cmap='hot', vmin=0)
-plt.colorbar()
-plt.savefig(f'overlap.png')
-plt.close('all')
+
+
+
+for x in np.linspace(0, math.tau, 100):
+    data = grid.Grid((0, 0), (19, 11), rotation=x, shape=(20, 11))
+    overlap = data @ model
+    plt.imshow(np.sum(overlap, axis=(0, 1)),
+               extent=(model.left, model.right, model.bottom, model.top),
+               cmap='hot', vmin=0)
+    plt.colorbar()
+    plt.savefig(f'overlap-{x}.png')
+    plt.close('all')
