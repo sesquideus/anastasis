@@ -327,3 +327,7 @@ class TestOverlap:
         overlap = two_by_three @ three_by_four
         assert np.allclose(overlap[0, 0, x, y], expected)
 
+    def test_rotation(self, two_by_three, three_by_four):
+        rotated = three_by_four
+        rotated._rotation += np.pi
+        assert np.allclose(rotated @ two_by_three, three_by_four @ two_by_three)

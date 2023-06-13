@@ -33,9 +33,9 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
         for x in range(0, 16)
     ])
 
-    print(a[..., 10, 5, 20, 19, :])
-    print(b[..., 10, 5, 20, 19, :])
-    print(intersections[..., 10, 5, 20, 19, :])
+    #print(a[..., 10, 5, 20, 19, :])
+    #print(b[..., 10, 5, 20, 19, :])
+    #print(intersections[..., 10, 5, 20, 19, :])
 
     # Add all 4 + 4 + 16 intersections points together, at most 8 of them are not nan
     vertices = np.concatenate((a, b, intersections), axis=0)
@@ -55,8 +55,7 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
     # Compute the quasideterminant: total area is given by the sum of areas of all triangles
     # (centre -- p_x -- p_(x+1))
     shoelace = 0.5 * np.abs(
-        np.sum(shifted[..., 0] * np.roll(shifted[..., 1], -1, axis=0), axis=0) -
-        np.sum(shifted[..., 1] * np.roll(shifted[..., 0], -1, axis=0), axis=0)
+        np.sum(shifted[..., 0] * (np.roll(shifted[..., 1], -1, axis=0) - np.roll(shifted[..., 1], 1, axis=0)), axis=0)
     )
     # Finally reshape to the shape of Cartesian product of the original inputs
     return shoelace
@@ -82,7 +81,8 @@ def _is_inside_parallelogram_origin(p, q, x):
     t = np.multiply(p, x).sum(axis=-1) / np.multiply(p, p).sum(axis=-1)
     u = np.multiply(q, x).sum(axis=-1) / np.multiply(q, q).sum(axis=-1)
     return np.where(
-        np.expand_dims((-1e-15 <= t) & (t <= 1) & (-1e-15 <= u) & (u <= 1), -1),
+        #np.expand_dims((0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), -1),
+        np.expand_dims((-1e-15 <= t) & (t <= 1 + 1e-15) & (-1e-15 <= u) & (u <= 1 + 1e-15), -1),
         x,
         np.full((*t.shape, 2), fill_value=np.nan)
     )

@@ -22,7 +22,7 @@ def _segment_intersection_general(p0, p1, q0, q1):
     q0 = np.expand_dims(q0, (2, 3))
     q1 = np.expand_dims(q1, (2, 3))
     t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
-    print(t[10, 5, 20, 19])
+    # return the intersection point if it exists or a 2-tuple of nans if there is no intersection
     return np.where(
         np.isnan(t),
         np.full((2,), np.nan),
