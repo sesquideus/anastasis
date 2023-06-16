@@ -164,6 +164,9 @@ class TestProperties:
     def test_grid_centres(self, large):
         assert np.allclose(large.grid_centres[3, 7], (5, 2))
 
+    def test_str(self, large):
+        assert str(large) == f"Grid at 0, 0 of physical size 20×10, shape (5, 10), rotated by {np.radians(35):.6f}"
+
 
 class TestCreation:
     def test_data_provided(self):
@@ -196,6 +199,15 @@ class TestCreation:
                 [ 0.55,  0.65],
             ]
         ]))
+
+    def test_pixfrac_type(self):
+        with pytest.raises(TypeError):
+            _ = Grid((0, 0), (1, 1), shape=(1, 1), pixfrac='half')
+
+    def test_pixfrac_value(self):
+        with pytest.raises(ValueError):
+            _ = Grid((0, 0), (1, 1), shape=(1, 1), pixfrac=(-0.5, -0.3))
+
 
 class TestRotation:
     def test_top_left(self, unit):
@@ -331,3 +343,15 @@ class TestOverlap:
         rotated = three_by_four
         rotated._rotation += np.pi
         assert np.allclose(rotated @ two_by_three, three_by_four @ two_by_three)
+
+    @pytest.mark.parametrize("size,shape,rotation", [
+        ((5, 5), (3, 7), 1),
+        ((8, 3), (5, 4), 0.5),
+        ((2, 7), (3, 3), 0.8),
+        ((8, 3), (4, 4), -0.5),
+        ((8, 3), (10, 10), math.tau),
+        ((8, 3), (5, 4), 0),
+    ])
+    def test_identity(self, size, shape, rotation):
+        data = grid.Grid((0, 0), size, rotation=rotation, shape=shape)
+        assert np.allclose(np.sum(data @ data, axis=(0, 1)), np.ones(shape=data.shape))

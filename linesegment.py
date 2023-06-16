@@ -7,10 +7,10 @@ def segment_intersection(p0, p1, q0, q1):
     b = q0 - p0
     det = np.cross(p, q)
     return np.where(
-        np.expand_dims(np.abs(det) < 1e-12, det.ndim),
+        np.expand_dims(np.abs(det) < 1e-15, det.ndim),
         _segment_intersection_degenerate(p, q, b),
         p0 + _segment_intersection_nondegenerate(p, q, b) * p,
-        )
+    )
 
 def _segment_intersection_general(p0, p1, q0, q1):
     """
@@ -35,9 +35,9 @@ def _segment_intersection_degenerate(p, q, b):
 
 
 def _segment_intersection_nondegenerate(p, q, b):
-    det = np.cross(p, q)
-    t = np.divide(np.cross(b, q), det, where=np.abs(det) > 0)
-    u = np.divide(np.cross(b, p), det, where=np.abs(det) > 0)
+    det = np.cross(p, q).astype(float)
+    t = np.divide(np.cross(b, q), det, where=np.abs(det) > 1e-15, out=np.full_like(det, np.nan))
+    u = np.divide(np.cross(b, p), det, where=np.abs(det) > 1e-15, out=np.full_like(det, np.nan))
     t = np.expand_dims(t, t.ndim)
     u = np.expand_dims(u, u.ndim)
-    return np.where((np.expand_dims(det, det.ndim) != 0) & (0 <= t) & (t <= 1) & (0 <= u) & (u <= 1), t, np.nan)
+    return np.where((np.expand_dims(det, det.ndim) != 0) & (-1e-15 <= t) & (t <= 1 + 1e-15) & (-1e-15 <= u) & (u <= 1 + 1e-15), t, np.nan)

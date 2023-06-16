@@ -45,6 +45,9 @@ class Grid:
         else:
             raise TypeError(f"{__name__}: pixfrac must be a float or a 2-tuple of floats")
 
+        if self.pixfrac_h <= 0 or self.pixfrac_w <= 0:
+            raise ValueError(f"{__name__}: pixfrac must be > 0")
+
         if data is None:
             assert shape is not None, "You must provide either shape or explicit initial data"
             self._height, self._width = shape
@@ -267,7 +270,7 @@ class Grid:
         return np.swapaxes(mat @ np.swapaxes(vertices, 3, 4), 3, 4) + self.centre
 
     def __str__(self):
-        return f"Grid at {self.cx}, {self.cy} of physical size {self.width}×{self.height}, "\
+        return f"Grid at {self.cx}, {self.cy} of physical size {self.physical_width}×{self.physical_height}, "\
             f"shape {self.shape}, rotated by {self.rotation:.6f}"
 
     def _print(self, func):
@@ -276,7 +279,7 @@ class Grid:
             for col in range(self.width):
                 print(vertices)
                 rect = vertices[row, col]
-                for v in [1, 0]:
+                for v in [0, 1]:
                     for h in [0, 1]:
                         print(f"{h} {v} {rect[v][h][0]:+.6f}, {rect[v][h][1]:+.6f}", end=' | ' if h == 0 else '')
                     print()
@@ -321,8 +324,9 @@ class Grid:
         Project this grid onto another grid and return a 4D overlap matrix
         """
         if np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12:
-            # When rectangles are aligned, use the simple algorithm
+            # When rectangles are aligned, use the generic algorithm anyway
             return self._overlap_generic(other)
+            #return self._overlap_aligned(other)
         else:
             # When rectangles are not aligned, use the generic approach
             return self._overlap_generic(other)

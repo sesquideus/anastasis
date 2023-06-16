@@ -35,10 +35,10 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
 
     #print(a[..., 10, 5, 20, 19, :])
     #print(b[..., 10, 5, 20, 19, :])
-    #print(intersections[..., 10, 5, 20, 19, :])
 
     # Add all 4 + 4 + 16 intersections points together, at most 8 of them are not nan
     vertices = np.concatenate((a, b, intersections), axis=0)
+
     # If there are no intersections, replace everything by zeroes
     intersecting = ~np.all(np.isnan(vertices), axis=0)
     vertices = np.where(intersecting, vertices, 0)
@@ -52,12 +52,22 @@ def intersect_rectangles(r1: np.ndarray[float], r2: np.ndarray[float]) -> np.nda
     has_intersection = np.expand_dims(np.any(~np.isnan(shifted), axis=5), 5)
     zeroth = np.tile(shifted[0, :], (24, 1, 1, 1, 1, 1))
     shifted = np.where(has_intersection, shifted, zeroth)
+    #print(shifted[..., 1, 3, 2, 3, :])
     # Compute the quasideterminant: total area is given by the sum of areas of all triangles
     # (centre -- p_x -- p_(x+1))
     shoelace = 0.5 * np.abs(
         np.sum(shifted[..., 0] * (np.roll(shifted[..., 1], -1, axis=0) - np.roll(shifted[..., 1], 1, axis=0)), axis=0)
     )
-    # Finally reshape to the shape of Cartesian product of the original inputs
+    #print(shoelace[1, 3])
+    #x = 15
+    #v = _segment_intersection_general(r1[..., (x & 2) >> 1, ((x + 1) & 2) >> 1, :],
+    #                              r1[..., ((x + 1) & 2) >> 1, ((x + 2) & 2) >> 1, :],
+    #                              r2[..., (x & 8) >> 3, ((x + 4) & 8) >> 3, :],
+    #                              r2[..., ((x + 4) & 8) >> 3, ((x + 8) & 8) >> 3, :])
+    #print(r1[1, 3, (x & 2) >> 1, ((x + 1) & 2) >> 1, :],
+    #                                  r1[1, 3, ((x + 1) & 2) >> 1, ((x + 2) & 2) >> 1, :],
+    #                                  r2[2, 3, (x & 8) >> 3, ((x + 4) & 8) >> 3, :],
+    #                                  r2[2, 3, ((x + 4) & 8) >> 3, ((x + 8) & 8) >> 3, :])
     return shoelace
 
 
