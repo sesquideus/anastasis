@@ -5,7 +5,7 @@ import numpy as np
 import grid
 from grid import Grid
 from linesegment import segment_intersection
-from rectangle import intersect_rectangles
+from rectangle import intersect_rectangles, euclidean_distance
 
 @pytest.fixture
 def unit():
@@ -165,7 +165,8 @@ class TestProperties:
         assert np.allclose(large.grid_centres[3, 7], (5, 2))
 
     def test_str(self, large):
-        assert str(large) == f"Grid at 0, 0 of physical size 20×10, shape (5, 10), rotated by {np.radians(35):.6f}"
+        assert str(large) == f"Grid at 0.000000, 0.000000 of physical size 20×10, " \
+                             f"shape (5, 10), rotated by {np.radians(35):.6f}"
 
 
 class TestCreation:
@@ -303,13 +304,20 @@ class TestOverlap:
 
     @pytest.mark.parametrize("r,c", [(4, 4), (7, 9), (10, 20)])
     @pytest.mark.parametrize("rot", [0, math.tau / 8, math.tau / 4])
-    def test_overlap_identic(self, r, c, rot):
+    def test_overlap_aligned(self, r, c, rot):
         """
         Overlap of a grid with itself should be a unit matrix
         """
         model = Grid((0, 1), (5, 6), rotation=rot, shape=(r, c))
         overlap = model._overlap_aligned(model).reshape(r * c, r * c)
         assert np.allclose(np.eye(r * c), overlap)
+
+    @pytest.mark.parametrize("r,c", [(6, 2), (4, 5), (11, 13)])
+    @pytest.mark.parametrize("rot", [0, math.tau / 8, math.tau / 4, math.tau / 2])
+    def test_overlap_onto(self, r, c, rot):
+        model = Grid((2, 2), (7, 9), rotation=rot, shape=(r, c))
+        overlap = model.onto(model)
+        assert np.allclose(overlap, np.eye(model.size))
 
     @pytest.mark.parametrize("x,y,expected", [
         (0, 0, 1),      # total overlap
@@ -344,14 +352,50 @@ class TestOverlap:
         rotated._rotation += np.pi
         assert np.allclose(rotated @ two_by_three, three_by_four @ two_by_three)
 
+    def test_inverse(self):
+        first = Grid((0, 0), (3, 5), shape=(4, 5))
+        second = Grid((0, 0), (4, 7), shape=(5, 7))
+        assert first.onto(second).shape == second.onto(first).T.shape
+
     @pytest.mark.parametrize("size,shape,rotation", [
         ((5, 5), (3, 7), 1),
         ((8, 3), (5, 4), 0.5),
+        ((3, 3), (3, 3), 0),
         ((2, 7), (3, 3), 0.8),
         ((8, 3), (4, 4), -0.5),
         ((8, 3), (10, 10), math.tau),
         ((8, 3), (5, 4), 0),
+        ((20, 20), (20, 20), 0)
     ])
     def test_identity(self, size, shape, rotation):
         data = grid.Grid((0, 0), size, rotation=rotation, shape=shape)
         assert np.allclose(np.sum(data @ data, axis=(0, 1)), np.ones(shape=data.shape))
+
+
+
+class TestEuclideanDistance():
+    def test_1D(self):
+        assert np.allclose(
+            euclidean_distance(
+                np.array([[2], [3], [5], [7]]),
+                np.array([[3], [4], [11], [-1]]),
+            ),
+            np.array([
+                [1, 0, 2, 4],
+                [2, 1, 1, 3],
+                [9, 8, 6, 4],
+                [3, 4, 6, 8],
+            ])
+        )
+
+    def test_2D(self):
+        assert np.allclose(
+            euclidean_distance(np.array([[2, 3], [7, 2]]), np.array([[1, 4], [-3, 4]])),
+            np.array([[np.sqrt(2), np.sqrt(40)], [np.sqrt(26), np.sqrt(104)]]),
+        )
+
+    def test_4D(self):
+        assert np.allclose(
+            euclidean_distance(np.array([[0, 0, 0, 0]]), np.array([[12, 3, 4, 84]])),
+            np.array([[85]]),
+        )

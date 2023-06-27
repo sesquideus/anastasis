@@ -1,6 +1,11 @@
 import numpy as np
 
 
+# Slack constant: to avoid false negatives in intersections, change condition from
+# 0 <= t <= 1 to -SLACK <= t <= 1 + SLACK. False positives add negligible errors.
+SLACK = 1e-14
+
+
 def segment_intersection(p0, p1, q0, q1):
     p = p1 - p0
     q = q1 - q0
@@ -17,10 +22,12 @@ def _segment_intersection_general(p0, p1, q0, q1):
     Finds the intersection of two line segments (p0, p1) and (q0, q1)
     Returns the coordinates of the intersection if it exists, np.ndarray([nan, nan]) otherwise
     """
-    p0 = np.expand_dims(p0, (0, 1))
-    p1 = np.expand_dims(p1, (0, 1))
-    q0 = np.expand_dims(q0, (2, 3))
-    q1 = np.expand_dims(q1, (2, 3))
+    insert_p = tuple(range(q0.ndim - 1))
+    insert_q = tuple(range(q0.ndim - 1, p0.ndim + q0.ndim - 2))
+    p0 = np.expand_dims(p0, insert_p)
+    p1 = np.expand_dims(p1, insert_p)
+    q0 = np.expand_dims(q0, insert_q)
+    q1 = np.expand_dims(q1, insert_q)
     t = _segment_intersection_nondegenerate(p1 - p0, q1 - q0, q0 - p0)
     # return the intersection point if it exists or a 2-tuple of nans if there is no intersection
     return np.where(
@@ -36,8 +43,12 @@ def _segment_intersection_degenerate(p, q, b):
 
 def _segment_intersection_nondegenerate(p, q, b):
     det = np.cross(p, q).astype(float)
-    t = np.divide(np.cross(b, q), det, where=np.abs(det) > 1e-15, out=np.full_like(det, np.nan))
-    u = np.divide(np.cross(b, p), det, where=np.abs(det) > 1e-15, out=np.full_like(det, np.nan))
+    t = np.divide(np.cross(b, q), det, where=np.abs(det) > SLACK, out=np.full_like(det, np.nan))
+    u = np.divide(np.cross(b, p), det, where=np.abs(det) > SLACK, out=np.full_like(det, np.nan))
     t = np.expand_dims(t, t.ndim)
     u = np.expand_dims(u, u.ndim)
-    return np.where((np.expand_dims(det, det.ndim) != 0) & (-1e-15 <= t) & (t <= 1 + 1e-15) & (-1e-15 <= u) & (u <= 1 + 1e-15), t, np.nan)
+    return np.where(
+        (np.expand_dims(det, det.ndim) != 0) & (-SLACK <= t) & (t <= 1 + SLACK) & (-SLACK <= u) & (u <= 1 + SLACK),
+        t,
+        np.nan
+    )

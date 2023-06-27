@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+from PIL import Image
 from typing import Optional, Self, Union
 
 from linesegment import _segment_intersection_general
@@ -58,6 +59,11 @@ class Grid:
             assert data.ndim == 2, "Data must form a 2D array"
             self._data = data
             self._height, self._width = data.shape
+
+    @staticmethod
+    def load(filename):
+        image = np.array(Image.open(filename).resize((60, 80)))
+        return Grid((0, 0), reversed(image.shape), data=image)
 
     @staticmethod
     def pixel_centres(xlim: tuple[float, float],
@@ -174,6 +180,10 @@ class Grid:
         return self._width * self._height
 
     @property
+    def extent(self):
+        return (self.left, self.right, self.bottom, self.top)
+
+    @property
     def left(self):
         """
         Left border in grid coordinates
@@ -270,7 +280,7 @@ class Grid:
         return np.swapaxes(mat @ np.swapaxes(vertices, 3, 4), 3, 4) + self.centre
 
     def __str__(self):
-        return f"Grid at {self.cx}, {self.cy} of physical size {self.physical_width}×{self.physical_height}, "\
+        return f"Grid at {self.cx:.6f}, {self.cy:.6f} of physical size {self.physical_width}×{self.physical_height}, "\
             f"shape {self.shape}, rotated by {self.rotation:.6f}"
 
     def _print(self, func):
@@ -292,7 +302,7 @@ class Grid:
 
     def _overlap_aligned(self, other: Self) -> np.ndarray[float]:
         assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12,\
-            f"{__name__} must not be used when rotations are not the same"
+            f"{__name__} may not be used when rotations are not the same"
 
         model = self.grid_centres
         data = other.grid_centres
@@ -305,7 +315,7 @@ class Grid:
     @staticmethod
     def _overlap_single(delta, data, model) -> np.ndarray[float]:
         """
-        Calculate overlap of two line segments of lengths "data" and "model" in one dimension
+        Calculate overlap of two line segments of    lengths "data" and "model" in one dimension
         when their centres are separated by "delta"
         Adapted from oczoske/lms_reconst
         """
@@ -314,19 +324,28 @@ class Grid:
         return np.clip(intercept + slope * np.abs(delta), 0.0, 1.0)
 
     def _overlap_generic(self, other: Self) -> np.ndarray[float]:
-        # assert np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) >= 1e-12, \
-        #     f"{__name__} should not be used when rotations are very similar to each other"
-
         return intersect_rectangles(other.world_vertices, self.world_vertices) / other.pixel_area
+
+    def onto(self, other: Self) -> np.ndarray[float]:
+        if np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-12:
+            raw = self._overlap_aligned(other)
+        else:
+            raw = self._overlap_generic(other)
+        return raw.reshape((self.size, other.size))
+
+    def resample_onto(self, other: Self) -> Self:
+        other._data = np.matmul(other.onto(self), self._data.ravel()[:, np.newaxis]).reshape(other.shape) *\
+                      self.pixel_area / other.pixel_area
+        return other
 
     def __matmul__(self, other: Self) -> np.ndarray[float]:
         """
         Project this grid onto another grid and return a 4D overlap matrix
         """
-        if np.abs(np.fmod(self.rotation - other.rotation, math.tau / 4)) < 1e-12:
+        if np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-12:
             # When rectangles are aligned, use the generic algorithm anyway
-            return self._overlap_generic(other)
-            #return self._overlap_aligned(other)
+            #return self._overlap_generic(other)
+            return self._overlap_aligned(other)
         else:
             # When rectangles are not aligned, use the generic approach
             return self._overlap_generic(other)
