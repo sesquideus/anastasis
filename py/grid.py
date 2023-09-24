@@ -124,51 +124,37 @@ class Grid:
 
     @property
     def cx(self):
-        """
-        Centre of the physical grid, x coordinate
-        """
+        """ Centre of the physical grid, x coordinate """
         return self._cx
 
     @property
     def cy(self):
-        """
-        Centre of the physical grid, y coordinate
-        """
+        """ Centre of the physical grid, y coordinate """
         return self._cy
 
     @property
     def centre(self) -> np.ndarray[float]:
-        """
-        Coordinates of the centre of the grid
-        """
+        """ Coordinates of the centre of the grid """
         return np.array([self.cx, self.cy], dtype=float)
 
     @property
     def physical_width(self):
-        """
-        Physical width of the grid
-        """
+        """ Physical width of the grid """
         return self._pwidth
 
     @property
     def physical_height(self):
-        """
-        Physical height of the grid
-        """
+        """ Physical height of the grid """
         return self._pheight
 
     @property
     def width(self) -> int:
-        """
-        Number of pixels in horizontal direction (grid coordinates)
-        """
+        """ Number of pixels in horizontal direction (grid coordinates) """
         return self._width
 
     @property
     def height(self) -> int:
-        """
-        Number of pixels in vertical direction (grid coordinates)
-        """
+        """ Number of pixels in vertical direction (grid coordinates) """
         return self._height
 
     @property
@@ -185,30 +171,22 @@ class Grid:
 
     @property
     def left(self):
-        """
-        Left border in grid coordinates
-        """
+        """ Left border in grid coordinates """
         return -self.physical_width / 2.0
 
     @property
     def right(self):
-        """
-        Right border in grid coordinates
-        """
+        """ Right border in grid coordinates """
         return self.physical_width / 2.0
 
     @property
     def bottom(self):
-        """
-        Bottom border in grid coordinates
-        """
+        """ Bottom border in grid coordinates """
         return -self.physical_height / 2.0
 
     @property
     def top(self):
-        """
-        Top border in grid coordinates
-        """
+        """ Top border in grid coordinates """
         return self.physical_height / 2.0
 
     @property
@@ -284,10 +262,9 @@ class Grid:
             f"shape {self.shape}, rotated by {self.rotation:.6f}"
 
     def _print(self, func):
-        vertices = self.world_vertices()
+        vertices = self.world_vertices
         for row in range(self.height):
             for col in range(self.width):
-                print(vertices)
                 rect = vertices[row, col]
                 for v in [0, 1]:
                     for h in [0, 1]:
@@ -310,21 +287,21 @@ class Grid:
         return (
             self._overlap_single(delta[..., 0], self.pixel_width, other.pixel_width) *
             self._overlap_single(delta[..., 1], self.pixel_height, other.pixel_height)
-        )
+        ) * self.pixel_area
 
     @staticmethod
     def _overlap_single(delta, data, model) -> np.ndarray[float]:
         """
-        Calculate overlap of two line segments of    lengths "data" and "model" in one dimension
+        Calculate overlap of two line segments of lengths "data" and "model" in one dimension
         when their centres are separated by "delta"
         Adapted from oczoske/lms_reconst
         """
-        intercept = (data + model) / (2 * model)
-        slope = -1.0 / model
+        intercept = (data + model) / (2 * data)
+        slope = -1.0 / data
         return np.clip(intercept + slope * np.abs(delta), 0.0, 1.0)
 
     def _overlap_generic(self, other: Self) -> np.ndarray[float]:
-        return intersect_rectangles(other.world_vertices, self.world_vertices) / other.pixel_area
+        return intersect_rectangles(other.world_vertices, self.world_vertices) * other.pixel_area
 
     def onto(self, other: Self) -> np.ndarray[float]:
         if np.abs(np.fmod(self.rotation - other.rotation, math.tau)) < 1e-12:

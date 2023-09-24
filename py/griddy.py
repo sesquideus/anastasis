@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib import ticker
 
-np.set_printoptions(threshold=1e6)
+np.set_printoptions(threshold=1000000)
 plt.rcParams["font.family"] = "Minion Pro"
 plt.rcParams["font.size"] = 24
 

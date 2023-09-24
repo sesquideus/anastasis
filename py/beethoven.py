@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import math
 import numpy as np
 from matplotlib import pyplot as plt
@@ -16,7 +18,7 @@ composer = MatrixComposer(
 composer.create()
 
 def empty():
-    fig, ax = plt.subplots(1, 1, figsize=(8, 5), dpi=100)
+    fig, ax = plt.subplots(1, 1, figsize=(8, 5), dpi=300)
     fig.tight_layout()
     return fig, ax
 
@@ -24,12 +26,14 @@ def plot_original():
     fig, ax = empty()
     img = ax.imshow(original._data, cmap='hot', vmin=0, extent=original.extent, aspect=1)
     ax.set_aspect('equal')
+    fig.colorbar(img)
     fig.savefig('output/original.png')
 
 def plot_resampled():
     fig, ax = empty()
-    img = ax.imshow(view._data, cmap='hot', vmin=0, extent=view.extent, aspect=1)
+    img = ax.imshow(view._data, cmap='hot', vmin=0, extent=view.extent, aspect=1, interpolation='nearest')
     ax.set_aspect('equal')
+    fig.colorbar(img)
     fig.savefig('output/resampled.png')
 
 
@@ -67,9 +71,12 @@ def plot_solution():
 #plot_solution()
 
 original = Grid.load('pingvys.bmp')
-view = Grid((0, 0), (60, 80), shape=(100, 75), rotation=0)
+view = Grid((0, 0), (60, 80), shape=(241, 181), rotation=np.radians(0))
 
+print("Resampling...")
 original.resample_onto(view)
+print("Plotting the original")
 plot_original()
+print("Plotting resampled")
 plot_resampled()
 
