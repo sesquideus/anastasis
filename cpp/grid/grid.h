@@ -2,24 +2,45 @@
 #define GRID_H
 
 #include "../types/types.h"
+#include "pixel.h"
+
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+#include "canonicalgrid.h"
 #include <Eigen/Sparse>
 
 class Grid {
 private:
     unsigned int size_w_;
     unsigned int size_h_;
+    Point centre_;
     real phys_w_;
     real phys_h_;
     real rotation_;
-    real fill_factor_;
+    real pixfrac_x_;
+    real pixfrac_y_;
+    real pixel_width_;
+    real pixel_height_;
 public:
-    Grid(unsigned int width, unsigned int height, real physical_width, real physical_height, real rotation);
-    Grid(const Grid & parent);
+    Grid(Point centre, std::pair<unsigned int, unsigned int> grid_size, std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac);
+//    Grid(const Grid && parent);
 
-    Eigen::SparseMatrix<real> onto(const Grid & other);
+    Point grid_centre(unsigned int x, unsigned int y) const;
+    Point world_centre(unsigned int x, unsigned int y) const;
 
-    static Point<2> segment_intersection(Point<2> p0, Point<2> p1, Point<2> q0, Point<2> q1);
-    static Point<2> segment_intersection_nondeg(Point<2> p, Point<2> q, Point<2> b);
+    Pixel grid_pixel(unsigned int x, unsigned int y) const;
+    Pixel world_pixel(unsigned int x, unsigned int y) const;
+
+    Eigen::SparseMatrix<real> onto_canonical(const CanonicalGrid & canonical) const;
+
+    void print() const;
+    void print_world() const;
+
+    Grid & operator+=(Point shift);
+    Grid & operator-=(Point shift);
+    Grid & operator*=(real scale);
+    Grid & operator/=(real scale);
 };
+
 
 #endif // GRID_H

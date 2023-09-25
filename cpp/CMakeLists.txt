@@ -4,6 +4,9 @@ project(anastasis_cpp)
 set(CMAKE_CXX_STANDARD 23)
 set(EIGEN_DIR "/home/kvik/eigen/")
 
+find_package(fmt)
+target_link_libraries(fmt::fmt)
+
 include_directories("/home/kvik/aster/anastasis/cpp/")
 include_directories(${EIGEN_DIR})
 add_executable(
@@ -23,4 +26,9 @@ add_executable(
         spatial/structures/kdtree.h
         spatial/structures/balltree.cpp
         spatial/structures/balltree.h
+        grid/pixel.cpp
+        grid/pixel.h
+        grid/canonicalgrid.cpp
+        grid/canonicalgrid.h
+        types/point.cpp
 )
