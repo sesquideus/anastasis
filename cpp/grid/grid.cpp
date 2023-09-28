@@ -52,10 +52,18 @@ Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & other) const {
-    for (unsigned int i = 0; i < this->size_w_; ++i) {
-        for (unsigned int j = 0; j < this->size_h_; ++j) {
-            this->world_pixel(i, j).bounding_box();
+Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) const {
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t, real>> active_pixels;
+    for (std::size_t i = 0; i < this->size_w_; ++i) {
+        for (std::size_t j = 0; j < this->size_h_; ++j) {
+            auto p = this->world_pixel(i, j).bounding_box();
+
+            for (std::size_t x = std::max(0, p.bottom()); x < std::min(canonical.width(), p.top()); ++x) {
+                for (std::size_t y = std::max(0, p.left()); y < std::min(canonical.height(), p.right()); ++y) {
+                    real overlap = this->world_pixel(i, j).overlap(canonical.pixel(x, y));
+                    active_pixels.push_back({i, j, x, y, overlap});
+                }
+            }
         }
     }
 

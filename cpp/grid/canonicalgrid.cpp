@@ -10,3 +10,11 @@ std::vector<std::vector<Pixel>> CanonicalGrid::coordinates() {
     return output;
 
 }
+
+Pixel CanonicalGrid::pixel(unsigned int x, unsigned int y) const {
+    real left = static_cast<real>(x);
+    real right = static_cast<real>(x) + 1.0;
+    real bottom = static_cast<real>(y);
+    real top = static_cast<real>(y) + 1.0;
+    return Pixel(Point(left, bottom), Point(right, bottom), Point(left, top), Point(right, top));
+}

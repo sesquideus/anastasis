@@ -3,6 +3,10 @@
 
 #include <array>
 #include "../types/point.h"
+#include "box.h"
+
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
 
 class Pixel {
 private:
@@ -18,7 +22,7 @@ public:
     inline Point d() const { return this->corners_[1][0]; }
 
     [[nodiscard]] inline std::array<std::array<Point, 2>, 2> corners() const { return this->corners_; };
-    [[nodiscard]] Pixel bounding_box(real slack = 1e-6) const;
+    [[nodiscard]] Box bounding_box(real slack = 1e-9) const;
     void print() const;
     [[nodiscard]] bool contains(Point point) const;
 
@@ -26,5 +30,27 @@ public:
     [[nodiscard]] real overlap(const Pixel & other) const; // Area of overlap
 };
 
+
+template<>
+class fmt::formatter<Pixel> {
+private:
+    char presentation = 'f';
+
+public:
+    constexpr auto parse(fmt::format_parse_context & ctx) -> fmt::format_parse_context::iterator {
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && (*it == 'f' || *it == 'e')) presentation = *it++;
+        if (it != end && *it != '}') return it;
+        return it;
+    }
+
+    auto format(const Pixel & pixel, format_context & ctx) const -> format_context::iterator {
+        return presentation == 'f'
+               ? fmt::format_to(ctx.out(), "(({:f}, {:f}), ({:f}, {:f}))",
+                                pixel.corners()[0][0], pixel.corners()[0][1], pixel.corners()[1][0], pixel.corners()[1][1])
+               : fmt::format_to(ctx.out(), "(({:e}, {:e}), ({:e}, {:e}))",
+                                pixel.corners()[0][0], pixel.corners()[0][1], pixel.corners()[1][0], pixel.corners()[1][1]);
+    }
+};
 
 #endif //ANASTASIS_CPP_PIXEL_H

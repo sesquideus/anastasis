@@ -3,6 +3,7 @@ project(anastasis_cpp)
 
 set(CMAKE_CXX_STANDARD 23)
 set(EIGEN_DIR "/home/kvik/eigen/")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 
 find_package(fmt)
 target_link_libraries(fmt::fmt)
@@ -31,4 +32,7 @@ add_executable(
         grid/canonicalgrid.cpp
         grid/canonicalgrid.h
         types/point.cpp
+        utils/functions.h
+        grid/box.cpp
+        grid/box.h
 )

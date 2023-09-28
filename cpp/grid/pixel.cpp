@@ -24,20 +24,20 @@ void Pixel::print() const {
     );
 }
 
-Pixel Pixel::bounding_box(real slack) const {
+Box Pixel::bounding_box(real slack) const {
     /**
      * Returns a bounding box: the smallest aligned Pixel structure that is guaranteed to cover
-     * the entire area of the pixel + a tiny constant <slack>. Useful for determining overlaps
-     * with the canonical grid.
+     * the entire area of the pixel + optionally a tiny constant <slack>.
+     * Useful for determining overlaps with the canonical grid.
      */
     auto xs = {this->corners_[0][0].x, this->corners_[0][1].x, this->corners_[1][0].x, this->corners_[1][1].x};
     auto ys = {this->corners_[0][0].y, this->corners_[0][1].y, this->corners_[1][0].y, this->corners_[1][1].y};
-    real minx = std::min(xs) - slack;
-    real maxx = std::max(xs) + slack;
-    real miny = std::min(ys) - slack;
-    real maxy = std::max(ys) + slack;
+    int minx = static_cast<int>(floor(std::min(xs) - slack));
+    int maxx = static_cast<int>(ceil(std::max(xs) + slack));
+    int miny = static_cast<int>(floor(std::min(ys) - slack));
+    int maxy = static_cast<int>(ceil(std::max(ys) + slack));
 
-    return Pixel(Point(minx, miny), Point(minx, maxy), Point(maxx, miny), Point(maxx, maxy));
+    return Box(minx, maxx, miny, maxy);
 }
 
 bool Pixel::contains(Point point) const {
@@ -72,10 +72,10 @@ real Pixel::overlap(const Pixel & other) const {
 
     /* Find all the intersections over the Cartesian product of this and other pixel's edges */
     for (unsigned char i = 0; i < 16; ++i) {
-        auto point = Point::line_intersection(this->corners_[(      i & 2) >> 1][((i + 1) & 2) >> 1],
-                                              this->corners_[((i + 1) & 2) >> 1][((i + 2) & 2) >> 1],
-                                              other.corners_[(      i & 8) >> 3][((i + 4) & 8) >> 3],
-                                              other.corners_[((i + 4) & 8) >> 3][((i + 8) & 8) >> 3]);
+        auto point = Point::line_segment_intersection(this->corners_[(i & 2) >> 1][((i + 1) & 2) >> 1],
+                                                      this->corners_[((i + 1) & 2) >> 1][((i + 2) & 2) >> 1],
+                                                      other.corners_[(i & 8) >> 3][((i + 4) & 8) >> 3],
+                                                      other.corners_[((i + 4) & 8) >> 3][((i + 8) & 8) >> 3]);
         if (point.is_valid()) {
             vertices.push_back(point);
         }
@@ -90,16 +90,13 @@ real Pixel::overlap(const Pixel & other) const {
             v -= centre;
         }
         /* Sort vertices by azimuth from the centre */
-        std::sort(vertices.begin(), vertices.end(), [&](Point a, Point b) -> bool { return a.slope() < b.slope(); }); // This can be precomputed;
-
-        for (auto && vertex: vertices) {
-            fmt::print("{} {}\n", vertex.x, vertex.y);
-        }
+        // TODO This can be precomputed! Sort by another vector of v.slope()
+        std::sort(vertices.begin(), vertices.end(), [&](Point a, Point b) -> bool { return a.slope() < b.slope(); });
 
         /* Run the shoelace algorithm */
         real shoelace = 0;
-        unsigned int size = vertices.size();
-        for (int i = 0; i < size; ++i) {
+        std::size_t size = vertices.size();
+        for (std::size_t i = 0; i < size; ++i) {
             shoelace += vertices[i].x * (vertices[(i + 1) % size].y - vertices[(i - 1 + size) % size].y);
         }
 

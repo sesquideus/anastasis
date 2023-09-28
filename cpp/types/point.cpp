@@ -38,7 +38,7 @@ Point & Point::operator/=(real scale) {
     return *this;
 }
 
-Point Point::line_intersection(const Point p0, const Point p1, const Point q0, const Point q1) {
+Point Point::line_segment_intersection(const Point p0, const Point p1, const Point q0, const Point q1) {
     auto p = p1 - p0;
     auto q = q1 - q0;
     auto b = q0 - p0;
