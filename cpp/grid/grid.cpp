@@ -57,17 +57,30 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
     for (std::size_t i = 0; i < this->size_w_; ++i) {
         for (std::size_t j = 0; j < this->size_h_; ++j) {
             auto p = this->world_pixel(i, j).bounding_box();
+            fmt::print("{} {} {} {} {} {}\n", this->width(), this->height(), p.left(), p.right(), p.bottom(), p.top());
 
             for (std::size_t x = std::max(0, p.bottom()); x < std::min(canonical.width(), p.top()); ++x) {
                 for (std::size_t y = std::max(0, p.left()); y < std::min(canonical.height(), p.right()); ++y) {
                     real overlap = this->world_pixel(i, j).overlap(canonical.pixel(x, y));
-                    active_pixels.push_back({i, j, x, y, overlap});
+                  //  fmt::print("{} {} {} {}\n", i, j, x, y);
+                    if (overlap > 0) {
+                        active_pixels.emplace_back(i, j, x, y, overlap);
+                    }
                 }
             }
         }
     }
 
-    return Eigen::SparseMatrix<real>();
+    Eigen::SparseMatrix<real> matrix(this->size_w_ * this->size_h_, canonical.width() * canonical.height());
+    for (auto && pixel: active_pixels) {
+        matrix.insert(
+            this->width() * std::get<1>(pixel) + std::get<0>(pixel),
+            canonical.width() * std::get<3>(pixel) + std::get<2>(pixel)
+        ) = std::get<4>(pixel);
+    }
+    matrix.makeCompressed();
+
+    return matrix;
 }
 
 void Grid::print() const {
@@ -109,8 +122,4 @@ Grid & Grid::operator/=(real scale) {
     this->phys_w_ *= scale;
     this->phys_h_ *= scale;
     return *this;
-}
-
-Pixel CanonicalGrid::pixel(unsigned int x, unsigned int y) {
-    return Pixel(Point(x, y), Point(x + 1, y), Point(x + 1, y + 1), Point(x, y + 1));
 }

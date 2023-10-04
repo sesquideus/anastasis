@@ -12,7 +12,7 @@ constexpr real TAU = 3.14159265358979232846264 * 2.0;
 int main() {
     VPImplicitTree<Point, Euclidean> vpi(std::vector<Point>());
 
-    Grid grid({20, 20}, {10, 10}, {5, 5}, 0, {1, 1});
+    Grid grid({0, 0}, {10, 10}, {5, 5}, 0, {1, 1});
     CanonicalGrid image(5, 5);
     grid.print();
     grid.onto_canonical(image);
@@ -26,10 +26,13 @@ int main() {
     );
 
     fmt::print("Start\n");
-    for (unsigned int i = 0; i < 1000000; ++i)
+    for (unsigned int i = 0; i < 1000; ++i)
         george.overlap(harris);
 
     fmt::print("Overlap {:.9f}", george.overlap(harris));
+
+    auto matrix = grid.onto_canonical(image);
+    std::cout << matrix << std::endl;
 
     return 0;
 }
