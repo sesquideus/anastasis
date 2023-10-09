@@ -24,15 +24,11 @@ public:
     }
 };
 
-template<typename T>
+template<typename T, typename Metric> requires IsMetric<T, Metric>
 class DistantMetricFunctor {
-private:
-    const MetricFunctor<T> & metric_;
 public:
-    DistantMetricFunctor(const MetricFunctor<T> & metric): metric_(metric) {}
-
     inline real operator()(Distant<T> a, Distant<T> b) const {
-        return this->metric_(a.point, b.point);
+        return Metric(a.point, b.point);
     }
 };
 

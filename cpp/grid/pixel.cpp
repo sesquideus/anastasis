@@ -1,7 +1,3 @@
-//
-// Created by kvik on 9/25/23.
-//
-
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <numeric>
@@ -17,10 +13,10 @@ Pixel::Pixel(const Point bottomleft, const Point bottomright, const Point toplef
 
 void Pixel::print() const {
     fmt::print("Pixel at {:9.6f} {:9.6f} -- {:9.6f} {:9.6f} -- {:9.6f} {:9.6f} -- {:9.6f} {:9.6f}\n",
-               this->corners_[0][0].x, this->corners_[0][0].y,
-               this->corners_[0][1].x, this->corners_[0][1].y,
-               this->corners_[1][0].x, this->corners_[1][0].y,
-               this->corners_[1][1].x, this->corners_[1][1].y
+               this->a().x, this->a().y,
+               this->b().x, this->b().y,
+               this->d().x, this->d().y,
+               this->c().x, this->c().y
     );
 }
 
@@ -30,8 +26,8 @@ Box Pixel::bounding_box(real slack) const {
      * the entire area of the pixel + optionally a tiny constant <slack>.
      * Useful for determining overlaps with the canonical grid.
      */
-    auto xs = {this->corners_[0][0].x, this->corners_[0][1].x, this->corners_[1][0].x, this->corners_[1][1].x};
-    auto ys = {this->corners_[0][0].y, this->corners_[0][1].y, this->corners_[1][0].y, this->corners_[1][1].y};
+    auto xs = {this->a().x, this->b().x, this->c().x, this->d().x};
+    auto ys = {this->a().y, this->b().y, this->c().y, this->d().y};
     int minx = static_cast<int>(floor(std::min(xs) - slack));
     int maxx = static_cast<int>(ceil(std::max(xs) + slack));
     int miny = static_cast<int>(floor(std::min(ys) - slack));
@@ -41,11 +37,11 @@ Box Pixel::bounding_box(real slack) const {
 }
 
 bool Pixel::contains(Point point) const {
-    Point p = this->corners_[0][1] - this->corners_[0][0];
-    Point q = this->corners_[1][0] - this->corners_[0][0];
-    Point x = point - this->corners_[0][0];
-    real t = p * x / (p * p);
-    real u = q * x / (q * q);
+    Point p = this->b() - this->a(); // This is line AB
+    Point q = this->d() - this->a(); // This is line AD
+    Point x = point - this->a();     // This is line AX
+    real t = p * x / (p * p);        // Projection of AX onto AB
+    real u = q * x / (q * q);        // Projection of AX onto AD
     return ((-SLACK <= t) && (t <= 1.0 + SLACK) && (-SLACK <= u) && (u <= 1.0 + SLACK));
 }
 

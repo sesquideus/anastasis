@@ -47,9 +47,9 @@ public:
     auto format(const Pixel & pixel, format_context & ctx) const -> format_context::iterator {
         return presentation == 'f'
                ? fmt::format_to(ctx.out(), "(({:f}, {:f}), ({:f}, {:f}))",
-                                pixel.corners()[0][0], pixel.corners()[0][1], pixel.corners()[1][0], pixel.corners()[1][1])
+                                pixel.a(), pixel.b(), pixel.d(), pixel.c())
                : fmt::format_to(ctx.out(), "(({:e}, {:e}), ({:e}, {:e}))",
-                                pixel.corners()[0][0], pixel.corners()[0][1], pixel.corners()[1][0], pixel.corners()[1][1]);
+                                pixel.a(), pixel.b(), pixel.d(), pixel.c());
     }
 };
 

@@ -8,17 +8,12 @@
 #include "metrics.h"
 #include "distant.h"
 
-template<class M, class T>
-concept IsMetric = requires(M m, T a, T b) {
-    { m(a, b) } -> std::same_as<real>;
-};
-
-template<class T, class M>
-requires IsMetric<M, T>
-class Spatial {
-private:
+template<class T, class Metric> requires IsMetric<T, Metric> class Spatial {
+protected:
+    Metric metric_;
     unsigned long int size_ {0};
 public:
+    explicit Spatial();
     virtual ~Spatial() = 0;
 
     virtual const Distant<T> & find_nearest(const T & point) const = 0;
@@ -27,5 +22,9 @@ public:
 
     virtual void print() const = 0;
 };
+
+template <class T, class Metric> requires IsMetric<T, Metric>
+Spatial<T, Metric>::Spatial():
+    metric_() {}
 
 #endif // SPATIAL_H

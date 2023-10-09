@@ -1,10 +1,12 @@
-template<class T, class U>
-VPImplicitTree<T, U>::VPImplicitTree(const MetricFunctor<T> & metric, const std::vector<T> & items):
-        Spatial<T, U>(metric),
+#include <iostream>
+
+template<class T, class Metric> requires IsMetric<T, Metric>
+VPImplicitTree<T, Metric>::VPImplicitTree(const std::vector<T> & items):
+        Spatial<T, Metric>(),
         points_(items)
 {
     this->size_ = items.size();
-    this->array_.resize(items.size(), nullptr);
+    this->heap_.resize(items.size());
     std::vector<T*> pointers(items.size(), nullptr);
 
     for (unsigned int i = 0; i < this->size_; ++i) {
@@ -14,8 +16,8 @@ VPImplicitTree<T, U>::VPImplicitTree(const MetricFunctor<T> & metric, const std:
     this->build(0, pointers.begin(), pointers.begin(), pointers.end());
 }
 
-template<class T, class U>
-void VPImplicitTree<T, U>::build(
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::build(
         unsigned int index,
         typename std::vector<T*>::iterator begin,
         typename std::vector<T*>::iterator root,
@@ -24,14 +26,13 @@ void VPImplicitTree<T, U>::build(
     if (begin >= end) {
         // if there are no more nodes to process, make this a leaf node
         if (index < this->size_) {
-            this->array_[index].threshold = 0.0;
+            this->heap_[index].threshold = 0.0;
         }
-        return;
     } else {
         if (begin == end - 1) {
             // if there is exactly one node to process, make it a leaf node
-            this->array_[index].address = *begin;
-            this->array_[index].threshold = 0.0;
+            this->heap_[index].address = *begin;
+            this->heap_[index].threshold = 0.0;
         } else {
             // otherwise there is at least one child
             // build a comparator function with respect to the vantage point
@@ -51,8 +52,8 @@ void VPImplicitTree<T, U>::build(
             std::nth_element(begin, median, end, comparator_pivot);
 
             // add the new node and recursively process the subintervals
-            this->array_[index].address = *begin;
-            this->array_[index].threshold = this->metric_(**begin, **median);
+            this->heap_[index].address = *begin;
+            this->heap_[index].threshold = this->metric_(**begin, **median);
             this->build(2 * index + 1, begin + 1, begin, median);
             this->build(2 * index + 2, median, begin, end);
         }
@@ -67,8 +68,8 @@ void VPImplicitTree<T, U>::load(const std::string & filename) {
         in.read(reinterpret_cast<char *>(&this->size_), sizeof(this->size_));
         this->points_.reserve(this->size_);
         in.read(reinterpret_cast<char *>(this->points_.data()), this->size_ * sizeof(T));
-        this->array_.reserve(this->size_);
-        in.read(reinterpret_cast<char *>(this->array_.data()), this->size_ * sizeof(T));
+        this->heap_.reserve(this->size_);
+        in.read(reinterpret_cast<char *>(this->heap_.data()), this->size_ * sizeof(T));
     } catch (const std::exception & e) {
         throw e;
     }
@@ -79,20 +80,20 @@ void VPImplicitTree<T, U>::save(const std::string & filename) const {
     std::ofstream out(filename);
     out.write(reinterpret_cast<const char *>(this->size_), sizeof(this->size_));
     out.write(reinterpret_cast<const char *>(this->points_.data()), this->size_ * sizeof(T));
-    out.write(reinterpret_cast<const char *>(this->array_.data()), this->size_ * sizeof(T));
+    out.write(reinterpret_cast<const char *>(this->heap_.data()), this->size_ * sizeof(T));
 }*/
 
-template<class T, class U>
-const Distant<T> & VPImplicitTree<T, U>::find_nearest(const T & point) const {
-    Distant<T> candidate(this->points_[0], this->metric_(this->points_[0], point));
+template<class T, class Metric> requires IsMetric<T, Metric>
+const Distant<T> & VPImplicitTree<T, Metric>::find_nearest(const T & point) const {
+    Distant<T> candidate(this->points_[0], Metric(this->points_[0], point));
     this->tau_ = std::numeric_limits<real>::max();
 
     this->search_one(0, point, candidate);
     return candidate;
 }
 
-template<class T, class U>
-std::vector<Distant<T>> VPImplicitTree<T, U>::find_nearest(const T & point, unsigned int count) const {
+template<class T, class Metric> requires IsMetric<T, Metric>
+std::vector<Distant<T>> VPImplicitTree<T, Metric>::find_nearest(const T & point, unsigned int count) const {
     std::priority_queue<Distant<T>> pq;
     std::vector<Distant<T>> result;
 
@@ -107,8 +108,8 @@ std::vector<Distant<T>> VPImplicitTree<T, U>::find_nearest(const T & point, unsi
     return result;
 }
 
-template<class T, class U>
-std::vector<Distant<T>> VPImplicitTree<T, U>::find_radius(const T & point, real radius) const {
+template<class T, class Metric> requires IsMetric<T, Metric>
+std::vector<Distant<T>> VPImplicitTree<T, Metric>::find_radius(const T & point, real radius) const {
     std::vector<Distant<T>> result;
     this->search_radius(0, point, radius, result);
     return result;
@@ -117,8 +118,8 @@ std::vector<Distant<T>> VPImplicitTree<T, U>::find_radius(const T & point, real 
 /** Search for a single point that is nearest to <target> starting at <node>
  *  Functionally the same as search_queued with k = 1 but slightly faster
  * **/
-template<class T, class U>
-void VPImplicitTree<T, U>::search_one(
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::search_one(
     unsigned int index,
     const T & target,
     Distant<T> & candidate
@@ -131,7 +132,7 @@ void VPImplicitTree<T, U>::search_one(
             this->tau_ = distance;
         }
 
-        real threshold = this->array_[index].threshold;
+        real threshold = this->heap_[index].threshold;
         if (distance < threshold) {
             this->search_one(2 * index + 1, target, candidate);
             if (distance + this->tau_ >= threshold) {
@@ -147,8 +148,8 @@ void VPImplicitTree<T, U>::search_one(
 }
 
 /* Search for k nearest points to <target>, starting at <node> */
-template<class T, class U>
-void VPImplicitTree<T, U>::search_queued(
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::search_queued(
     unsigned int index,
     const T & target,
     unsigned int count, std::priority_queue<Distant<T>> & pq
@@ -166,7 +167,7 @@ void VPImplicitTree<T, U>::search_queued(
             }
         }
 
-        real threshold = this->array_[index].threshold;
+        real threshold = this->heap_[index].threshold;
         if (2 * index < this->size_) {
             if (distance < threshold) {
                 this->search_queued(2 * index + 1, target, count, pq);
@@ -184,8 +185,8 @@ void VPImplicitTree<T, U>::search_queued(
 }
 
 /* Find all points that are closer to <target> than <radius> */
-template<class T, class U>
-void VPImplicitTree<T, U>::search_radius(
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::search_radius(
     unsigned int index,
     const T & target,
     real radius,
@@ -198,7 +199,7 @@ void VPImplicitTree<T, U>::search_radius(
             result.push_back(Distant<T>(this->point(index), distance));
         }
 
-        real threshold = this->array_[index].threshold;
+        real threshold = this->heap_[index].threshold;
         if (distance < threshold) {
             this->search_radius(2 * index + 1, target, radius, result);
             if (distance + radius >= threshold) {
@@ -213,26 +214,26 @@ void VPImplicitTree<T, U>::search_radius(
     }
 }
 
-template<class T, class U>
-void VPImplicitTree<T, U>::print() const {
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::print() const {
     this->print(0, 0);
 
     std::cout << std::endl;
     for (unsigned int i = 0; i < this->size_; ++i) {
-        std::cout << i << " points to " << this->array_[i].address << ", value " << this->point(i);
-        std::cout << " (threshold " << this->array_[i].threshold << ")" << std::endl;
+        std::cout << i << " points to " << this->heap_[i].address << ", value " << this->point(i);
+        std::cout << " (threshold " << this->heap_[i].threshold << ")" << std::endl;
     }
     std::cout << "----------------------------------------------" << std::endl;
 }
 
-template<class T, class U>
-void VPImplicitTree<T, U>::print(unsigned int root, unsigned int offset) const {
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::print(unsigned int root, unsigned int offset) const {
     if (root < this->size_) {
         this->print(root * 2 + 1, offset + 1);
         for (unsigned int i = 0; i < offset; ++i) {
             std::cout << "    ";
         }
-        std::cout << root << "(" << this->array_[root].address << ") " << this->array_[root].threshold << std::endl;
+        std::cout << root << "(" << this->heap_[root].address << ") " << this->heap_[root].threshold << std::endl;
         this->print(root * 2 + 2, offset + 1);
     } else {
         return;
@@ -240,8 +241,8 @@ void VPImplicitTree<T, U>::print(unsigned int root, unsigned int offset) const {
 }
 
 /*
-template<class T, class U>
-void VPImplicitTree<T, U>::print_points(void) const {
+template<class T, class Metric> requires IsMetric<T, Metric>
+void VPImplicitTree<T, Metric>::print_points(void) const {
     for (unsigned int i = 0; i < this->size_; ++i) {
         std::cout << this->points_[i] << " ";
     }

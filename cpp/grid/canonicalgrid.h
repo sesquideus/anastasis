@@ -6,16 +6,17 @@
 
 class CanonicalGrid {
 private:
-    unsigned int width_;
-    unsigned int height_;
+    int width_;
+    int height_;
 public:
-    explicit CanonicalGrid(unsigned int width, unsigned int height);
+    explicit CanonicalGrid(int width, int height);
 
-    Pixel pixel(unsigned int x, unsigned int y) const;
-    std::vector<std::vector<Pixel>> coordinates();
+    static Pixel pixel(unsigned int x, unsigned int y) ;
+    [[nodiscard]] std::vector<std::vector<Pixel>> coordinates() const;
 
     inline int width() const { return this->width_; }
     inline int height() const { return this->height_; }
+    inline int size() const { return this->width_ * this->height_; }
 };
 
 #endif //ANASTASIS_CPP_CANONICALGRID_H

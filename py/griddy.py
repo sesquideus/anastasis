@@ -27,8 +27,8 @@ big = grid.Grid((1, 2), (3, 5), rotation=math.tau / 8, shape=(3, 2))
 #
 ##model = grid.Grid((0, 0), (50, 50), rotation=0.02, shape=(10, 10))
 ##data = grid.Grid((0, 0), (19, 11), rotation=0.53, shape=(10, 5))
-data = grid.Grid((0, 0), (20, 20), rotation=0, shape=(30, 20))
-model = grid.Grid((0, 0), (17, 10), rotation=0.1, shape=(40, 30))
+data = grid.Grid((34, 34), (82, 57.9), rotation=0, shape=(100, 28))
+model = grid.Grid((34, 34), (68, 68), rotation=0, shape=(68, 68))
 #
 overlap = data @ model
 #

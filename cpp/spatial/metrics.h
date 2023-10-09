@@ -4,29 +4,27 @@
 #include "../types/types.h"
 #include "../types/point.h"
 
-template<class T>
-class MetricFunctor {
-public:
-    virtual inline real operator()(const T & first, const T & second) const = 0;
+template<class T, class Metric> concept IsMetric = requires(Metric m, T a, T b) {
+    { m(a, b) } -> std::same_as<real>;
 };
 
-class Euclidean: public MetricFunctor<Point> {
+class Euclidean {
 public:
-    inline real operator()(const Point & first, const Point & second) const override {
+    inline real operator()(const Point first, const Point second) const {
         real dx = second.x - first.x;
         real dy = second.y - first.y;
         return std::sqrt(dx * dx + dy * dy);
     };
 };
 
-class Manhattan: public MetricFunctor<Point> {
+class Manhattan {
 public:
     inline real operator()(const Point first, const Point second) const {
         return std::fabs(second.x - first.x) + std::fabs(second.y - first.y);
     };
 };
 
-class Maximum: public MetricFunctor<Point> {
+class Maximum {
 public:
     inline real operator()(const Point first, const Point second) const {
         return std::max(std::fabs(second.x - first.x), std::fabs(second.y - first.y));

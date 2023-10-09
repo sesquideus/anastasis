@@ -45,24 +45,31 @@ Pixel Grid::grid_pixel(unsigned int x, unsigned int y) const {
 Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
     Pixel raw = this->grid_pixel(x, y);
     return Pixel(
-        {this->centre_.x + raw.corners()[0][0].rotated(this->rotation_).x, this->centre_.y + raw.corners()[0][0].rotated(this->rotation_).y},
-        {this->centre_.x + raw.corners()[0][1].rotated(this->rotation_).x, this->centre_.y + raw.corners()[0][1].rotated(this->rotation_).y},
-        {this->centre_.x + raw.corners()[1][0].rotated(this->rotation_).x, this->centre_.y + raw.corners()[1][0].rotated(this->rotation_).y},
-        {this->centre_.x + raw.corners()[1][1].rotated(this->rotation_).x, this->centre_.y + raw.corners()[1][1].rotated(this->rotation_).y}
+        this->centre_ + raw.a().rotated(this->rotation_),
+        this->centre_ + raw.b().rotated(this->rotation_),
+        this->centre_ + raw.d().rotated(this->rotation_),
+        this->centre_ + raw.c().rotated(this->rotation_)
     );
 }
 
 Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) const {
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t, real>> active_pixels;
-    for (std::size_t i = 0; i < this->size_w_; ++i) {
-        for (std::size_t j = 0; j < this->size_h_; ++j) {
-            auto p = this->world_pixel(i, j).bounding_box();
-            fmt::print("{} {} {} {} {} {}\n", this->width(), this->height(), p.left(), p.right(), p.bottom(), p.top());
+    std::vector<Overlap4D> active_pixels;
 
-            for (std::size_t x = std::max(0, p.bottom()); x < std::min(canonical.width(), p.top()); ++x) {
-                for (std::size_t y = std::max(0, p.left()); y < std::min(canonical.height(), p.right()); ++y) {
-                    real overlap = this->world_pixel(i, j).overlap(canonical.pixel(x, y));
-                  //  fmt::print("{} {} {} {}\n", i, j, x, y);
+    // There will be about four times as much overlaps as there are model pixels
+    active_pixels.reserve(4 * canonical.size());
+    // Allocate the output matrix
+    Eigen::SparseMatrix<real> matrix(size_w_ * this->size_h_, canonical.width() * canonical.height());
+    matrix.reserve(4 * canonical.size());
+
+    for (int i = 0; i < this->size_w_; ++i) {
+        for (int j = 0; j < this->size_h_; ++j) {
+            auto p = this->world_pixel(i, j).bounding_box();
+            //fmt::print("{} {} {} {} {} {}\n", this->width(), this->height(), p.left(), p.right(), p.bottom(), p.top());
+
+            for (int x = std::max(0, p.left()); x < std::min(canonical.width(), p.right()); ++x) {
+                for (int y = std::max(0, p.bottom()); y < std::min(canonical.height(), p.top()); ++y) {
+                    real overlap = this->world_pixel(i, j).overlap(CanonicalGrid::pixel(x, y));
+                    //fmt::print("{} {} -> {}\n", this->world_pixel(i, j), CanonicalGrid::pixel(x, y), overlap);
                     if (overlap > 0) {
                         active_pixels.emplace_back(i, j, x, y, overlap);
                     }
@@ -71,34 +78,28 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
         }
     }
 
-    Eigen::SparseMatrix<real> matrix(this->size_w_ * this->size_h_, canonical.width() * canonical.height());
     for (auto && pixel: active_pixels) {
         matrix.insert(
             this->width() * std::get<1>(pixel) + std::get<0>(pixel),
             canonical.width() * std::get<3>(pixel) + std::get<2>(pixel)
         ) = std::get<4>(pixel);
     }
-    matrix.makeCompressed();
-
     return matrix;
 }
 
 void Grid::print() const {
-    fmt::print("Grid at {:.6f} {:.6f}, size {:d}×{:d}, extent {:.6f} {:.6f}, rotation {:.6f}, pixfrac {:.3f}×{:.3f}\n",
-               this->centre_.x, this->centre_.y, this->size_w_, this->size_h_, this->phys_w_, this->phys_h_,
+    fmt::print("Grid at {}, size {:d}×{:d}, extent {:.6f} {:.6f}, rotation {:.6f}, pixfrac {:.3f}×{:.3f}\n",
+               this->centre_, this->size_w_, this->size_h_, this->phys_w_, this->phys_h_,
                this->rotation_, this->pixfrac_x_, this->pixfrac_y_);
 }
 
 void Grid::print_world() const {
-    Point bottomleft = this->world_pixel(0, 0).corners()[0][0];
-    Point bottomright = this->world_pixel(0, 1).corners()[0][1];
-    Point topleft = this->world_pixel(0, 0).corners()[0][0];
-    Point topright = this->world_pixel(0, 1).corners()[0][1];
-    fmt::print("Grid with world coordinates spanning ({} {}) ({} {}) ({} {}) ({} {})",
-               bottomleft.x, bottomleft.y,
-               bottomright.x, bottomright.y,
-               topleft.x, topleft.y,
-               topright.x, topright.y
+    Point bottomleft = this->world_pixel(0, 0).a();
+    Point bottomright = this->world_pixel(this->width() - 1, 0).b();
+    Point topleft = this->world_pixel(0, this->height() - 1).d();
+    Point topright = this->world_pixel(this->width() - 1, this->height() - 1).c();
+    fmt::print("Grid with world coordinates spanning {} {} {} {}\n",
+               bottomleft, bottomright, topleft, topright
     );
 }
 
@@ -115,11 +116,82 @@ Grid & Grid::operator-=(Point shift) {
 Grid & Grid::operator*=(real scale) {
     this->phys_w_ *= scale;
     this->phys_h_ *= scale;
+    this->pixel_width_ *= scale;
+    this->pixel_height_ *= scale;
     return *this;
 }
 
 Grid & Grid::operator/=(real scale) {
-    this->phys_w_ *= scale;
-    this->phys_h_ *= scale;
+    this->phys_w_ /= scale;
+    this->phys_h_ /= scale;
+    this->pixel_width_ /= scale;
+    this->pixel_height_ /= scale;
     return *this;
+}
+
+Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
+    long rows = 0;
+    long cols = 0;
+    long nonzeros = 0;
+    for (auto && matrix: matrices) {
+        if ((rows > 0) && (matrix.cols() != cols)) {
+            throw std::runtime_error("Sparse matrix width does not match");
+        }
+        cols = matrix.cols();
+        rows += matrix.rows();
+        nonzeros += matrix.nonZeros();
+    }
+
+    std::vector<Eigen::Triplet<real>> triplets;
+    Eigen::Index base = 0;
+    for (auto && matrix: matrices) {
+        for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
+            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
+                triplets.emplace_back(it.row() + base, it.col(), it.value());
+            }
+        }
+        base += matrix.rows();
+    }
+
+    Eigen::SparseMatrix<real> m(rows, cols);
+    m.reserve(nonzeros);
+    fmt::print("{}×{} nonzero {}\n", cols, rows, nonzeros);
+
+    m.setFromTriplets(triplets.begin(), triplets.end());
+    return m;
+}
+
+
+Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices) {
+    long rows = 0;
+    long cols = 0;
+    long nonzeros = 0;
+    for (auto & matrix: matrices) {
+        if ((rows > 0) && (matrix.cols() != cols)) {
+            throw std::runtime_error("Sparse matrix width does not match");
+        }
+        cols = matrix.cols();
+        rows += matrix.rows();
+        nonzeros += matrix.nonZeros();
+    }
+
+    Eigen::SparseMatrix<real> m(rows, cols);
+    m.reserve(nonzeros);
+    fmt::print("{} {}\n", cols, nonzeros);
+
+    for (Eigen::Index c = 0; c < cols; ++c) {
+        Eigen::Index base = 0;
+        for (auto && matrix: matrices) {
+            m.startVec(c);
+            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
+                matrix.startVec(c);
+                fmt::print("s {} {}\n", it, c);
+                m.insertBack(base + it.row(), c) = it.value();
+                fmt::print("e {} {}\n", it, c);
+            }
+            base += matrix.rows();
+        }
+    }
+    m.finalize();
+    return m;
 }
