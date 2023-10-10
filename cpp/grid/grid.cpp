@@ -58,7 +58,7 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
     // There will be about four times as much overlaps as there are model pixels
     active_pixels.reserve(4 * canonical.size());
     // Allocate the output matrix
-    Eigen::SparseMatrix<real> matrix(size_w_ * this->size_h_, canonical.width() * canonical.height());
+    Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);
     matrix.reserve(4 * canonical.size());
 
     for (int i = 0; i < this->size_w_; ++i) {
@@ -70,8 +70,9 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
                 for (int y = std::max(0, p.bottom()); y < std::min(canonical.height(), p.top()); ++y) {
                     real overlap = this->world_pixel(i, j).overlap(CanonicalGrid::pixel(x, y));
                     //fmt::print("{} {} -> {}\n", this->world_pixel(i, j), CanonicalGrid::pixel(x, y), overlap);
-                    if (overlap > 0) {
-                        active_pixels.emplace_back(i, j, x, y, overlap);
+                    // Add as an active pixel if the overlap is larger than some very small value
+                    if (overlap > Grid::NegligibleOverlap) {
+                        active_pixels.emplace_back(x, y, i, j, overlap);
                     }
                 }
             }
@@ -80,10 +81,11 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
 
     for (auto && pixel: active_pixels) {
         matrix.insert(
-            this->width() * std::get<1>(pixel) + std::get<0>(pixel),
-            canonical.width() * std::get<3>(pixel) + std::get<2>(pixel)
+            canonical.width() * std::get<1>(pixel) + std::get<0>(pixel),
+            this->width() * std::get<3>(pixel) + std::get<2>(pixel)
         ) = std::get<4>(pixel);
     }
+    matrix.makeCompressed();
     return matrix;
 }
 
@@ -153,6 +155,39 @@ Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & 
         base += matrix.rows();
     }
 
+    Eigen::SparseMatrix<real> m(rows, cols);
+    m.reserve(nonzeros);
+    fmt::print("{}×{} nonzero {}\n", cols, rows, nonzeros);
+
+    m.setFromTriplets(triplets.begin(), triplets.end());
+    return m;
+}
+
+Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
+    long rows = 0;
+    long cols = 0;
+    long nonzeros = 0;
+    for (auto && matrix:matrices) {
+        if ((cols > 0) && (matrix.rows() != rows)) {
+            throw std::runtime_error("Sparse matrix height does not match");
+        }
+        rows = matrix.rows();
+        cols += matrix.cols();
+        nonzeros += matrix.nonZeros();
+    }
+    fmt::print("Joining {} matrices\n", matrices.size());
+
+    std::vector<Eigen::Triplet<real>> triplets;
+    Eigen::Index base = 0;
+    for (auto && matrix: matrices) {
+        fmt::print("{} nonzeros in matrix sum {}\n", matrix.nonZeros(), matrix.sum());
+        for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
+            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
+                triplets.emplace_back(it.row(), it.col() + base, it.value());
+            }
+        }
+        base += matrix.cols();
+    }
     Eigen::SparseMatrix<real> m(rows, cols);
     m.reserve(nonzeros);
     fmt::print("{}×{} nonzero {}\n", cols, rows, nonzeros);
