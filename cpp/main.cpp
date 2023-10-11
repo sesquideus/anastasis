@@ -25,15 +25,15 @@ constexpr real DETECTOR_PHYSICAL_HEIGHT = DETECTOR_PIXEL_HEIGHT * DETECTOR_ROWS;
 
 std::vector<Grid> prepare_matrices() {
     std::vector<Grid> grids;
-    for (int i = -1; i <= 1; ++i) {
+    for (int i = -1; i <= -1; ++i) {
         grids.push_back({Point(static_cast<real>(i) / 3.0, 0),
                         {DETECTOR_COLS, DETECTOR_ROWS}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
                         0, {1, 1}});
     }
-    for (int i = -1; i <= 1; ++i) {
+    for (int i = -1; i <= -11; ++i) {
         grids.push_back({Point(static_cast<real>(i) / 3.0, 0),
-                         {DETECTOR_COLS, DETECTOR_ROWS}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
-                         0.25 * TAU, {1, 1}});
+                        {DETECTOR_COLS, DETECTOR_ROWS}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
+                        0.25 * TAU, {1, 1}});
     }
     return grids;
 }
@@ -76,7 +76,7 @@ int main() {
                 A.rows(), A.cols(), A.size(), A.nonZeros(), t1.count());
 
     start = std::chrono::high_resolution_clock::now();
-    fmt::print("{}\n", A.sum() / 6);
+    fmt::print("{}\n", A.sum() / matrices.size());
 
     Eigen::SparseMatrix<real> C(MODEL_WIDTH * MODEL_HEIGHT, MODEL_WIDTH * MODEL_HEIGHT);
     C.setIdentity();

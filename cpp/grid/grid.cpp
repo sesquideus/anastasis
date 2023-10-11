@@ -131,69 +131,53 @@ Grid & Grid::operator/=(real scale) {
     return *this;
 }
 
-Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
-    long rows = 0;
-    long cols = 0;
+Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical) {
+    long across = 0;
+    long along = 0;
     long nonzeros = 0;
     for (auto && matrix: matrices) {
-        if ((rows > 0) && (matrix.cols() != cols)) {
+        long num_along = vertical ? matrix.cols() : matrix.rows();
+        long num_across = vertical ? matrix.rows() : matrix.cols();
+        if ((across > 0) && (num_along != along)) {
             throw std::runtime_error("Sparse matrix width does not match");
         }
-        cols = matrix.cols();
-        rows += matrix.rows();
+        along = num_along;
+        across += num_across;
         nonzeros += matrix.nonZeros();
     }
 
+    fmt::print("Joining {} matrices along {} axis\n", matrices.size(), vertical ? "vertical" : "horizontal");
     std::vector<Eigen::Triplet<real>> triplets;
+    triplets.reserve(nonzeros);
+
     Eigen::Index base = 0;
     for (auto && matrix: matrices) {
         for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
             for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
-                triplets.emplace_back(it.row() + base, it.col(), it.value());
+                triplets.emplace_back(
+                    vertical ? it.row() + base : it.row(),
+                    vertical ? it.col() : base + it.col(),
+                    it.value()
+                );
             }
         }
-        base += matrix.rows();
+        base += vertical ? matrix.rows() : matrix.cols();
     }
 
-    Eigen::SparseMatrix<real> m(rows, cols);
+    Eigen::SparseMatrix<real> m(across, along);
     m.reserve(nonzeros);
-    fmt::print("{}×{} nonzero {}\n", cols, rows, nonzeros);
+    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", along, across, nonzeros);
 
     m.setFromTriplets(triplets.begin(), triplets.end());
     return m;
 }
 
+Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
+    return stack(matrices, true);
+}
+
 Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
-    long rows = 0;
-    long cols = 0;
-    long nonzeros = 0;
-    for (auto && matrix:matrices) {
-        if ((cols > 0) && (matrix.rows() != rows)) {
-            throw std::runtime_error("Sparse matrix height does not match");
-        }
-        rows = matrix.rows();
-        cols += matrix.cols();
-        nonzeros += matrix.nonZeros();
-    }
-    fmt::print("Joining {} matrices\n", matrices.size());
-
-    std::vector<Eigen::Triplet<real>> triplets;
-    Eigen::Index base = 0;
-    for (auto && matrix: matrices) {
-        fmt::print("{} nonzeros in matrix sum {}\n", matrix.nonZeros(), matrix.sum());
-        for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
-            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
-                triplets.emplace_back(it.row(), it.col() + base, it.value());
-            }
-        }
-        base += matrix.cols();
-    }
-    Eigen::SparseMatrix<real> m(rows, cols);
-    m.reserve(nonzeros);
-    fmt::print("{}×{} nonzero {}\n", cols, rows, nonzeros);
-
-    m.setFromTriplets(triplets.begin(), triplets.end());
-    return m;
+    return stack(matrices, false);
 }
 
 

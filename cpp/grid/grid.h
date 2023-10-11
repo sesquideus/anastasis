@@ -28,7 +28,9 @@ private:
     constexpr static real NegligibleOverlap = 1e-15;
 public:
     Grid(Point centre, std::pair<unsigned int, unsigned int> grid_size, std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac);
-//    Grid(const Grid && parent);
+    static Grid from_pixel_size(Point centre, std::pair<unsigned int, unsigned int> grid_size, std::pair<real, real> pixel_size, real rotation, std::pair<real, real> pixfrac);
+
+    void load(const std::vector<std::vector<real>> & data);
 
     [[nodiscard]] inline int width() const { return this->size_w_; }
     [[nodiscard]] inline int height() const { return this->size_h_; }
@@ -50,6 +52,7 @@ public:
     Grid & operator/=(real scale);
 };
 
+Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
 Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
 Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
 Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices);
