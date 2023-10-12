@@ -1,4 +1,5 @@
 #include "grid.h"
+#include <iostream>
 
 Grid::Grid(Point centre,
            std::pair<unsigned int, unsigned int> grid_size,
@@ -132,21 +133,24 @@ Grid & Grid::operator/=(real scale) {
 }
 
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical) {
+    /**
+     * Stack a vector of matrices
+     */
     long across = 0;
     long along = 0;
     long nonzeros = 0;
     for (auto && matrix: matrices) {
-        long num_along = vertical ? matrix.cols() : matrix.rows();
-        long num_across = vertical ? matrix.rows() : matrix.cols();
-        if ((across > 0) && (num_along != along)) {
-            throw std::runtime_error("Sparse matrix width does not match");
+        long num_along = vertical ? matrix.rows() : matrix.cols();
+        long num_across = vertical ? matrix.cols() : matrix.rows();
+        if (along > 0) {
+           assert((num_across == across) && "Across-concatenation dimensions do not match");
         }
-        along = num_along;
-        across += num_across;
+        across = num_across;
+        along += num_along;
         nonzeros += matrix.nonZeros();
     }
 
-    fmt::print("Joining {} matrices along {} axis\n", matrices.size(), vertical ? "vertical" : "horizontal");
+   // fmt::print("Joining {} matrices along {} axis\n", matrices.size(), vertical ? "vertical" : "horizontal");
     std::vector<Eigen::Triplet<real>> triplets;
     triplets.reserve(nonzeros);
 
@@ -164,9 +168,12 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
         base += vertical ? matrix.rows() : matrix.cols();
     }
 
-    Eigen::SparseMatrix<real> m(across, along);
+    long cols = vertical ? across : along;
+    long rows = vertical ? along : across;
+
+    Eigen::SparseMatrix<real> m(rows, cols);
     m.reserve(nonzeros);
-    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", along, across, nonzeros);
+    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", cols, rows, nonzeros);
 
     m.setFromTriplets(triplets.begin(), triplets.end());
     return m;
