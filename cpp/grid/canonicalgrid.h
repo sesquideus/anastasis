@@ -2,7 +2,7 @@
 #define ANASTASIS_CPP_CANONICALGRID_H
 
 #include <vector>
-#include "pixel.h"
+#include "grid/pixel/pixel.h"
 
 class CanonicalGrid {
 private:
@@ -11,12 +11,12 @@ private:
 public:
     explicit CanonicalGrid(int width, int height);
 
-    static Pixel pixel(unsigned int x, unsigned int y) ;
+    static Pixel pixel(unsigned int x, unsigned int y);
     [[nodiscard]] std::vector<std::vector<Pixel>> coordinates() const;
 
-    inline int width() const { return this->width_; }
-    inline int height() const { return this->height_; }
-    inline int size() const { return this->width_ * this->height_; }
+    [[nodiscard]] inline int width() const { return this->width_; }
+    [[nodiscard]] inline int height() const { return this->height_; }
+    [[nodiscard]] inline int size() const { return this->width_ * this->height_; }
 };
 
 #endif //ANASTASIS_CPP_CANONICALGRID_H

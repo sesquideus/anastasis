@@ -11,6 +11,7 @@ real Point::slope() const {
 }
 
 Point Point::operator-() const {
+    /** Unary minus for vectors (default) **/
     return Point(-this->x, -this->y);
 }
 
@@ -43,12 +44,13 @@ Point Point::line_segment_intersection(const Point p0, const Point p1, const Poi
     auto q = q1 - q0;
     auto b = q0 - p0;
     real det = p ^ q;
+
     if (std::abs(det) < 1e-15) {
         return Point::invalid();
     } else {
         real t = (b ^ q) / det;
         real u = (b ^ p) / det;
-        if ((-SLACK <= t) && (t <= 1.0 + SLACK) && (-SLACK <= u) && (u <= 1.0 + SLACK)) {
+        if ((-Point::Slack <= t) && (t <= 1.0 + Point::Slack) && (-Point::Slack <= u) && (u <= 1.0 + Point::Slack)) {
             return p0 + t * p;
         } else {
             return Point::invalid();

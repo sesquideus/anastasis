@@ -12,7 +12,7 @@ constexpr real INVALID = std::numeric_limits<real>::quiet_NaN();
 
 class Point {
 private:
-    constexpr static real SLACK = 1e-15;
+    constexpr static real Slack = 1e-15;
 public:
     real x {0};
     real y {0};
@@ -27,7 +27,7 @@ public:
     Point & operator/=(real scale);
 
     inline static Point invalid() { return Point(INVALID, INVALID); };
-    static Point line_segment_intersection(const Point p0, const Point p1, const Point q0, const Point q1);
+    static Point line_segment_intersection(Point p0, Point p1, Point q0, Point q1);
 };
 
 inline real distance_euclidean(const Point p1, const Point p2) {
@@ -36,26 +36,24 @@ inline real distance_euclidean(const Point p1, const Point p2) {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+// Addition of two points: sum of coordinates
 inline Point operator+(Point first, Point second) { return Point(first.x + second.x, first.y + second.y); }
+// Subtraction of two points: effectively a new difference vector
 inline Point operator-(Point first, Point second) { return Point(first.x - second.x, first.y - second.y); }
+// Multiplication by a scalar: multiplication of a vector
 inline Point operator*(real scale, Point point) { return Point(scale * point.x, scale * point.y); }
+// Inverse order of the same
 inline Point operator*(Point point, real scale) { return Point(scale * point.x, scale * point.y); }
+// Division by a scalar: effectively shortening of a vector
 inline Point operator/(Point point, real scale) { return Point(point.x / scale, point.y / scale); }
+// Dot product
 inline real operator*(Point first, Point second) { return first.x * second.x + first.y * second.y; }
+// Pseudo cross product of two vectors is a scalar z representing (0, 0, z) in 3D
 inline real operator^(Point first, Point second) { return first.x * second.y - first.y * second.x; }
 
 // OK this is probably a bad idea... violates the principle of least surprise
 inline real operator<<(Point first, Point second) { return distance_euclidean(first, second); }
 inline real operator>>(Point first, Point second) { return distance_euclidean(first, second); }
-
-
-inline real dot(const Point p1, const Point p2) {
-    return p1.x * p2.x + p1.y * p2.y;
-}
-
-inline real cross(const Point p1, const Point p2) {
-    return p1.x * p2.y - p2.x * p1.y;
-}
 
 
 template<>

@@ -28,9 +28,15 @@ std::vector<T> & sort_by(std::vector<T> & vec, const std::vector<U> & ordering) 
 
 template<typename T>
 std::vector<T> & permutate_in_place(std::vector<T> & vec, const std::vector<std::size_t> & perm) {
+    /**
+     * Permutate a vector in place by a permutation vector
+     * Guaranteed in linear time
+     */
     std::vector<bool> done(vec.size(), false);
     for (std::size_t i = 0; i < vec.size(); ++i) {
-        if (done[i]) continue;
+        if (done[i]) {
+            continue;
+        }
 
         done[i] = true;
         std::size_t prev = i;
@@ -48,13 +54,20 @@ std::vector<T> & permutate_in_place(std::vector<T> & vec, const std::vector<std:
 
 template<class T, class U>
 std::vector<U> map(const std::vector<T> & vec, std::function<U(T)> f) {
+    /**
+     * Map a function f: T -> U to every element of vec<T>
+     * Returns: vector<U>
+     */
     std::vector<U> out;
     out.reserve(vec.size());
     return std::transform(vec.begin(), vec.end(), std::back_inserter(out), f);
 }
 
 template<class T>
-std::vector<T> & for_each(std::vector<T> & vec, std::function<T(T)> f) {
+std::vector<T> & for_each(std::vector<T> & vec, std::function<void(T)> f) {
+    /**
+     * Shorthand for map
+     */
     std::for_each(vec.begin(), vec.end(), f);
 }
 

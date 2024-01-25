@@ -1,8 +1,9 @@
 #ifndef GRID_H
 #define GRID_H
 
+#include <cstddef>
 #include "../types/types.h"
-#include "pixel.h"
+#include "grid/pixel/pixel.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -11,13 +12,14 @@
 
 
 typedef std::tuple<long, long, long, long, real> Overlap4D;
+typedef Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
 
 class Grid {
 private:
     Point centre_;
-    int size_w_;
-    int size_h_;
+    std::size_t size_w_;
+    std::size_t size_h_;
     real phys_w_;
     real phys_h_;
     real rotation_;
@@ -27,8 +29,13 @@ private:
     real pixel_height_;
     constexpr static real NegligibleOverlap = 1e-15;
 public:
-    Grid(Point centre, std::pair<unsigned int, unsigned int> grid_size, std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac);
-    static Grid from_pixel_size(Point centre, std::pair<unsigned int, unsigned int> grid_size, std::pair<real, real> pixel_size, real rotation, std::pair<real, real> pixfrac);
+    Grid(Point centre, std::pair<std::size_t, std::size_t> grid_size, std::pair<real, real> physical_size,
+         real rotation, std::pair<real, real> pixfrac);
+    static Grid from_pixel_size(Point centre,
+                                std::pair<std::size_t, std::size_t> grid_size,
+                                std::pair<real, real> pixel_size,
+                                real rotation,
+                                std::pair<real, real> pixfrac);
 
     void load(const std::vector<std::vector<real>> & data);
 
@@ -41,7 +48,8 @@ public:
     [[nodiscard]] Pixel grid_pixel(unsigned int x, unsigned int y) const;
     [[nodiscard]] Pixel world_pixel(unsigned int x, unsigned int y) const;
 
-    [[nodiscard]] Eigen::SparseMatrix<real> onto_canonical(const CanonicalGrid & canonical) const;
+    [[nodiscard]] std::vector<Overlap4D> onto_canonical(const CanonicalGrid & canonical) const;
+    [[nodiscard]] Eigen::SparseMatrix<real> matrix_canonical(const CanonicalGrid & canonical) const;
 
     void print() const;
     void print_world() const;

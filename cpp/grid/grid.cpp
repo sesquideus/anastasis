@@ -2,7 +2,7 @@
 #include <iostream>
 
 Grid::Grid(Point centre,
-           std::pair<unsigned int, unsigned int> grid_size,
+           std::pair<std::size_t, std::size_t> grid_size,
            std::pair<real, real> physical_size,
            real rotation,
            std::pair<real, real> pixfrac):
@@ -53,17 +53,13 @@ Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) const {
+std::vector<Overlap4D> Grid::onto_canonical(const CanonicalGrid & canonical) const {
     std::vector<Overlap4D> active_pixels;
-
-    // There will be about four times as much overlaps as there are model pixels
+    // There will be about four times as many overlaps as there are model pixels
     active_pixels.reserve(4 * canonical.size());
-    // Allocate the output matrix
-    Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);
-    matrix.reserve(4 * canonical.size());
 
-    for (int i = 0; i < this->size_w_; ++i) {
-        for (int j = 0; j < this->size_h_; ++j) {
+    for (std::size_t i = 0; i < this->size_w_; ++i) {
+        for (std::size_t j = 0; j < this->size_h_; ++j) {
             auto p = this->world_pixel(i, j).bounding_box();
             //fmt::print("{} {} {} {} {} {}\n", this->width(), this->height(), p.left(), p.right(), p.bottom(), p.top());
 
@@ -79,8 +75,16 @@ Eigen::SparseMatrix<real> Grid::onto_canonical(const CanonicalGrid & canonical) 
             }
         }
     }
+    return active_pixels;
+}
 
-    for (auto && pixel: active_pixels) {
+/** Compute the overlap as a 2D matrix (huge size, even if sparse) **/
+Eigen::SparseMatrix<real> Grid::matrix_canonical(const CanonicalGrid & canonical) const {
+    // Allocate the output matrix
+    Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);
+    matrix.reserve(4 * canonical.size());
+
+    for (auto && pixel: this->onto_canonical(canonical)) {
         matrix.insert(
             canonical.width() * std::get<1>(pixel) + std::get<0>(pixel),
             this->width() * std::get<3>(pixel) + std::get<2>(pixel)
