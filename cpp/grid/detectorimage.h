@@ -2,10 +2,10 @@
 // Created by kvik on 24/01/24.
 //
 
-#ifndef ANASTASIS_CPP_SPECTRALGRID_H
-#define ANASTASIS_CPP_SPECTRALGRID_H
+#ifndef ANASTASIS_CPP_DETECTORIMAGE_H
+#define ANASTASIS_CPP_DETECTORIMAGE_H
 
-#include "grid.h"
+#include "grid/grid.h"
 
 
 /**
@@ -20,15 +20,10 @@ public:
                   real rotation, std::pair<real, real> pixfrac);
     DetectorImage(Point centre, std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac,
                   const Matrix & data);
+
+    real operator[](int row, int col) const;
+    real & operator[](int row, int col);
 };
 
 
-//class SpectralDetectorImage: public DetectorImage {
-//private:
-//    std::vector
-//public:
-//    void calibrate_wavelengths(const WavelengthCalibrator & calibrator);
-//
-//};
-
-#endif //ANASTASIS_CPP_SPECTRALGRID_H
+#endif //ANASTASIS_CPP_DETECTORIMAGE_H

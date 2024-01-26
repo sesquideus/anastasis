@@ -8,6 +8,8 @@
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
+class Box;
+
 class Pixel {
 private:
     std::array<std::array<Point, 2>, 2> corners_;
@@ -15,6 +17,7 @@ private:
 public:
     explicit Pixel();
     explicit Pixel(Point bottomleft, Point bottomright, Point topleft, Point topright);
+    inline static Pixel invalid() { return Pixel(Point::invalid(), Point::invalid(), Point::invalid(), Point::invalid()); };
 
     [[nodiscard]] inline Point a() const { return this->corners_[0][0]; }
     [[nodiscard]] inline Point b() const { return this->corners_[0][1]; }

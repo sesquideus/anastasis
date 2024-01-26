@@ -5,6 +5,7 @@
 #include "spatial/metrics.h"
 #include "spatial/structures/vpitree.h"
 #include "grid/grid.h"
+#include "grid/modelimage.h"
 #include <Eigen/SparseLU>
 #include <Eigen/IterativeLinearSolvers>
 
@@ -43,7 +44,7 @@ std::vector<Grid> prepare_matrices() {
 int main() {
     std::vector<Grid> grids = prepare_matrices();
 
-    CanonicalGrid model_image(MODEL_WIDTH, MODEL_HEIGHT);
+    ModelImage model_image(MODEL_WIDTH, MODEL_HEIGHT);
 
     Pixel george = Pixel(Point(-0.5, -0.5), Point(-0.5, 0.5), Point(0.5, -0.5), Point(0.5, 0.5));
     Pixel harris = Pixel(
@@ -66,7 +67,7 @@ int main() {
         // Shift to the centre of the canonical grid
         grid += Point(static_cast<real>(MODEL_WIDTH) / 2, static_cast<real>(MODEL_HEIGHT) / 2);
         grid /= DETECTOR_PIXEL_HEIGHT;                // Scale down by pixel size in arcsec
-        matrices.push_back(grid.matrix_canonical(model_image));
+       // matrices.push_back(grid.matrix_canonical(model_image));
         //std::cout << matrices.back() << std::endl;
     }
     auto A = hstack(matrices);

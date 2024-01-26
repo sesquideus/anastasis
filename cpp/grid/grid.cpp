@@ -2,10 +2,10 @@
 #include <iostream>
 
 Grid::Grid(Point centre,
-           std::pair<std::size_t, std::size_t> grid_size,
-           std::pair<real, real> physical_size,
+           pair<std::size_t> grid_size,
+           pair<real> physical_size,
            real rotation,
-           std::pair<real, real> pixfrac):
+           pair<real> pixfrac):
     centre_(centre),
     size_w_(grid_size.first),
     size_h_(grid_size.second),
@@ -17,6 +17,18 @@ Grid::Grid(Point centre,
     pixel_width_(phys_w_ / static_cast<real>(size_w_)),
     pixel_height_(phys_h_ / static_cast<real>(size_h_))
 { }
+
+Grid Grid::from_pixel_size(Point centre,
+                      pair<std::size_t> grid_size,
+                      pair<real> pixel_size,
+                      real rotation,
+                      pair<real> pixfrac) {
+    return Grid(centre, grid_size,
+                {
+                    pixel_size.first * static_cast<real>(grid_size.first),
+                    pixel_size.second * static_cast<real>(grid_size.second)
+                }, rotation, pixfrac);
+}
 
 Point Grid::grid_centre(unsigned int x, unsigned int y) const {
     real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->size_w_) * this->phys_w_ - this->phys_w_ * 0.5;
@@ -53,7 +65,8 @@ Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-std::vector<Overlap4D> Grid::onto_canonical(const CanonicalGrid & canonical) const {
+/*
+std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const {
     std::vector<Overlap4D> active_pixels;
     // There will be about four times as many overlaps as there are model pixels
     active_pixels.reserve(4 * canonical.size());
@@ -65,7 +78,7 @@ std::vector<Overlap4D> Grid::onto_canonical(const CanonicalGrid & canonical) con
 
             for (int x = std::max(0, p.left()); x < std::min(canonical.width(), p.right()); ++x) {
                 for (int y = std::max(0, p.bottom()); y < std::min(canonical.height(), p.top()); ++y) {
-                    real overlap = this->world_pixel(i, j).overlap(CanonicalGrid::pixel(x, y));
+                    real overlap = this->world_pixel(i, j).overlap(canonical.pixel(x, y));
                     //fmt::print("{} {} -> {}\n", this->world_pixel(i, j), CanonicalGrid::pixel(x, y), overlap);
                     // Add as an active pixel if the overlap is larger than some very small value
                     if (overlap > Grid::NegligibleOverlap) {
@@ -78,8 +91,8 @@ std::vector<Overlap4D> Grid::onto_canonical(const CanonicalGrid & canonical) con
     return active_pixels;
 }
 
-/** Compute the overlap as a 2D matrix (huge size, even if sparse) **/
-Eigen::SparseMatrix<real> Grid::matrix_canonical(const CanonicalGrid & canonical) const {
+/** Compute the overlap as a 2D matrix (huge size, even if sparse) **
+Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) const {
     // Allocate the output matrix
     Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);
     matrix.reserve(4 * canonical.size());
@@ -92,7 +105,7 @@ Eigen::SparseMatrix<real> Grid::matrix_canonical(const CanonicalGrid & canonical
     }
     matrix.makeCompressed();
     return matrix;
-}
+}*/
 
 void Grid::print() const {
     fmt::print("Grid at {}, size {:d}×{:d}, extent {:.6f} {:.6f}, rotation {:.6f}, pixfrac {:.3f}×{:.3f}\n",

@@ -48,7 +48,7 @@ inline Point operator*(Point point, real scale) { return Point(scale * point.x, 
 inline Point operator/(Point point, real scale) { return Point(point.x / scale, point.y / scale); }
 // Dot product
 inline real operator*(Point first, Point second) { return first.x * second.x + first.y * second.y; }
-// Pseudo cross product of two vectors is a scalar z representing (0, 0, z) in 3D
+// Pseudo cross product of two vectors: a scalar z representing (0, 0, z) in 3D
 inline real operator^(Point first, Point second) { return first.x * second.y - first.y * second.x; }
 
 // OK this is probably a bad idea... violates the principle of least surprise

@@ -1,5 +1,5 @@
 #include <cstddef>
-#include "spectralgrid.h"
+#include "detectorimage.h"
 
 
 DetectorImage::DetectorImage(Point centre, std::pair<std::size_t, std::size_t> grid_size,
@@ -12,4 +12,12 @@ DetectorImage::DetectorImage(Point centre, std::pair<real, real> physical_size, 
                              std::pair<real, real> pixfrac, const Matrix & data):
                              Grid(centre, {data.rows(), data.cols()}, physical_size, rotation, pixfrac) {
     this->_data = data;
+}
+
+real DetectorImage::operator[](int row, int col) const {
+    return this->_data(row, col);
+}
+
+real & DetectorImage::operator[](int row, int col) {
+    return this->_data(row, col);
 }

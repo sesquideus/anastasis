@@ -29,14 +29,14 @@ add_executable(
         spatial/structures/balltree.h
         grid/pixel/pixel.cpp
         grid/pixel/pixel.h
-        grid/canonicalgrid.cpp
-        grid/canonicalgrid.h
+        grid/modelimage.cpp
+        grid/modelimage.h
         types/point.cpp
         utils/functions.h
-        grid/box.cpp
         grid/box.h
-        grid/spectralgrid.cpp
-        grid/spectralgrid.h
+        grid/detectorimage.cpp
+        grid/detectorimage.h
         grid/Array2D.cpp
         grid/Array2D.h
+        grid/box.cpp
 )
