@@ -4,17 +4,28 @@ ModelImage::ModelImage(int width, int height):
     width_(width),
     height_(height),
     data_(width, height)
-{}
+{
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            this->data_(col, row) = 0;
+        }
+    }
+}
 
 Pixel ModelImage::pixel(int x, int y) const {
     if ((x < 0) || (x >= this->width_) || (y < 0) || (y >= this->height_)) {
         return Pixel::invalid();
     } else {
         real left = static_cast<real>(x);
-        real right = static_cast<real>(x) + 1.0;
+        real right = left + 1.0;
         real bottom = static_cast<real>(y);
-        real top = static_cast<real>(y) + 1.0;
-        return Pixel(Point(left, bottom), Point(right, bottom), Point(left, top), Point(right, top));
+        real top = bottom + 1.0;
+        return Pixel(
+            Point(left, bottom),
+            Point(right, bottom),
+            Point(left, top),
+            Point(right, top)
+        );
     }
 }
 
@@ -29,29 +40,49 @@ void ModelImage::operator+=(const DetectorImage & image) {
     /** Drizzle a DetectorImage into this ModelImage **/
     int total = 0;
     int inspected = 0;
+    real coverage = 0;
     for (int row = 0; row < image.height(); ++row) {
         for (int col = 0; col < image.width(); ++col) {
             // Find the orthogonal bounds of the pixel so that many unnecessary computations can be avoided completely
-            Box bounds = image.world_pixel(row, col).bounding_box();
-            Pixel pixel = this->pixel(row, col);
+            const Pixel & image_pixel = image.world_pixel(col, row);
+            Box bounds = image_pixel.bounding_box(0);
+            //fmt::print("Image pixel {}:\n", image_pixel);
+            //fmt::print("Its bounding box {}:\n", bounds);
 
             for (int y = bounds.bottom(); y < bounds.top(); ++y) {
-                if ((y < 0) || (y >= image.height())) {
+                if ((y < 0) || (y >= this->height())) {
                     continue;
                 }
                 for (int x = bounds.left(); x < bounds.right(); ++x) {
-                    if ((x < 0) || (x >= image.width())) {
+                    if ((x < 0) || (x >= this->width())) {
                         continue;
                     }
+                    auto && model_pixel = this->pixel(x, y);
+                    real overlap = model_pixel & image_pixel;
+                    //fmt::print("{}\n{}\n", model_pixel, overlap);
+                    if (overlap > Grid::NegligibleOverlap) {
+                        fmt::print("Overlap {}\n", overlap);
+                        ++total;
+                    }
+                    this->data_(col, row) += overlap * image[x, y];
+
                     inspected++;
-                    real overlap = pixel & image.world_pixel(x, y);
-                   // fmt::print("{}\n{}\n{}\n", pixel, image.world_pixel(x, y), overlap);
-                    if (overlap > Grid::NegligibleOverlap) ++total;
-                    this->data_(row, col) += overlap * image[x, y];
                 }
             }
             //fmt::print("\n\n");
         }
     }
-    fmt::print("{} {}\n", total, inspected);
+    fmt::print("{} {} {:f}\n", total, inspected, this->total_flux());
+}
+
+real ModelImage::total_flux() const {
+    real out = 0.0;
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            fmt::print("{}\n", this->data_(col, row));
+            out += this->data_(col, row);
+        }
+    }
+    return out;
+
 }

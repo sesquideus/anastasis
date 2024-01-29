@@ -29,6 +29,8 @@ public:
 
     void drizzle(const std::vector<DetectorImage> & images);
     void operator+=(const DetectorImage & image);
+
+    real total_flux() const;
 };
 
 #endif //ANASTASIS_CPP_MODELIMAGE_H

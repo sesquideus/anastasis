@@ -30,5 +30,22 @@ public:
 };
 
 
+template<>
+class fmt::formatter<Box> {
+private:
+    char presentation = 'f';
+public:
+    constexpr auto parse(fmt::format_parse_context & ctx) -> fmt::format_parse_context::iterator {
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && (*it == 'f' || *it == 'e')) presentation = *it++;
+        if (it != end && *it != '}') return it;
+        return it;
+    }
+
+    auto format(const Box & box, format_context & ctx) const -> format_context::iterator {
+        return fmt::format_to(ctx.out(), "(x {:d} to {:d}, y {:d} to {:d})",
+                                box.left(), box.right(), box.bottom(), box.top());
+    }
+};
 
 #endif //ANASTASIS_CPP_BOX_H

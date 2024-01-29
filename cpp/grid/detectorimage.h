@@ -24,6 +24,8 @@ public:
 
     real operator[](int row, int col) const;
     real & operator[](int row, int col);
+
+    void fill(const real value = 0.0);
     void randomize();
 };
 

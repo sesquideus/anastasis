@@ -19,10 +19,10 @@ constexpr real DETECTOR_PIXEL_HEIGHT = 1;
 //constexpr int DETECTOR_COLS = 28;
 //constexpr int MODEL_WIDTH = 68;
 //constexpr int MODEL_HEIGHT = 68;
-constexpr int DETECTOR_ROWS = 256;
-constexpr int DETECTOR_COLS = 256;
-constexpr int MODEL_WIDTH = 256;
-constexpr int MODEL_HEIGHT = 256;
+constexpr int DETECTOR_ROWS = 4;
+constexpr int DETECTOR_COLS = 4;
+constexpr int MODEL_WIDTH = 4;
+constexpr int MODEL_HEIGHT = 4;
 constexpr real DETECTOR_PHYSICAL_WIDTH = DETECTOR_PIXEL_WIDTH * DETECTOR_COLS;
 constexpr real DETECTOR_PHYSICAL_HEIGHT = DETECTOR_PIXEL_HEIGHT * DETECTOR_ROWS;
 
@@ -35,7 +35,8 @@ std::vector<DetectorImage> prepare_matrices() {
             {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
             0, {1, 1}
         );
-        image.randomize();
+        image.fill(1);
+        //image.randomize();
         images.push_back(image);
     }
     for (int i = -1; i <= 1; ++i) {
@@ -45,7 +46,8 @@ std::vector<DetectorImage> prepare_matrices() {
             {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
             TAU * 0.25, {1, 1}
         );
-        image.randomize();
+        //image.randomize();
+        image.fill(1);
         images.push_back(image);
     }
     return images;

@@ -6,6 +6,7 @@ DetectorImage::DetectorImage(Point centre, std::pair<std::size_t, std::size_t> g
                              std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac):
                              Grid(centre, grid_size, physical_size, rotation, pixfrac) {
     this->_data.resize(grid_size.first, grid_size.second);
+    this->_data.setZero();
 }
 
 DetectorImage::DetectorImage(Point centre, std::pair<real, real> physical_size, real rotation,
@@ -22,13 +23,21 @@ real & DetectorImage::operator[](int row, int col) {
     return this->_data(row, col);
 }
 
+void DetectorImage::fill(const real value) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[row, col] = value;
+        }
+    }
+}
+
 void DetectorImage::randomize() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::weibull_distribution<> weibull;
 
-    for (unsigned int row = 0; row < this->height(); ++row) {
-        for (unsigned int col = 0; col < this->width(); ++col) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
             (*this)[row, col] = weibull(gen);
         }
     }

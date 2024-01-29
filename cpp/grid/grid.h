@@ -12,8 +12,8 @@
 class Grid {
 private:
     Point centre_;
-    const std::size_t size_w_;
-    const std::size_t size_h_;
+    const int size_w_;
+    const int size_h_;
     real phys_w_;
     real phys_h_;
     real rotation_;
@@ -35,8 +35,8 @@ public:
 
     void load(const std::vector<std::vector<real>> & data);
 
-    [[nodiscard]] inline std::size_t width() const { return this->size_w_; }
-    [[nodiscard]] inline std::size_t height() const { return this->size_h_; }
+    [[nodiscard]] inline int width() const { return this->size_w_; }
+    [[nodiscard]] inline int height() const { return this->size_h_; }
 
     [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
     [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
