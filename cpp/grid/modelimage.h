@@ -10,6 +10,9 @@
 class DetectorImage;
 
 
+/** ModelImage models a finale product of the data reduction.
+ *  Its pixels are always equally sized and placed on an aligned orthogonal grid.
+ */
 class ModelImage {
 private:
     const int width_;
@@ -19,7 +22,6 @@ public:
     explicit ModelImage(int width, int height);
 
     [[nodiscard]] Pixel pixel(int x, int y) const;
-    [[nodiscard]] std::vector<std::vector<Pixel>> coordinates() const;
 
     [[nodiscard]] inline int width() const { return this->width_; }
     [[nodiscard]] inline int height() const { return this->height_; }

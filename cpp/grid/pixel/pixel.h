@@ -29,6 +29,8 @@ public:
     [[nodiscard]] bool contains(Point point) const;
 
     [[nodiscard]] real area() const;
+    [[nodiscard]] real operator&(const Pixel & other) const;
+    [[nodiscard]] real operator|(const Pixel & other) const;
     [[nodiscard]] real overlap(const Pixel & other) const; // Area of overlap
 };
 

@@ -5,6 +5,7 @@
 #ifndef ANASTASIS_CPP_DETECTORIMAGE_H
 #define ANASTASIS_CPP_DETECTORIMAGE_H
 
+#include <random>
 #include "grid/grid.h"
 
 
@@ -23,6 +24,7 @@ public:
 
     real operator[](int row, int col) const;
     real & operator[](int row, int col);
+    void randomize();
 };
 
 

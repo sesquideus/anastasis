@@ -21,3 +21,15 @@ real DetectorImage::operator[](int row, int col) const {
 real & DetectorImage::operator[](int row, int col) {
     return this->_data(row, col);
 }
+
+void DetectorImage::randomize() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::weibull_distribution<> weibull;
+
+    for (unsigned int row = 0; row < this->height(); ++row) {
+        for (unsigned int col = 0; col < this->width(); ++col) {
+            (*this)[row, col] = weibull(gen);
+        }
+    }
+}

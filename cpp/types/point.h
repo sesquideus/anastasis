@@ -37,19 +37,39 @@ inline real distance_euclidean(const Point p1, const Point p2) {
 }
 
 // Addition of two points: sum of coordinates
-inline Point operator+(Point first, Point second) { return Point(first.x + second.x, first.y + second.y); }
+inline Point operator+(Point first, Point second) {
+    return Point(first.x + second.x, first.y + second.y);
+}
+
 // Subtraction of two points: effectively a new difference vector
-inline Point operator-(Point first, Point second) { return Point(first.x - second.x, first.y - second.y); }
+inline Point operator-(Point first, Point second) {
+    return Point(first.x - second.x, first.y - second.y);
+}
+
 // Multiplication by a scalar: multiplication of a vector
-inline Point operator*(real scale, Point point) { return Point(scale * point.x, scale * point.y); }
+inline Point operator*(real scale, Point point) {
+    return Point(scale * point.x, scale * point.y);
+}
+
 // Inverse order of the same
-inline Point operator*(Point point, real scale) { return Point(scale * point.x, scale * point.y); }
+inline Point operator*(Point point, real scale) {
+    return Point(scale * point.x, scale * point.y);
+}
+
 // Division by a scalar: effectively shortening of a vector
-inline Point operator/(Point point, real scale) { return Point(point.x / scale, point.y / scale); }
+inline Point operator/(Point point, real scale) {
+    return Point(point.x / scale, point.y / scale);
+}
+
 // Dot product
-inline real operator*(Point first, Point second) { return first.x * second.x + first.y * second.y; }
+inline real operator*(Point first, Point second) {
+    return first.x * second.x + first.y * second.y;
+}
+
 // Pseudo cross product of two vectors: a scalar z representing (0, 0, z) in 3D
-inline real operator^(Point first, Point second) { return first.x * second.y - first.y * second.x; }
+inline real operator^(Point first, Point second) {
+    return first.x * second.y - first.y * second.x;
+}
 
 // OK this is probably a bad idea... violates the principle of least surprise
 inline real operator<<(Point first, Point second) { return distance_euclidean(first, second); }

@@ -108,3 +108,13 @@ real Pixel::overlap(const Pixel & other) const {
         return shoelace * 0.5;
     }
 }
+
+real Pixel::operator&(const Pixel & other) const {
+    /** Operator shorthand for overlap (pixel * other) **/
+    return this->overlap(other);
+}
+
+real Pixel::operator|(const Pixel & other) const {
+    /** Operator shorthand for area of union **/
+    return this->area() + other.area() - (*this & other);
+}

@@ -21,7 +21,6 @@ private:
     real pixfrac_y_;
     real pixel_width_;
     real pixel_height_;
-    constexpr static real NegligibleOverlap = 1e-15;
 public:
     Grid(Point centre,
          pair<std::size_t> grid_size,
@@ -55,6 +54,8 @@ public:
     Grid & operator-=(Point shift);
     Grid & operator*=(real scale);
     Grid & operator/=(real scale);
+
+    constexpr static real NegligibleOverlap = 1e-15;
 };
 
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
