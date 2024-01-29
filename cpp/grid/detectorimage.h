@@ -1,7 +1,3 @@
-//
-// Created by kvik on 24/01/24.
-//
-
 #ifndef ANASTASIS_CPP_DETECTORIMAGE_H
 #define ANASTASIS_CPP_DETECTORIMAGE_H
 
@@ -17,9 +13,9 @@ private:
     std::vector<std::vector<Pixel>> _pixels;
     Matrix _data;
 public:
-    DetectorImage(Point centre, std::pair<std::size_t, std::size_t> grid_size, std::pair<real, real> physical_size,
-                  real rotation, std::pair<real, real> pixfrac);
-    DetectorImage(Point centre, std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac,
+    DetectorImage(Point centre, std::pair<std::size_t, std::size_t> grid_size, pair<real> physical_size,
+                  real rotation, pair<real> pixfrac);
+    DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const Matrix & data);
 
     real operator[](int row, int col) const;

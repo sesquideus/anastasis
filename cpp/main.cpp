@@ -11,7 +11,7 @@
 #include <Eigen/IterativeLinearSolvers>
 
 // Simply tau = 2 * pi
-constexpr real TAU = 3.14159265358979232846264 * 2.0;
+constexpr real Tau = 3.14159265358979232846264 * 2.0;
 
 constexpr real DETECTOR_PIXEL_WIDTH = 1;
 constexpr real DETECTOR_PIXEL_HEIGHT = 1;
@@ -19,10 +19,10 @@ constexpr real DETECTOR_PIXEL_HEIGHT = 1;
 //constexpr int DETECTOR_COLS = 28;
 //constexpr int MODEL_WIDTH = 68;
 //constexpr int MODEL_HEIGHT = 68;
-constexpr int DETECTOR_ROWS = 4;
-constexpr int DETECTOR_COLS = 4;
-constexpr int MODEL_WIDTH = 4;
-constexpr int MODEL_HEIGHT = 4;
+constexpr int DETECTOR_ROWS = 16;
+constexpr int DETECTOR_COLS = 16;
+constexpr int MODEL_WIDTH = 16;
+constexpr int MODEL_HEIGHT = 16;
 constexpr real DETECTOR_PHYSICAL_WIDTH = DETECTOR_PIXEL_WIDTH * DETECTOR_COLS;
 constexpr real DETECTOR_PHYSICAL_HEIGHT = DETECTOR_PIXEL_HEIGHT * DETECTOR_ROWS;
 
@@ -41,10 +41,10 @@ std::vector<DetectorImage> prepare_matrices() {
     }
     for (int i = -1; i <= 1; ++i) {
         auto image = DetectorImage(
-            Point(static_cast<real>(i) / 3.0, 0),
-            {DETECTOR_COLS, DETECTOR_ROWS},
-            {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
-            TAU * 0.25, {1, 1}
+                Point(static_cast<real>(i) / 3.0, 0),
+                {DETECTOR_COLS, DETECTOR_ROWS},
+                {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
+                Tau * 0.25, {1, 1}
         );
         //image.randomize();
         image.fill(1);
@@ -53,13 +53,26 @@ std::vector<DetectorImage> prepare_matrices() {
     return images;
 }
 
+std::vector<DetectorImage> prepare_rotated() {
+    std::vector<DetectorImage> images;
+    for (int angle = 0; angle < 30; ++angle) {
+        auto image = DetectorImage(
+                {0, 0}, {DETECTOR_COLS, DETECTOR_ROWS}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
+                static_cast<float>(angle) / 30.0 * Tau, {1, 1}
+        );
+        image.fill(1.0 / 30.0);
+        images.push_back(image);
+    }
+    return images;
+}
+
 real test_overlap() {
     Pixel george = Pixel(Point(-0.5, -0.5), Point(-0.5, 0.5), Point(0.5, -0.5), Point(0.5, 0.5));
     Pixel harris = Pixel(
-        Point(-0.5, -0.5).rotated(TAU / 8),
-        Point(-0.5,  0.5).rotated(TAU / 8),
-        Point( 0.5, -0.5).rotated(TAU / 8),
-        Point( 0.5,  0.5).rotated(TAU / 8)
+        Point(-0.5, -0.5).rotated(Tau / 8),
+        Point(-0.5,  0.5).rotated(Tau / 8),
+        Point( 0.5, -0.5).rotated(Tau / 8),
+        Point( 0.5,  0.5).rotated(Tau / 8)
     );
 
     return george & harris;
@@ -75,7 +88,7 @@ void time_function(std::function<real(void)> f) {
 }
 
 int main() {
-    std::vector<DetectorImage> six = prepare_matrices();
+    std::vector<DetectorImage> six = prepare_rotated();
     time_function(test_overlap);
 
     for (auto && x: six) {

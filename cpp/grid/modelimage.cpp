@@ -46,8 +46,6 @@ void ModelImage::operator+=(const DetectorImage & image) {
             // Find the orthogonal bounds of the pixel so that many unnecessary computations can be avoided completely
             const Pixel & image_pixel = image.world_pixel(col, row);
             Box bounds = image_pixel.bounding_box(0);
-            //fmt::print("Image pixel {}:\n", image_pixel);
-            //fmt::print("Its bounding box {}:\n", bounds);
 
             for (int y = bounds.bottom(); y < bounds.top(); ++y) {
                 if ((y < 0) || (y >= this->height())) {
@@ -61,7 +59,7 @@ void ModelImage::operator+=(const DetectorImage & image) {
                     real overlap = model_pixel & image_pixel;
                     //fmt::print("{}\n{}\n", model_pixel, overlap);
                     if (overlap > Grid::NegligibleOverlap) {
-                        fmt::print("Overlap {}\n", overlap);
+                      //  fmt::print("Overlap {}\n", overlap);
                         ++total;
                     }
                     this->data_(col, row) += overlap * image[x, y];
@@ -69,20 +67,28 @@ void ModelImage::operator+=(const DetectorImage & image) {
                     inspected++;
                 }
             }
-            //fmt::print("\n\n");
         }
     }
     fmt::print("{} {} {:f}\n", total, inspected, this->total_flux());
+}
+
+char character(real what) {
+    if (what < 0.01) return ' ';
+    if (what < 0.2) return '.';
+    if (what < 0.4) return ',';
+    if (what < 0.6) return 'o';
+    if (what < 0.8) return 'O';
+    return 'G';
 }
 
 real ModelImage::total_flux() const {
     real out = 0.0;
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            fmt::print("{}\n", this->data_(col, row));
+            fmt::print("{}", character(this->data_(col, row)));
             out += this->data_(col, row);
         }
+        fmt::print("\n");
     }
     return out;
-
 }
