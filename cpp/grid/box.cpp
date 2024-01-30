@@ -5,13 +5,22 @@ Pixel Box::as_pixel() const {
      *
      */
     return Pixel(
-            {static_cast<real>(this->left_),  static_cast<real>(this->bottom_)},
-            {static_cast<real>(this->right_), static_cast<real>(this->bottom_)},
-            {static_cast<real>(this->left_),  static_cast<real>(this->top_)},
-            {static_cast<real>(this->right_), static_cast<real>(this->top_)}
+            {static_cast<real>(this->left), static_cast<real>(this->bottom)},
+            {static_cast<real>(this->right), static_cast<real>(this->bottom)},
+            {static_cast<real>(this->left), static_cast<real>(this->top)},
+            {static_cast<real>(this->right), static_cast<real>(this->top)}
     );
 }
 
+real interval_overlap(pair<real> a, pair<real> b) {
+    if ((a.second <= b.first) || (a.first >= b.second)) {
+        return 0;
+    } else {
+        return std::min(a.second, b.second) - std::max(a.first, b.first);
+    }
+}
+
 real Box::overlap(const Box & other) const {
-    real hc = ((this->right_ - this->left_) - (other.right_ - other.left_)) / 2;
+    return interval_overlap({this->left, this->right}, {other.left, other.right}) *
+           interval_overlap({this->bottom, this->top}, {other.bottom, other.top});
 }

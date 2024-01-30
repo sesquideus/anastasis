@@ -10,18 +10,23 @@
  */
 class DetectorImage: public Grid {
 private:
-    std::vector<std::vector<Pixel>> _pixels;
     Matrix _data;
 public:
-    DetectorImage(Point centre, std::pair<std::size_t, std::size_t> grid_size, pair<real> physical_size,
+    DetectorImage(Point centre, pair<std::size_t> grid_size, pair<real> physical_size,
                   real rotation, pair<real> pixfrac);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const Matrix & data);
+    DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                  const std::string & filename);
 
-    real operator[](int row, int col) const;
-    real & operator[](int row, int col);
+    inline real operator[](int row, int col) const {
+        return this->_data(row, col);
+    }
+    inline real & operator[](int row, int col) {
+        return this->_data(row, col);
+    }
 
-    void fill(const real value = 0.0);
+    void fill(real value = 0.0);
     void randomize();
 };
 

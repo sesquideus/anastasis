@@ -22,6 +22,8 @@ public:
     explicit ModelImage(int width, int height);
 
     [[nodiscard]] Pixel pixel(int x, int y) const;
+    [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(x, y); };
+    [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(x, y); };
 
     [[nodiscard]] inline int width() const { return this->width_; }
     [[nodiscard]] inline int height() const { return this->height_; }
@@ -31,6 +33,7 @@ public:
     void operator+=(const DetectorImage & image);
 
     real total_flux() const;
+    void save(const std::string & filename) const;
 };
 
 #endif //ANASTASIS_CPP_MODELIMAGE_H

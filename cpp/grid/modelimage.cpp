@@ -1,3 +1,6 @@
+#include <ostream>
+#include <fstream>
+
 #include "modelimage.h"
 
 ModelImage::ModelImage(int width, int height):
@@ -40,18 +43,18 @@ void ModelImage::operator+=(const DetectorImage & image) {
     /** Drizzle a DetectorImage into this ModelImage **/
     int total = 0;
     int inspected = 0;
-    real coverage = 0;
+
     for (int row = 0; row < image.height(); ++row) {
         for (int col = 0; col < image.width(); ++col) {
             // Find the orthogonal bounds of the pixel so that many unnecessary computations can be avoided completely
             const Pixel & image_pixel = image.world_pixel(col, row);
             Box bounds = image_pixel.bounding_box(0);
 
-            for (int y = bounds.bottom(); y < bounds.top(); ++y) {
+            for (int y = bounds.bottom; y < bounds.top; ++y) {
                 if ((y < 0) || (y >= this->height())) {
                     continue;
                 }
-                for (int x = bounds.left(); x < bounds.right(); ++x) {
+                for (int x = bounds.left; x < bounds.right; ++x) {
                     if ((x < 0) || (x >= this->width())) {
                         continue;
                     }
@@ -62,33 +65,48 @@ void ModelImage::operator+=(const DetectorImage & image) {
                       //  fmt::print("Overlap {}\n", overlap);
                         ++total;
                     }
-                    this->data_(col, row) += overlap * image[x, y];
+                    (*this)[x, y] += overlap * image[row, col];
 
                     inspected++;
                 }
             }
         }
     }
-    fmt::print("{} {} {:f}\n", total, inspected, this->total_flux());
 }
 
 char character(real what) {
     if (what < 0.01) return ' ';
     if (what < 0.2) return '.';
-    if (what < 0.4) return ',';
+    if (what < 0.4) return '-';
+    if (what < 0.5) return '=';
     if (what < 0.6) return 'o';
-    if (what < 0.8) return 'O';
-    return 'G';
+    if (what < 0.7) return 'O';
+    if (what < 0.8) return '8';
+    if (what < 0.9) return '%';
+    return '@';
 }
 
 real ModelImage::total_flux() const {
     real out = 0.0;
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            fmt::print("{}", character(this->data_(col, row)));
+            char x = character(this->data_(col, row));
+            fmt::print("{}{}{}", x, x, x);
             out += this->data_(col, row);
         }
         fmt::print("\n");
     }
     return out;
+}
+
+void ModelImage::save(const std::string & filename) const {
+    std::ofstream out;
+    out.open(filename);
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            real value = (*this)[row, col];
+            out.write(reinterpret_cast<const char*>(&value), sizeof value);
+        }
+    }
+    out.close();
 }
