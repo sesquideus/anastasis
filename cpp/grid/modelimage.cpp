@@ -65,7 +65,7 @@ void ModelImage::operator+=(const DetectorImage & image) {
                       //  fmt::print("Overlap {}\n", overlap);
                         ++total;
                     }
-                    (*this)[x, y] += overlap * image[row, col];
+                    (*this)[x, y] += overlap * image[col, row];
 
                     inspected++;
                 }
@@ -75,8 +75,9 @@ void ModelImage::operator+=(const DetectorImage & image) {
 }
 
 char character(real what) {
-    if (what < 0.01) return ' ';
+    if (what < 0.1) return ' ';
     if (what < 0.2) return '.';
+    if (what < 0.3) return ',';
     if (what < 0.4) return '-';
     if (what < 0.5) return '=';
     if (what < 0.6) return 'o';
@@ -90,8 +91,8 @@ real ModelImage::total_flux() const {
     real out = 0.0;
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            char x = character(this->data_(col, row));
-            fmt::print("{}{}{}", x, x, x);
+            char c = character(this->data_(col, row));
+            fmt::print("{}{}{}", c, c, c);
             out += this->data_(col, row);
         }
         fmt::print("\n");
@@ -104,7 +105,7 @@ void ModelImage::save(const std::string & filename) const {
     out.open(filename);
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            real value = (*this)[row, col];
+            real value = (*this)[col, row];
             out.write(reinterpret_cast<const char*>(&value), sizeof value);
         }
     }

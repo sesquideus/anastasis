@@ -27,51 +27,52 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
  * @param pixfrac           Fill factor of pixels (horizontal, vertical)
  * @param filename          Filename to load the pixels from (8 bit BMP)
  */
-DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                             const std::string & filename):
-                             Grid(centre, {1536, 2048}, physical_size, rotation, pixfrac) {
-    std::ifstream image;
-    image.open(filename);
+DetectorImage DetectorImage::load_bitmap(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                                         const std::string & filename) {
+    std::ifstream bitmap_file;
     unsigned short header, planes, bpp;
     unsigned char value;
-    int buf;
     int offset, width, height;
-    image.read((char *) &header, 2);
+
+    bitmap_file.open(filename);
+    bitmap_file.read((char *) &header, 2);
     if (header != 0x4D42) {
         throw std::runtime_error("Invalid BMP magic value");
     }
     fmt::print("Header is ok\n");
 
-    image.seekg(10, std::ios::beg);
-    image.read((char *) &offset, 4);
-    image.seekg(4, std::ios::cur);
-    image.read((char *) &width, 4);
-    image.read((char *) &height, 4);
-    image.read((char *) &planes, 2);
+    bitmap_file.seekg(10, std::ios::beg);
+    bitmap_file.read((char *) &offset, 4);
+    bitmap_file.seekg(4, std::ios::cur);
+    bitmap_file.read((char *) &width, 4);
+    bitmap_file.read((char *) &height, 4);
+    bitmap_file.read((char *) &planes, 2);
     if (planes != 0x0001) {
         throw std::runtime_error(fmt::format("Invalid number of image planes {}, must be 1", planes));
     }
-    image.read((char *) &bpp, 2);
+    bitmap_file.read((char *) &bpp, 2);
     if (bpp != 0x0008) {
         throw std::runtime_error(fmt::format("Invalid BPP {}, must be 8", bpp));
     }
-    image.seekg(offset, std::ios::beg);
-    
-    this->_data.resize(width, height);
+    bitmap_file.seekg(offset, std::ios::beg);
+
+    Matrix matrix(width, height);
     for (int row = 0; row < height; ++row) {
         for (int col = 0; col < width; ++col) {
-            image.read((char *) &value, 1);
-            this->_data(col, row) = static_cast<real>(value) / 256.0;
+            bitmap_file.read((char *) &value, 1);
+            matrix(col, row) = static_cast<real>(value) / 255.0;
         }
     }
-    image.close();
+    bitmap_file.close();
+    fmt::print("Loaded bitmap {} × {}\n", width, height);
+    return DetectorImage(centre, physical_size, rotation, pixfrac, matrix);
 }
 
 
 void DetectorImage::fill(const real value) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            (*this)[row, col] = value;
+            (*this)[col, row] = value;
         }
     }
 }
@@ -83,7 +84,7 @@ void DetectorImage::randomize() {
 
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            (*this)[row, col] = weibull(gen);
+            (*this)[col, row] = weibull(gen);
         }
     }
 }

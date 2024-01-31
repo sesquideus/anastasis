@@ -2,13 +2,13 @@
 #include <iostream>
 
 Grid::Grid(Point centre,
-           pair<std::size_t> grid_size,
+           pair<int> grid_size,
            pair<real> physical_size,
            real rotation,
            pair<real> pixfrac):
-    centre_(centre),
     size_w_(grid_size.first),
     size_h_(grid_size.second),
+    centre_(centre),
     phys_w_(physical_size.first),
     phys_h_(physical_size.second),
     rotation_(rotation),
@@ -19,10 +19,10 @@ Grid::Grid(Point centre,
 { }
 
 Grid Grid::from_pixel_size(Point centre,
-                      pair<std::size_t> grid_size,
-                      pair<real> pixel_size,
-                      real rotation,
-                      pair<real> pixfrac) {
+                           pair<int> grid_size,
+                           pair<real> pixel_size,
+                           real rotation,
+                           pair<real> pixfrac) {
     return Grid(centre, grid_size,
                 {
                     pixel_size.first * static_cast<real>(grid_size.first),

@@ -10,10 +10,11 @@
 
 
 class Grid {
+protected:
+    int size_w_;
+    int size_h_;
 private:
     Point centre_;
-    const int size_w_;
-    const int size_h_;
     real phys_w_;
     real phys_h_;
     real rotation_;
@@ -23,18 +24,17 @@ private:
     real pixel_height_;
 public:
     Grid(Point centre,
-         pair<std::size_t> grid_size,
+         pair<int> grid_size,
          pair<real> physical_size,
          real rotation,
          pair<real> pixfrac);
     static Grid from_pixel_size(Point centre,
-                                pair<std::size_t> grid_size,
+                                pair<int> grid_size,
                                 pair<real> pixel_size,
                                 real rotation,
                                 pair<real> pixfrac);
 
-    void load(const std::vector<std::vector<real>> & data);
-
+    [[nodiscard]] inline Point centre() const { return this->centre_; }
     [[nodiscard]] inline int width() const { return this->size_w_; }
     [[nodiscard]] inline int height() const { return this->size_h_; }
 

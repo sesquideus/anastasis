@@ -6,7 +6,7 @@
 
 
 /**
- * Extends an abstract grid with actual pixel data. Implemented in separate structures for cache speed
+ * Extends an abstract grid with actual pixel data. Implemented in separate structures to enable vectorization
  */
 class DetectorImage: public Grid {
 private:
@@ -16,14 +16,14 @@ public:
                   real rotation, pair<real> pixfrac);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const Matrix & data);
-    DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                  const std::string & filename);
+    static DetectorImage load_bitmap(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                                     const std::string & filename);
 
-    inline real operator[](int row, int col) const {
-        return this->_data(row, col);
+    inline real operator[](int col, int row) const {
+        return this->_data(col, row);
     }
-    inline real & operator[](int row, int col) {
-        return this->_data(row, col);
+    inline real & operator[](int col, int row) {
+        return this->_data(col, row);
     }
 
     void fill(real value = 0.0);
