@@ -18,6 +18,7 @@ private:
     const int width_;
     const int height_;
     Matrix data_;
+    Matrix noise_;
 public:
     explicit ModelImage(int width, int height);
 
@@ -30,7 +31,10 @@ public:
     [[nodiscard]] inline int size() const { return this->width_ * this->height_; }
 
     void drizzle(const std::vector<DetectorImage> & images);
-    void operator+=(const DetectorImage & image);
+    ModelImage & operator+=(const DetectorImage & image);
+
+    // Find the mean square difference between the pictures, expressed as a number between 0 and 1
+    real operator^(const ModelImage & other) const;
 
     real total_flux() const;
     void save(const std::string & filename) const;

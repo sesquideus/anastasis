@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "modelimage.h"
+#include "utils/functions.h"
 
 ModelImage::ModelImage(int width, int height):
     width_(width),
@@ -39,17 +40,19 @@ void ModelImage::drizzle(const std::vector<DetectorImage> & images) {
     }
 }
 
-void ModelImage::operator+=(const DetectorImage & image) {
+ModelImage & ModelImage::operator+=(const DetectorImage & image) {
     /** Drizzle a DetectorImage into this ModelImage **/
     int total = 0;
     int inspected = 0;
 
+    // For every pixel of the drizzling image
     for (int row = 0; row < image.height(); ++row) {
         for (int col = 0; col < image.width(); ++col) {
             // Find the orthogonal bounds of the pixel so that many unnecessary computations can be avoided completely
             const Pixel & image_pixel = image.world_pixel(col, row);
             Box bounds = image_pixel.bounding_box(0);
 
+            // For every pixel caught in the drizzle
             for (int y = bounds.bottom; y < bounds.top; ++y) {
                 if ((y < 0) || (y >= this->height())) {
                     continue;
@@ -59,19 +62,19 @@ void ModelImage::operator+=(const DetectorImage & image) {
                         continue;
                     }
                     auto && model_pixel = this->pixel(x, y);
+
                     real overlap = model_pixel & image_pixel;
-                    //fmt::print("{}\n{}\n", model_pixel, overlap);
                     if (overlap > Grid::NegligibleOverlap) {
-                      //  fmt::print("Overlap {}\n", overlap);
                         ++total;
                     }
-                    (*this)[x, y] += overlap * image[col, row];
+                    (*this)[x, y] += overlap * image[col, row] / image.pixel_area(col, row);
 
                     inspected++;
                 }
             }
         }
     }
+    return *this;
 }
 
 char character(real what) {
@@ -105,9 +108,24 @@ void ModelImage::save(const std::string & filename) const {
     out.open(filename);
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
+            //real value = trim((*this)[col, row], 0, 1);
             real value = (*this)[col, row];
             out.write(reinterpret_cast<const char*>(&value), sizeof value);
         }
     }
     out.close();
+}
+
+real ModelImage::operator^(const ModelImage & other) const {
+    real diff = 0;
+    real this_sq = 0;
+    real other_sq = 0;
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            diff += std::pow((*this)[col, row] - other[col, row], 2);
+            this_sq += std::pow((*this)[col, row], 2);
+            other_sq += std::pow(other[col, row], 2);
+        }
+    }
+    return diff / (this_sq + other_sq);
 }

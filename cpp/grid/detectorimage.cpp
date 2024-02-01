@@ -27,25 +27,21 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
  * @param pixfrac           Fill factor of pixels (horizontal, vertical)
  * @param filename          Filename to load the pixels from (8 bit BMP)
  */
-DetectorImage DetectorImage::load_bitmap(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                                         const std::string & filename) {
+DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                             const std::string & filename):
+                             Grid(centre, read_bitmap(filename), physical_size, rotation, pixfrac)
+{
     std::ifstream bitmap_file;
     unsigned short header, planes, bpp;
     unsigned char value;
-    int offset, width, height;
+    int offset;
+    int width = this->width();
+    int height = this->height();
 
     bitmap_file.open(filename);
-    bitmap_file.read((char *) &header, 2);
-    if (header != 0x4D42) {
-        throw std::runtime_error("Invalid BMP magic value");
-    }
-    fmt::print("Header is ok\n");
-
     bitmap_file.seekg(10, std::ios::beg);
     bitmap_file.read((char *) &offset, 4);
-    bitmap_file.seekg(4, std::ios::cur);
-    bitmap_file.read((char *) &width, 4);
-    bitmap_file.read((char *) &height, 4);
+    bitmap_file.seekg(12, std::ios::cur);
     bitmap_file.read((char *) &planes, 2);
     if (planes != 0x0001) {
         throw std::runtime_error(fmt::format("Invalid number of image planes {}, must be 1", planes));
@@ -56,18 +52,33 @@ DetectorImage DetectorImage::load_bitmap(Point centre, pair<real> physical_size,
     }
     bitmap_file.seekg(offset, std::ios::beg);
 
-    Matrix matrix(width, height);
+    this->_data.resize(width, height);
     for (int row = 0; row < height; ++row) {
         for (int col = 0; col < width; ++col) {
             bitmap_file.read((char *) &value, 1);
-            matrix(col, row) = static_cast<real>(value) / 255.0;
+            this->_data(col, row) = static_cast<real>(value) / 255.0;
         }
     }
     bitmap_file.close();
-    fmt::print("Loaded bitmap {} × {}\n", width, height);
-    return DetectorImage(centre, physical_size, rotation, pixfrac, matrix);
+    fmt::print("Loaded bitmap with size {} × {}\n", width, height);
 }
 
+pair<int> DetectorImage::read_bitmap(const std::string & filename) {
+    std::ifstream bitmap_file;
+    unsigned short header;
+    int width, height;
+
+    bitmap_file.open(filename);
+    bitmap_file.read((char *) &header, 4);
+    if (header != 0x4D42) {
+        throw std::runtime_error("Invalid BMP magic value");
+    }
+    bitmap_file.seekg(18, std::ios::beg);
+    bitmap_file.read((char *) &width, 4);
+    bitmap_file.read((char *) &height, 4);
+    bitmap_file.close();
+    return {width, height};
+}
 
 void DetectorImage::fill(const real value) {
     for (int row = 0; row < this->height(); ++row) {
@@ -77,15 +88,35 @@ void DetectorImage::fill(const real value) {
     }
 }
 
+/** Apply a parameterless function to every pixel (constant, random, ...) **/
+DetectorImage & DetectorImage::apply(const std::function<real(void)> & function) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[col, row] = function();
+        }
+    }
+    return *this;
+}
+
+/** Apply a R -> R function to every pixel **/
+DetectorImage & DetectorImage::apply(const std::function<real(real)> & function) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[col, row] = function((*this)[col, row]);
+        }
+    }
+    return *this;
+}
+
 void DetectorImage::randomize() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::weibull_distribution<> weibull;
 
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = weibull(gen);
-        }
-    }
+    this->apply([&]() { return weibull(gen); });
+}
+
+DetectorImage & DetectorImage::multiply(const real value) {
+    return this->apply([value](real x) { return value * x; });
 }
 

@@ -91,7 +91,7 @@ std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const 
     return active_pixels;
 }
 
-/** Compute the overlap as a 2D matrix (huge size, even if sparse) **
+** Compute the overlap as a 2D matrix (huge size, even if sparse) **
 Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) const {
     // Allocate the output matrix
     Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);

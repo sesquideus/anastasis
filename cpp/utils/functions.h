@@ -1,7 +1,3 @@
-//
-// Created by kvik on 9/28/23.
-//
-
 #ifndef ANASTASIS_CPP_FUNCTIONS_H
 #define ANASTASIS_CPP_FUNCTIONS_H
 
@@ -9,6 +5,8 @@
 #include <iterator>
 #include <numeric>
 #include <functional>
+
+#include "types/types.h"
 
 
 template<class T, class Comp>
@@ -71,5 +69,8 @@ std::vector<T> & for_each(std::vector<T> & vec, std::function<void(T)> f) {
     std::for_each(vec.begin(), vec.end(), f);
 }
 
+real trim(real value, real lower, real upper) {
+    return (value < lower) ? lower : ((value > upper) ? upper : value);
+}
 
 #endif //ANASTASIS_CPP_FUNCTIONS_H

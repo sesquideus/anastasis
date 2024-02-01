@@ -20,7 +20,7 @@ constexpr int MODEL_WIDTH = 256;
 constexpr int MODEL_HEIGHT = 256;
 constexpr real DETECTOR_PHYSICAL_WIDTH = DETECTOR_PIXEL_WIDTH * DETECTOR_COLS;
 constexpr real DETECTOR_PHYSICAL_HEIGHT = DETECTOR_PIXEL_HEIGHT * DETECTOR_ROWS;
-constexpr Point shift
+constexpr Point shift = {0, 0};
 
 std::vector<DetectorImage> prepare_matrices() {
     std::vector<DetectorImage> images;
@@ -65,14 +65,14 @@ std::vector<DetectorImage> prepare_rotated() {
 
 std::vector<DetectorImage> prepare_penguins() {
     std::vector<DetectorImage> images;
-    for (int dy = -1; dy <= 1; ++dy) {
-        for (int dx = -1; dx <= 1; ++dx) {
-            auto image = DetectorImage::load_bitmap(
-                {0, 0},
+    for (int dy = -1; dy <= -1; ++dy) {
+        for (int dx = 0; dx <= 0; ++dx) {
+            auto image = DetectorImage(
+                {256, 256},
                 //Point(static_cast<real>(dx) * 1.0, static_cast<real>(dy) * 1.0),
                 {96, 128},
-                dx * 0.02, {1, 1}, "pingvys.bmp");
-            image += {128, 128};
+                dx * 0.2, {1, 1}, "pingvys.bmp");
+            image.multiply(1);
             images.push_back(image);
         }
     }
@@ -101,9 +101,9 @@ void time_function(const std::function<real(void)> & f) {
 }
 
 int main() {
-    std::vector<DetectorImage> six = prepare_matrices();
+    // std::vector<DetectorImage> six = prepare_matrices();
     std::vector<DetectorImage> penguins = prepare_penguins();
-    time_function(test_overlap);
+    // time_function(test_overlap);
     /*
     for (auto && x: six) {
         //x /= DETECTOR_PIXEL_HEIGHT;
@@ -119,7 +119,7 @@ int main() {
     });
     */
     time_function([&]() -> real {
-        ModelImage pingvyse(256, 256);
+        ModelImage pingvyse(512, 512);
         pingvyse.drizzle(penguins);
         pingvyse.save("pingvyse.raw");
         return Tau;

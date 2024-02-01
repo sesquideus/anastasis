@@ -23,6 +23,8 @@ private:
     real pixel_width_;
     real pixel_height_;
 public:
+    constexpr static real NegligibleOverlap = 1e-15;
+
     Grid(Point centre,
          pair<int> grid_size,
          pair<real> physical_size,
@@ -37,6 +39,11 @@ public:
     [[nodiscard]] inline Point centre() const { return this->centre_; }
     [[nodiscard]] inline int width() const { return this->size_w_; }
     [[nodiscard]] inline int height() const { return this->size_h_; }
+    [[nodiscard]] inline real pixel_area(int col, int row) const {
+        (void) col;
+        (void) row;
+        return this->pixel_width_ * this->pixel_height_;
+    }
 
     [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
     [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
@@ -54,8 +61,6 @@ public:
     Grid & operator-=(Point shift);
     Grid & operator*=(real scale);
     Grid & operator/=(real scale);
-
-    constexpr static real NegligibleOverlap = 1e-15;
 };
 
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);

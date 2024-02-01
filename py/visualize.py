@@ -37,12 +37,12 @@ class Heatmap2D(Heatmap):
 
     def plot(self):
         self.outfile = Path(self.args.outfile.name)
-        fig = plt.figure(1, figsize=(10, 10))
+        fig = plt.figure(1, figsize=(16, 16))
         ax = fig.subplots(1, 1)
         ax.set_frame_on(False)
-        ax.grid(color='black', linestyle='-', alpha=0.6)
-        ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=8))
-        ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=8))
+        #ax.grid(color='black', linestyle='-', alpha=1)
+        #ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=8))
+        #ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=8))
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_aspect('equal')
@@ -50,7 +50,7 @@ class Heatmap2D(Heatmap):
         ax.imshow(self.data, cmap=self.args.cmap, vmin=0, extent=[0, self.args.w, 0, self.args.h], origin='lower')
 
         plt.tight_layout(pad=0)
-        fig.savefig(self.outfile, dpi=100, pad_inches=0, format='png')
+        fig.savefig(self.outfile, dpi=128, pad_inches=0, format='png')
         plt.close('all')
 
 
