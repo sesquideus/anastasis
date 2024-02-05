@@ -11,7 +11,7 @@
 class DetectorImage: public Grid {
 private:
     Matrix _data;
-    static pair<int> read_bitmap(const std::string & filename);
+    static pair<int> read_bitmap_header(const std::string & filename);
 public:
     DetectorImage(Point centre, pair<std::size_t> grid_size, pair<real> physical_size,
                   real rotation, pair<real> pixfrac);
@@ -37,5 +37,6 @@ public:
     void randomize();
 };
 
+DetectorImage operator+(const DetectorImage & image, Point shift);
 
 #endif //ANASTASIS_CPP_DETECTORIMAGE_H

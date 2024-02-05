@@ -116,16 +116,28 @@ void ModelImage::save(const std::string & filename) const {
     out.close();
 }
 
-real ModelImage::operator^(const ModelImage & other) const {
-    real diff = 0;
-    real this_sq = 0;
-    real other_sq = 0;
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            diff += std::pow((*this)[col, row] - other[col, row], 2);
-            this_sq += std::pow((*this)[col, row], 2);
-            other_sq += std::pow(other[col, row], 2);
+real ModelImage::kullback_leibler(const ModelImage & other) const {
+    return 0;
+}
+
+real ModelImage::squared_difference(const ModelImage & other) const {
+    if (this->size() != other.size()) {
+        return std::numeric_limits<real>::quiet_NaN();
+    } else {
+        real diff = 0;
+        real this_sq = 0;
+        real other_sq = 0;
+        for (int row = 0; row < this->height(); ++row) {
+            for (int col = 0; col < this->width(); ++col) {
+                diff += std::pow((*this)[col, row] - other[col, row], 2);
+                this_sq += std::pow((*this)[col, row], 2);
+                other_sq += std::pow(other[col, row], 2);
+            }
         }
+        return diff / (this_sq + other_sq);
     }
-    return diff / (this_sq + other_sq);
+}
+
+real ModelImage::operator^(const ModelImage & other) const {
+    return this->squared_difference(other);
 }

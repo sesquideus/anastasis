@@ -238,3 +238,9 @@ Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrice
     m.finalize();
     return m;
 }
+
+Grid operator+(const Grid & grid, Point shift) {
+    auto new_grid = grid;
+    new_grid += shift;
+    return new_grid;
+}

@@ -39,6 +39,11 @@ public:
     [[nodiscard]] inline Point centre() const { return this->centre_; }
     [[nodiscard]] inline int width() const { return this->size_w_; }
     [[nodiscard]] inline int height() const { return this->size_h_; }
+    [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }
+    [[nodiscard]] inline pair<real> physical_size() const { return {this->phys_w_, this->phys_h_}; }
+    [[nodiscard]] inline real rotation() const { return this->rotation_; }
+    [[nodiscard]] inline pair<real> pixfrac() const { return {this->pixfrac_x_, this->pixfrac_y_}; }
+
     [[nodiscard]] inline real pixel_area(int col, int row) const {
         (void) col;
         (void) row;
@@ -62,6 +67,8 @@ public:
     Grid & operator*=(real scale);
     Grid & operator/=(real scale);
 };
+
+Grid operator+(const Grid & grid, Point shift);
 
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
 Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);

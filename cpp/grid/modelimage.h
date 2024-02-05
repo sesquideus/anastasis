@@ -30,10 +30,16 @@ public:
     [[nodiscard]] inline int height() const { return this->height_; }
     [[nodiscard]] inline int size() const { return this->width_ * this->height_; }
 
+    const Matrix & data() const { return this->data_; }
+    Matrix & data() { return this->data_; }
+
     void drizzle(const std::vector<DetectorImage> & images);
     ModelImage & operator+=(const DetectorImage & image);
 
     // Find the mean square difference between the pictures, expressed as a number between 0 and 1
+
+    real kullback_leibler(const ModelImage & other) const;
+    real squared_difference(const ModelImage & other) const;
     real operator^(const ModelImage & other) const;
 
     real total_flux() const;

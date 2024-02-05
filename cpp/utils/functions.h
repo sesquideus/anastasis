@@ -8,21 +8,21 @@
 
 #include "types/types.h"
 
-
 template<class T, class Comp>
 std::vector<std::size_t> sort_permutation(const std::vector<T> & vec, Comp & comparator) {
     std::vector<std::size_t> perm(vec.size());
     std::iota(perm.begin(), perm.end(), 0);
-    std::sort(perm.begin(), perm.end(), [&](std::size_t i, std::size_t j) { return comparator(vec[i], vec[j]); });
+    std::sort(perm.begin(), perm.end(),
+              [&](std::size_t i, std::size_t j) { return comparator(vec[i], vec[j]); }
+    );
     return perm;
 }
 
 template<class T, class U>
 std::vector<T> & sort_by(std::vector<T> & vec, const std::vector<U> & ordering) {
     auto perm = sort_permutation(ordering);
-    permutate_in_place(vec, perm);
+    return permutate_in_place(vec, perm);
 }
-
 
 template<typename T>
 std::vector<T> & permutate_in_place(std::vector<T> & vec, const std::vector<std::size_t> & perm) {
@@ -69,8 +69,7 @@ std::vector<T> & for_each(std::vector<T> & vec, std::function<void(T)> f) {
     std::for_each(vec.begin(), vec.end(), f);
 }
 
-real trim(real value, real lower, real upper) {
-    return (value < lower) ? lower : ((value > upper) ? upper : value);
-}
+real trim(real value, real lower, real upper);
+void time_function(const std::function<real(void)> & f);
 
 #endif //ANASTASIS_CPP_FUNCTIONS_H

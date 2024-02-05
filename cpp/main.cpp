@@ -1,5 +1,3 @@
-#include <chrono>
-
 #include "types/types.h"
 #include "types/point.h"
 #include "spatial/metrics.h"
@@ -7,6 +5,7 @@
 #include "grid/pixel/pixel.h"
 #include "grid/grid.h"
 #include "grid/modelimage.h"
+#include "utils/functions.h"
 
 constexpr real DETECTOR_PIXEL_WIDTH = 0.8;
 constexpr real DETECTOR_PIXEL_HEIGHT = 0.8;
@@ -21,6 +20,7 @@ constexpr int MODEL_HEIGHT = 256;
 constexpr real DETECTOR_PHYSICAL_WIDTH = DETECTOR_PIXEL_WIDTH * DETECTOR_COLS;
 constexpr real DETECTOR_PHYSICAL_HEIGHT = DETECTOR_PIXEL_HEIGHT * DETECTOR_ROWS;
 constexpr Point shift = {0, 0};
+
 
 std::vector<DetectorImage> prepare_matrices() {
     std::vector<DetectorImage> images;
@@ -79,6 +79,22 @@ std::vector<DetectorImage> prepare_penguins() {
     return images;
 }
 
+std::vector<DetectorImage> prepare_metis() {
+    std::vector<DetectorImage> images;
+
+    for (int dy = -1; dy <= 1; ++dy) {
+        for (int dx = -1; dx <= 1; ++dx) {
+            auto image = DetectorImage(
+                    {256, 256},
+                    {256 + static_cast<float>(dx) / 3 * 16, 128 + static_cast<float>(dy) / 3 * 16},
+                    0, {1, 1}, "metis.bmp");
+            image.multiply(1);
+            images.push_back(image);
+        }
+    }
+    return images;
+}
+
 real test_overlap() {
     Pixel george = Pixel(Point(-0.5, -0.5), Point(-0.5, 0.5), Point(0.5, -0.5), Point(0.5, 0.5));
     Pixel harris = Pixel(
@@ -91,18 +107,9 @@ real test_overlap() {
     return george & harris;
 }
 
-void time_function(const std::function<real(void)> & f) {
-    auto start = std::chrono::high_resolution_clock::now();
-    fmt::print("Result is {}\n", f());
-    auto diff = std::chrono::high_resolution_clock::now() - start;
-    auto us = std::chrono::duration_cast<std::chrono::microseconds>(diff);
-
-    fmt::print("Test took {} \u03BCs\n", us.count());
-}
-
 int main() {
     // std::vector<DetectorImage> six = prepare_matrices();
-    std::vector<DetectorImage> penguins = prepare_penguins();
+    //std::vector<DetectorImage> penguins = prepare_penguins();
     // time_function(test_overlap);
     /*
     for (auto && x: six) {
@@ -119,9 +126,9 @@ int main() {
     });
     */
     time_function([&]() -> real {
-        ModelImage pingvyse(512, 512);
-        pingvyse.drizzle(penguins);
-        pingvyse.save("pingvyse.raw");
+    //    ModelImage metis(512, 512);
+    //    metis.drizzle(prepare_metis());
+    //    metis.save("metis.raw");
         return Tau;
     });
 

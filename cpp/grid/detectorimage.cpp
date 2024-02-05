@@ -29,10 +29,10 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
  */
 DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                              const std::string & filename):
-                             Grid(centre, read_bitmap(filename), physical_size, rotation, pixfrac)
+                             Grid(centre, read_bitmap_header(filename), physical_size, rotation, pixfrac)
 {
     std::ifstream bitmap_file;
-    unsigned short header, planes, bpp;
+    unsigned short planes, bpp;
     unsigned char value;
     int offset;
     int width = this->width();
@@ -63,15 +63,19 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
     fmt::print("Loaded bitmap with size {} × {}\n", width, height);
 }
 
-pair<int> DetectorImage::read_bitmap(const std::string & filename) {
+pair<int> DetectorImage::read_bitmap_header(const std::string & filename) {
     std::ifstream bitmap_file;
     unsigned short header;
     int width, height;
 
     bitmap_file.open(filename);
-    bitmap_file.read((char *) &header, 4);
+    if (!bitmap_file.is_open()) {
+        throw std::runtime_error(fmt::format("Could not open file {}", filename));
+    }
+    bitmap_file.seekg(0, std::ios::beg);
+    bitmap_file.read((char *) &header, 2);
     if (header != 0x4D42) {
-        throw std::runtime_error("Invalid BMP magic value");
+        throw std::runtime_error(fmt::format("Invalid BMP magic value {:04x}", header));
     }
     bitmap_file.seekg(18, std::ios::beg);
     bitmap_file.read((char *) &width, 4);
@@ -120,3 +124,8 @@ DetectorImage & DetectorImage::multiply(const real value) {
     return this->apply([value](real x) { return value * x; });
 }
 
+DetectorImage operator+(const DetectorImage & image, Point shift) {
+    auto out = image;
+    out += shift;
+    return out;
+}
