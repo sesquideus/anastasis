@@ -13,8 +13,8 @@ private:
     Matrix _data;
     static pair<int> read_bitmap_header(const std::string & filename);
 public:
-    DetectorImage(Point centre, pair<std::size_t> grid_size, pair<real> physical_size,
-                  real rotation, pair<real> pixfrac);
+    DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                  pair<std::size_t> grid_size);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const Matrix & data);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
@@ -37,6 +37,8 @@ public:
     void randomize();
 };
 
+DetectorImage operator*(const DetectorImage & image, real scale);
+DetectorImage operator*(const DetectorImage & image, pair<real> scale);
 DetectorImage operator+(const DetectorImage & image, Point shift);
 
 #endif //ANASTASIS_CPP_DETECTORIMAGE_H

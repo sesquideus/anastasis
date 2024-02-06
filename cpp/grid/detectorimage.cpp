@@ -6,15 +6,15 @@
 #include "detectorimage.h"
 
 
-DetectorImage::DetectorImage(Point centre, pair<std::size_t> grid_size,
-                             std::pair<real, real> physical_size, real rotation, std::pair<real, real> pixfrac):
+DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                             pair<std::size_t> grid_size):
                              Grid(centre, grid_size, physical_size, rotation, pixfrac) {
     this->_data.resize(grid_size.first, grid_size.second);
     this->_data.setZero();
 }
 
-DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation,
-                             pair<real> pixfrac, const Matrix & data):
+DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
+                             const Matrix & data):
                              Grid(centre, {data.rows(), data.cols()}, physical_size, rotation, pixfrac) {
     this->_data = data;
 }
@@ -127,5 +127,17 @@ DetectorImage & DetectorImage::multiply(const real value) {
 DetectorImage operator+(const DetectorImage & image, Point shift) {
     auto out = image;
     out += shift;
+    return out;
+}
+
+DetectorImage operator*(const DetectorImage & image, real scale) {
+    auto out = image;
+    out *= scale;
+    return out;
+}
+
+DetectorImage operator*(const DetectorImage & image, pair<real> scale) {
+    auto out = image;
+    out *= scale;
     return out;
 }

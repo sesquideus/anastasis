@@ -64,7 +64,9 @@ public:
 
     Grid & operator+=(Point shift);
     Grid & operator-=(Point shift);
+    Grid & operator*=(pair<real> scale);
     Grid & operator*=(real scale);
+    Grid & operator/=(pair<real> scale);
     Grid & operator/=(real scale);
 };
 

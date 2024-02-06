@@ -134,18 +134,28 @@ Grid & Grid::operator-=(Point shift) {
 }
 
 Grid & Grid::operator*=(real scale) {
-    this->phys_w_ *= scale;
-    this->phys_h_ *= scale;
-    this->pixel_width_ *= scale;
-    this->pixel_height_ *= scale;
+    *this *= {scale, scale};
+    return *this;
+}
+
+Grid & Grid::operator*=(pair<real> scale) {
+    this->phys_w_ *= scale.first;
+    this->phys_h_ *= scale.second;
+    this->pixel_width_ *= scale.first;
+    this->pixel_height_ *= scale.second;
     return *this;
 }
 
 Grid & Grid::operator/=(real scale) {
-    this->phys_w_ /= scale;
-    this->phys_h_ /= scale;
-    this->pixel_width_ /= scale;
-    this->pixel_height_ /= scale;
+    *this /= {scale, scale};
+    return *this;
+}
+
+Grid & Grid::operator/=(pair<real> scale) {
+    this->phys_w_ /= scale.first;
+    this->phys_h_ /= scale.second;
+    this->pixel_width_ /= scale.first;
+    this->pixel_height_ /= scale.second;
     return *this;
 }
 

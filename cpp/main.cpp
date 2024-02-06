@@ -27,9 +27,8 @@ std::vector<DetectorImage> prepare_matrices() {
     for (int i = -1; i <= 1; ++i) {
         auto image = DetectorImage(
             Point(static_cast<real>(i) / 3.0, 0),
-            {DETECTOR_COLS, DETECTOR_ROWS},
             {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
-            0, {1, 1}
+            0, {1, 1}, pair<int>(DETECTOR_COLS, DETECTOR_ROWS)
         );
         image.fill(1);
         //image.randomize();
@@ -38,9 +37,8 @@ std::vector<DetectorImage> prepare_matrices() {
     for (int i = -1; i <= 1; ++i) {
         auto image = DetectorImage(
             Point(static_cast<real>(i) / 3.0, 0),
-            {DETECTOR_COLS, DETECTOR_ROWS},
             {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
-            Tau * 0.25, {1, 1}
+            Tau * 0.25, {1, 1}, pair<int>(DETECTOR_COLS, DETECTOR_ROWS)
         );
         //image.randomize();
         image.fill(1);
@@ -54,8 +52,8 @@ std::vector<DetectorImage> prepare_rotated() {
     constexpr int COUNT = 13;
     for (int angle = 0; angle < COUNT; ++angle) {
         auto image = DetectorImage(
-            {0, 0}, {DETECTOR_COLS, DETECTOR_ROWS}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
-            static_cast<float>(angle) / COUNT * Tau, {1, 1}
+            {0, 0}, {DETECTOR_PHYSICAL_WIDTH, DETECTOR_PHYSICAL_HEIGHT},
+            static_cast<float>(angle) / COUNT * Tau, {1, 1}, pair<int>(DETECTOR_COLS, DETECTOR_ROWS)
         );
         image.fill(1.0 / COUNT);
         images.push_back(image);

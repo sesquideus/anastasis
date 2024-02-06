@@ -5,19 +5,11 @@
 #include "utils/functions.h"
 
 ModelImage::ModelImage(int width, int height):
-    width_(width),
-    height_(height),
-    data_(width, height)
-{
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            this->data_(col, row) = 0;
-        }
-    }
-}
+    Image(width, height)
+{ }
 
 Pixel ModelImage::pixel(int x, int y) const {
-    if ((x < 0) || (x >= this->width_) || (y < 0) || (y >= this->height_)) {
+    if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
         return Pixel::invalid();
     } else {
         real left = static_cast<real>(x);
@@ -94,16 +86,16 @@ real ModelImage::total_flux() const {
     real out = 0.0;
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            char c = character(this->data_(col, row));
+            char c = character((*this)[col, row]);
             fmt::print("{}{}{}", c, c, c);
-            out += this->data_(col, row);
+            out += (*this)[col, row];
         }
         fmt::print("\n");
     }
     return out;
 }
 
-void ModelImage::save(const std::string & filename) const {
+void ModelImage::save_raw(const std::string & filename) const {
     std::ofstream out;
     out.open(filename);
     for (int row = 0; row < this->height(); ++row) {
@@ -116,7 +108,38 @@ void ModelImage::save(const std::string & filename) const {
     out.close();
 }
 
+void ModelImage::save_bmp(const std::string & filename) const {
+    std::ofstream out;
+    out.open(filename, std::ios::out | std::ios::binary);
+    unsigned short header = 0x4D42;
+    out.write((char *) &header, 2);
+    unsigned int size = 26 + this->width() * this->height();
+    out.write((char *) &size, 4);
+    size = 0;
+    out.write((char *) &size, 4);
+    size = 26;
+    out.write((char *) &size, 4);
+    header = this->width();
+    out.write((char *) &header, 2);
+    header = this->height();
+    out.write((char *) &header, 2);
+    header = 1;
+    out.write((char *) &header, 2);
+    header = 8;
+    out.write((char *) &header, 2);
+
+    char value;
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            value = static_cast<char>((*this)[col, row] * 64);
+            out.write(&value, 1);
+        }
+    }
+    out.close();
+}
+
 real ModelImage::kullback_leibler(const ModelImage & other) const {
+    (void) other;
     return 0;
 }
 
@@ -134,7 +157,7 @@ real ModelImage::squared_difference(const ModelImage & other) const {
                 other_sq += std::pow(other[col, row], 2);
             }
         }
-        return diff / (this_sq + other_sq);
+        return std::sqrt(diff / (this_sq + other_sq));
     }
 }
 
