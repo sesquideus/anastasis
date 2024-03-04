@@ -50,6 +50,9 @@ public:
         return this->pixel_width_ * this->pixel_height_;
     }
 
+    Grid & set_centre(Point centre);
+    Grid & set_physical_size(pair<real> size);
+
     [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
     [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
 

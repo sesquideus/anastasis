@@ -69,7 +69,7 @@ real Pixel::overlap(const Pixel & other) const {
     }
 
     /* Find all the intersections over the Cartesian product of this and other pixel's edges
-     * The order of the
+     * The order of the evaluation is 00, 01, 10, 11 × 00, 01, 10, 11
      *
      * The index cycles through the edges of both rectangles in a clever way
      * See https://ksvi.mff.cuni.cz/~kryl/dokumentace.htm#koment, last line:

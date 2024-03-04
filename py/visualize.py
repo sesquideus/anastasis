@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
-
-import numpy as np
-from matplotlib import pyplot as plt
-
 import matplotlib
+import numpy as np
 
-matplotlib.use('svg')
-
+from matplotlib import pyplot as plt
 from pathlib import Path
 
 
@@ -26,6 +22,12 @@ class Heatmap():
 
         self.file = Path(self.args.infile.name)
 
+        if self.args.outfile:
+            matplotlib.use('Agg')
+            self.outfile = Path(self.args.outfile.name)
+        else:
+            matplotlib.use('TkAgg')
+
         self.load()
         self.plot()
 
@@ -36,7 +38,6 @@ class Heatmap2D(Heatmap):
         self.data = self.data.reshape(self.args.h, self.args.w)
 
     def plot(self):
-        self.outfile = Path(self.args.outfile.name)
         fig = plt.figure(1, figsize=(16, 16))
         ax = fig.subplots(1, 1)
         ax.set_frame_on(False)
@@ -47,10 +48,15 @@ class Heatmap2D(Heatmap):
         ax.set_yticklabels([])
         ax.set_aspect('equal')
 
-        ax.imshow(self.data, cmap=self.args.cmap, vmin=0, extent=[0, self.args.w, 0, self.args.h], origin='lower')
+        data = ax.imshow(self.data, cmap=self.args.cmap, vmin=0, extent=[0, self.args.w, 0, self.args.h], origin='lower')
+        fig.colorbar(data)
 
         plt.tight_layout(pad=0)
-        fig.savefig(self.outfile, dpi=128, pad_inches=0, format='png')
+        if self.args.outfile:
+            fig.savefig(self.outfile, dpi=128, pad_inches=0, format='png')
+        else:
+            plt.show()
+
         plt.close('all')
 
 

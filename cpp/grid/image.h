@@ -2,8 +2,34 @@
 #define ANASTASIS_CPP_IMAGE_H
 
 #include <functional>
+#include <fstream>
 
 #include "types/types.h"
+#include "utils/functions.h"
+
+#pragma pack(push,2)
+typedef struct tagBITMAPHEADER {
+    unsigned short  biHeader = 0x4D42;
+    unsigned int    biSize = 0;
+    unsigned short  biReservedCrap1 = 0;
+    unsigned short  biReservedCrap2 = 0;
+    unsigned int    biOffset = 1078;
+} BITMAPHEADER;
+
+typedef struct tagBITMAPINFOHEADER {
+    unsigned int    biSize = 40;
+    int             biWidth = 0;
+    int             biHeight = 0;
+    short           biPlanes = 1;
+    short           biBitCount = 8;
+    unsigned int    biCompression = 0;
+    unsigned int    biSizeImage = 0;
+    int             biXPelsPerMeter = 2835;
+    int             biYPelsPerMeter = 2835;
+    unsigned int    biClrUsed = 0;
+    unsigned int    biClrImportant = 0;
+} BITMAPINFOHEADER;
+#pragma pack(pop)
 
 class Image {
 private:
@@ -29,6 +55,10 @@ public:
     [[nodiscard]] inline int width() const { return this->width_; }
     [[nodiscard]] inline int height() const { return this->height_; }
     [[nodiscard]] inline pair<int> size() const { return {this->width_, this->height_}; }
+
+    void save_raw(const std::string & filename) const;
+    void save_npy(const std::string & filename) const;
+    void save_bmp(const std::string & filename) const;
 };
 
 

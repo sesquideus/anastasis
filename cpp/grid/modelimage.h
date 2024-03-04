@@ -24,16 +24,34 @@ public:
 
     void drizzle(const std::vector<DetectorImage> & images);
     ModelImage & operator+=(const DetectorImage & image);
+    ModelImage & operator+=(const ModelImage & other);
+    ModelImage & operator*=(real value);
+    ModelImage & operator/=(real value);
 
     // Find the mean square difference between the pictures, expressed as a number between 0 and 1
 
-    real kullback_leibler(const ModelImage & other) const;
-    real squared_difference(const ModelImage & other) const;
+    [[nodiscard]] real dot_product(const ModelImage & other) const;
+    [[nodiscard]] real squared_difference(const ModelImage & other) const;
+    real operator*(const ModelImage & other) const;
+    real operator%(const ModelImage & other) const;
     real operator^(const ModelImage & other) const;
 
-    real total_flux() const;
-    void save_raw(const std::string & filename) const;
-    void save_bmp(const std::string & filename) const;
+    [[nodiscard]] real total_flux() const;
+};
+
+template<>
+class fmt::formatter<ModelImage> {
+public:
+    constexpr auto parse(fmt::format_parse_context & ctx) -> fmt::format_parse_context::iterator {
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && *it != '}') return it;
+        return it;
+    }
+
+    auto format(const ModelImage & image, format_context & ctx) const -> format_context::iterator {
+        return fmt::format_to(ctx.out(), "Model image with size {:d}×{:d}",
+                              image.size().first, image.size().second);
+    }
 };
 
 #endif //ANASTASIS_CPP_MODELIMAGE_H

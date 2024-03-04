@@ -14,8 +14,8 @@ Grid::Grid(Point centre,
     rotation_(rotation),
     pixfrac_x_(pixfrac.first),
     pixfrac_y_(pixfrac.second),
-    pixel_width_(phys_w_ / static_cast<real>(size_w_)),
-    pixel_height_(phys_h_ / static_cast<real>(size_h_))
+    pixel_width_(pixfrac_x_ * phys_w_ / static_cast<real>(size_w_)),
+    pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(size_h_))
 { }
 
 Grid Grid::from_pixel_size(Point centre,
@@ -64,6 +64,18 @@ Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
         this->centre_ + raw.c().rotated(this->rotation_)
     );
 }
+
+Grid & Grid::set_centre(Point centre) {
+    this->centre_ = centre;
+    return *this;
+}
+
+Grid & Grid::set_physical_size(pair<real> size) {
+    this->phys_w_ = size.first;
+    this->phys_h_ = size.second;
+    return *this;
+}
+
 
 /*
 std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const {

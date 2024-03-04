@@ -1,8 +1,4 @@
-#include <ostream>
-#include <fstream>
-
 #include "modelimage.h"
-#include "utils/functions.h"
 
 ModelImage::ModelImage(int width, int height):
     Image(width, height)
@@ -55,11 +51,14 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
                     }
                     auto && model_pixel = this->pixel(x, y);
 
+                    // Calculate the overlap of model and data pixels
                     real overlap = model_pixel & image_pixel;
                     if (overlap > Grid::NegligibleOverlap) {
+                        // If not zero or negligibly small, add to the value at [x, y] the value
+                        // from source's [col, row], scaled by overlap and pixel area
+                        (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
                         ++total;
                     }
-                    (*this)[x, y] += overlap * image[col, row] / image.pixel_area(col, row);
 
                     inspected++;
                 }
@@ -95,72 +94,80 @@ real ModelImage::total_flux() const {
     return out;
 }
 
-void ModelImage::save_raw(const std::string & filename) const {
-    std::ofstream out;
-    out.open(filename);
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            //real value = trim((*this)[col, row], 0, 1);
-            real value = (*this)[col, row];
-            out.write(reinterpret_cast<const char*>(&value), sizeof value);
+real ModelImage::dot_product(const ModelImage & other) const {
+    if (this->size() == other.size()) {
+        real diff = 0;
+        for (int row = 0; row < this->height(); ++row) {
+            for (int col = 0; col < this->width(); ++col) {
+                diff += (*this)[col, row] * other[col, row];
+            }
         }
+        return diff;
+    } else {
+        throw std::invalid_argument("ModelImage sizes do not match");
     }
-    out.close();
-}
-
-void ModelImage::save_bmp(const std::string & filename) const {
-    std::ofstream out;
-    out.open(filename, std::ios::out | std::ios::binary);
-    unsigned short header = 0x4D42;
-    out.write((char *) &header, 2);
-    unsigned int size = 26 + this->width() * this->height();
-    out.write((char *) &size, 4);
-    size = 0;
-    out.write((char *) &size, 4);
-    size = 26;
-    out.write((char *) &size, 4);
-    header = this->width();
-    out.write((char *) &header, 2);
-    header = this->height();
-    out.write((char *) &header, 2);
-    header = 1;
-    out.write((char *) &header, 2);
-    header = 8;
-    out.write((char *) &header, 2);
-
-    char value;
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            value = static_cast<char>((*this)[col, row] * 64);
-            out.write(&value, 1);
-        }
-    }
-    out.close();
-}
-
-real ModelImage::kullback_leibler(const ModelImage & other) const {
-    (void) other;
-    return 0;
 }
 
 real ModelImage::squared_difference(const ModelImage & other) const {
-    if (this->size() != other.size()) {
-        return std::numeric_limits<real>::quiet_NaN();
-    } else {
+    if (this->size() == other.size()) {
         real diff = 0;
-        real this_sq = 0;
-        real other_sq = 0;
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < this->width(); ++col) {
                 diff += std::pow((*this)[col, row] - other[col, row], 2);
-                this_sq += std::pow((*this)[col, row], 2);
-                other_sq += std::pow(other[col, row], 2);
             }
         }
-        return std::sqrt(diff / (this_sq + other_sq));
+        return std::sqrt(diff / static_cast<real>(this->width() * this->height()));
+    } else {
+        throw std::invalid_argument("ModelImage sizes do not match");
     }
 }
 
-real ModelImage::operator^(const ModelImage & other) const {
+real ModelImage::operator*(const ModelImage & other) const {
+    return this->dot_product(other);
+}
+
+real ModelImage::operator%(const ModelImage & other) const {
     return this->squared_difference(other);
+}
+
+/** Find the cosine of the angle between two images **/
+real ModelImage::operator^(const ModelImage & other) const {
+    return (*this) * other / (((*this) * (*this)) * (other * other));
+}
+
+/** Add another ModelImage to this ModelImage
+ *  @param other
+ *      other ModelImage, must have the same dimensions
+ *  @return reference to this ModelImage
+ */
+ModelImage & ModelImage::operator+=(const ModelImage & other) {
+    if (this->size() == other.size()) {
+        for (int row = 0; row < this->height(); ++row) {
+            for (int col = 0; col < this->width(); ++col) {
+                (*this)[col, row] += other[col, row];
+            }
+        }
+        return *this;
+    } else {
+        throw std::invalid_argument("ModelImage sizes do not match");
+    }
+}
+
+ModelImage & ModelImage::operator*=(real value) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[col, row] *= value;
+        }
+    }
+    return *this;
+}
+
+/** Divide every pixel by `value` **/
+ModelImage & ModelImage::operator/=(real value) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[col, row] /= value;
+        }
+    }
+    return *this;
 }

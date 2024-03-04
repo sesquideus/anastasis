@@ -112,6 +112,16 @@ DetectorImage & DetectorImage::apply(const std::function<real(real)> & function)
     return *this;
 }
 
+/** Apply a R -> R function to every pixel depending on pixel coordinates **/
+DetectorImage & DetectorImage::apply(const std::function<real(int, int, real)> & function) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            (*this)[col, row] = function(col, row, (*this)[col, row]);
+        }
+    }
+    return *this;
+}
+
 void DetectorImage::randomize() {
     std::random_device rd;
     std::mt19937 gen(rd());
