@@ -106,7 +106,7 @@ real ModelImage::dot_product(const ModelImage & other) const {
         }
         return diff;
     } else {
-        throw std::invalid_argument("ModelImage sizes do not match");
+        throw std::invalid_argument(fmt::format("ModelImage sizes do not match_ {} != {}", this->size(), other.size()));
     }
 }
 

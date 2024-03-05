@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
     auto downsampled = downsample(input, model_width, model_height, subpixels_x, subpixels_y);
     downsampled[0][0].save_npy("out/downsampled.npy");
 
-    auto drizzled = drizzle(downsampled, {model_width, model_height});
+    auto drizzled = drizzle(downsampled, input.size());
     drizzled.save_npy("out/drizzled.npy");
 
     real similarity = original ^ drizzled;
