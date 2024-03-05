@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
                     new_centre,
                     size, 0, {pixfrac_x, pixfrac_y}, downsampled[i][j].data()
             );
-            drizzled += image.multiply(1.0 / (subpixels_x * subpixels_y));
+            drizzled += image.multiply(1.0 / (subpixels_x * subpixels_y * pixfrac_x * pixfrac_y));
             fmt::print("{}\n", image);
             fmt::print("Drizzled with shifts {:6.3f} {:6.3f} (pixels {:6.3f} {:6.3f}) at {:6.3f} {:6.3f}, pixfrac {:6.3f} {:6.3f}\n",
                        shift_x, shift_y,
@@ -83,6 +83,7 @@ int main(int argc, char * argv[]) {
         }
     }
     drizzled.save_bmp("out/drizzled.bmp");
+    drizzled.save_npy("out/drizzled.npy");
     drizzled.save_raw("out/drizzled.raw");
 
     real similarity = original ^ drizzled;

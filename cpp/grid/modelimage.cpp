@@ -59,6 +59,7 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
                         (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
                         ++total;
                     }
+                    fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
 
                     inspected++;
                 }

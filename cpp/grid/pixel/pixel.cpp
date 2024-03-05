@@ -38,8 +38,8 @@ bool Pixel::contains(Point point) const {
     Point p = this->b() - this->a(); // Line AB
     Point q = this->d() - this->a(); // Line AD
     Point x = point - this->a();     // Line AX
-    real t = (p * x) / (p * p);        // Projection of AX onto AB
-    real u = (q * x) / (q * q);        // Projection of AX onto AD
+    real t = (p * x) / (p * p);      // Projection of AX onto AB
+    real u = (q * x) / (q * q);      // Projection of AX onto AD
     return ((-Pixel::Slack <= t) && (t <= 1.0 + Pixel::Slack) && (-Pixel::Slack <= u) && (u <= 1.0 + Pixel::Slack));
 }
 

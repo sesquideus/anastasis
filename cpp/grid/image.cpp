@@ -76,7 +76,23 @@ void Image::save_raw(const std::string & filename) const {
 void Image::save_npy(const std::string & filename) const {
     std::ofstream out;
     out.open(filename);
-    out.write()
+    unsigned char c = 0x93;
+    out.write(reinterpret_cast<const char*>(&c), sizeof c);
+    out.write("NUMPY", 5);
+    unsigned short d = 1;
+    out.write(reinterpret_cast<const char*>(&d), sizeof d);
+    d = 0x76;
+    out.write(reinterpret_cast<const char*>(&d), sizeof d);
+    std::string desc = fmt::format("{{'descr': '<f{}', 'fortran_order': False, 'shape': ({}, {})}}",
+                                   sizeof(real), this->height(), this->width());
+    out.write(desc.c_str(), desc.length());
+    c = 0x20;
+    for (int i = 10 + desc.length(); i < 127; ++i) {
+        out.write(reinterpret_cast<const char*>(&c), sizeof c);
+    }
+    c = 0x0A;
+    out.write(reinterpret_cast<const char*>(&c), sizeof c);
+
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
             real value = (*this)[col, row];
