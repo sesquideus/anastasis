@@ -6,6 +6,7 @@
 
 #include "types/types.h"
 #include "utils/functions.h"
+#include "abstractgrid.h"
 
 #pragma pack(push,2)
 typedef struct tagBITMAPHEADER {
@@ -31,10 +32,9 @@ typedef struct tagBITMAPINFOHEADER {
 } BITMAPINFOHEADER;
 #pragma pack(pop)
 
-class Image {
+
+class Image: public virtual AbstractGrid {
 private:
-    const int width_;
-    const int height_;
     Matrix data_;
 protected:
     Image map(const std::function<real(real)> & function);
@@ -47,14 +47,10 @@ public:
     Image(int width, int height);
     explicit Image(const Matrix & data);
 
-    Matrix & data() { return this->data_; }
+    [[nodiscard]] Matrix & data() { return this->data_; }
     [[nodiscard]] const Matrix & data() const { return this->data_; }
     [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(x, y); };
     [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(x, y); };
-
-    [[nodiscard]] inline int width() const { return this->width_; }
-    [[nodiscard]] inline int height() const { return this->height_; }
-    [[nodiscard]] inline pair<int> size() const { return {this->width_, this->height_}; }
 
     void save_raw(const std::string & filename) const;
     void save_npy(const std::string & filename) const;

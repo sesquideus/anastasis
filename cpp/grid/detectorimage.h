@@ -3,12 +3,13 @@
 
 #include <random>
 #include "grid/grid.h"
+#include "image.h"
 
 
 /**
  * Extends an abstract grid with actual pixel data. Implemented in separate structures to enable vectorization
  */
-class DetectorImage: public Grid {
+class DetectorImage: public PlacedGrid, public Image {
 private:
     Matrix _data;
     static pair<int> read_bitmap_header(const std::string & filename);
@@ -19,13 +20,6 @@ public:
                   const Matrix & data);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const std::string & filename);
-
-    inline real operator[](int col, int row) const {
-        return this->_data(col, row);
-    }
-    inline real & operator[](int col, int row) {
-        return this->_data(col, row);
-    }
 
     DetectorImage & apply(const std::function<real(void)> & function);
     DetectorImage & apply(const std::function<real(real)> & function);

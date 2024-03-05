@@ -3,21 +3,23 @@
 #include <fstream>
 #include <exception>
 
+#include "abstractgrid.h"
 #include "detectorimage.h"
 
 
 DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                              pair<std::size_t> grid_size):
-                             Grid(centre, grid_size, physical_size, rotation, pixfrac) {
-    this->_data.resize(grid_size.first, grid_size.second);
-    this->_data.setZero();
-}
+        AbstractGrid(grid_size.first, grid_size.second),
+        PlacedGrid(centre, grid_size, physical_size, rotation, pixfrac),
+        Image(grid_size.first, grid_size.second)
+{}
 
 DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                              const Matrix & data):
-                             Grid(centre, {data.rows(), data.cols()}, physical_size, rotation, pixfrac) {
-    this->_data = data;
-}
+        AbstractGrid(data.cols(), data.rows()),
+        PlacedGrid(centre, {data.cols(), data.rows()}, physical_size, rotation, pixfrac),
+        Image(data)
+{}
 
 /**
  * Load a detector image from a BMP file (quick and easy, minimal error checking, requires 8bpp greyscale)
@@ -29,7 +31,9 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
  */
 DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                              const std::string & filename):
-                             Grid(centre, read_bitmap_header(filename), physical_size, rotation, pixfrac)
+        AbstractGrid(read_bitmap_header(filename)),
+        PlacedGrid(centre, read_bitmap_header(filename), physical_size, rotation, pixfrac),
+        Image(read_bitmap_header(filename).first, read_bitmap_header(filename).second)
 {
     std::ifstream bitmap_file;
     unsigned short planes, bpp;

@@ -10,8 +10,60 @@ ModelImage one_to_one(const DetectorImage & image) {
     fmt::print("{}\n", copy);
     fmt::print("{}\n", original);
     original += copy;
-    original.save_bmp("one-to-one.bmp");
+    original.save_bmp("out/one-to-one.bmp");
+    original.save_npy("out/one-to-one.npy");
     return original;
+}
+
+std::vector<std::vector<DetectorImage>> downsample(
+    const DetectorImage & image,
+    int model_width, int model_height,
+    int subsamples_x, int subsamples_y
+) {
+    std::vector<std::vector<DetectorImage>> downsampled;
+    Point centre = {static_cast<real>(model_width) / 2, static_cast<real>(model_height) / 2};
+
+    for (int j = 0; j < subsamples_y; ++j) {
+        downsampled.emplace_back();
+        for (int i = 0; i < subsamples_x; ++i) {
+            ModelImage temp(model_width, model_height);
+            real shift_x = static_cast<real>(i) / static_cast<real>(subsamples_x);
+            real shift_y = static_cast<real>(j) / static_cast<real>(subsamples_y);
+            Point shift = {shift_x, shift_y};
+
+            temp += (image + Point(shift_x, shift_y));
+            fmt::print("Scaled down to {:d} × {:d} with shift {:6.3f} {:6.3f}, pixfrac ({:6.3f}, {:6.3f})\n",
+                       model_width, model_height, shift_x, shift_y, image.pixfrac().first, image.pixfrac().second);
+            downsampled[i].emplace_back(centre + shift, pair<int>(model_width, model_height), 0, pair<int>(1, 1), temp.data());
+        }
+    }
+    return downsampled;
+}
+
+ModelImage drizzle(
+        const std::vector<std::vector<DetectorImage>> & downsampled,
+        pair<int> output_size
+) {
+    ModelImage drizzled(output_size.first, output_size.second);
+    int samples_x = downsampled.size();
+    int samples_y = downsampled[0].size();
+
+    for (unsigned int j = 0; j < downsampled.size(); ++j) {
+        for (unsigned int i = 0; i < downsampled[j].size(); ++i) {
+            real shift_x = static_cast<real>(i) / static_cast<real>(samples_x);
+            real shift_y = static_cast<real>(j) / static_cast<real>(samples_y);
+            real scale_x = static_cast<real>(output_size.first) / downsampled[i][j].width();
+            real scale_y = static_cast<real>(output_size.second) / downsampled[i][j].height();
+            drizzled += downsampled[i][j];
+            fmt::print("Drizzled with shifts {:6.3f} {:6.3f} (pixels {:6.3f} {:6.3f}) "
+                       "at {:6.3f} {:6.3f}), pixfrac {:6.3f} {:6.3f}\n",
+                       shift_x, shift_y,
+                       shift_x * scale_x, shift_y * scale_y,
+                       downsampled[i][j].centre().x, downsampled[i][j].centre().y,
+                       downsampled[i][j].pixfrac().first, downsampled[i][j].pixfrac().second);
+        }
+    }
+    return drizzled;
 }
 
 int main(int argc, char * argv[]) {
@@ -47,44 +99,12 @@ int main(int argc, char * argv[]) {
 
     input.set_centre(centre);
     input.set_physical_size({model_width, model_height});
-    std::vector<std::vector<ModelImage>> downsampled;
 
-    for (int i = 0; i < subpixels_x; ++i) {
-        downsampled.emplace_back();
-        for (int j = 0; j < subpixels_y; ++j) {
-            downsampled[i].emplace_back(model_width, model_height);
-            real shift_x = static_cast<real>(i) / static_cast<real>(subpixels_x);
-            real shift_y = static_cast<real>(j) / static_cast<real>(subpixels_y);
-            downsampled[i][j] += (input + Point(shift_x, shift_y));
-            fmt::print("Scaled down to {:d} × {:d} with shift {:6.3f} {:6.3f}, pixfrac ({:6.3f}, {:6.3f})\n",
-                       model_width, model_height, shift_x, shift_y, input.pixfrac().first, input.pixfrac().second);
-            // downsized[i][j] /= static_cast<real>(scale_x * scale_y);
-            downsampled[i][j].save_raw("out/downsampled.raw");
-        }
-    }
+    auto downsampled = downsample(input, model_width, model_height, subpixels_x, subpixels_y);
+    downsampled[0][0].save_npy("out/downsampled.npy");
 
-    ModelImage drizzled(size.first, size.second);
-    for (int i = 0; i < subpixels_x; ++i) {
-        for (int j = 0; j < subpixels_y; ++j) {
-            real shift_x = static_cast<real>(i) / static_cast<real>(subpixels_x);
-            real shift_y = static_cast<real>(j) / static_cast<real>(subpixels_y);
-            auto new_centre = Point((centre.x - shift_x) * scale_x, (centre.y - shift_y) * scale_y);
-            DetectorImage image(
-                    new_centre,
-                    size, 0, {pixfrac_x, pixfrac_y}, downsampled[i][j].data()
-            );
-            drizzled += image.multiply(1.0 / (subpixels_x * subpixels_y * pixfrac_x * pixfrac_y));
-            fmt::print("{}\n", image);
-            fmt::print("Drizzled with shifts {:6.3f} {:6.3f} (pixels {:6.3f} {:6.3f}) at {:6.3f} {:6.3f}, pixfrac {:6.3f} {:6.3f}\n",
-                       shift_x, shift_y,
-                       shift_x * scale_x, shift_y * scale_y,
-                       new_centre.x, new_centre.y,
-                       pixfrac_x, pixfrac_y);
-        }
-    }
-    drizzled.save_bmp("out/drizzled.bmp");
+    auto drizzled = drizzle(downsampled, {model_width, model_height});
     drizzled.save_npy("out/drizzled.npy");
-    drizzled.save_raw("out/drizzled.raw");
 
     real similarity = original ^ drizzled;
     fmt::print("Similarity score is {}\n", similarity);

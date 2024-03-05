@@ -3,16 +3,14 @@
 
 #include <cstddef>
 #include "../types/types.h"
+#include "grid/abstractgrid.h"
 #include "grid/pixel/pixel.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 
-class Grid {
-protected:
-    int size_w_;
-    int size_h_;
+class PlacedGrid: public virtual AbstractGrid {
 private:
     Point centre_;
     real phys_w_;
@@ -25,21 +23,19 @@ private:
 public:
     constexpr static real NegligibleOverlap = 1e-15;
 
-    Grid(Point centre,
-         pair<int> grid_size,
-         pair<real> physical_size,
-         real rotation,
-         pair<real> pixfrac);
-    static Grid from_pixel_size(Point centre,
-                                pair<int> grid_size,
-                                pair<real> pixel_size,
-                                real rotation,
-                                pair<real> pixfrac);
+    PlacedGrid(Point centre,
+               pair<int> grid_size,
+               pair<real> physical_size,
+               real rotation,
+               pair<real> pixfrac);
+    static PlacedGrid from_pixel_size(Point centre,
+                                      pair<int> grid_size,
+                                      pair<real> pixel_size,
+                                      real rotation,
+                                      pair<real> pixfrac);
 
     [[nodiscard]] inline Point centre() const { return this->centre_; }
-    [[nodiscard]] inline int width() const { return this->size_w_; }
-    [[nodiscard]] inline int height() const { return this->size_h_; }
-    [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }
+    // [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }
     [[nodiscard]] inline pair<real> physical_size() const { return {this->phys_w_, this->phys_h_}; }
     [[nodiscard]] inline real rotation() const { return this->rotation_; }
     [[nodiscard]] inline pair<real> pixfrac() const { return {this->pixfrac_x_, this->pixfrac_y_}; }
@@ -50,8 +46,8 @@ public:
         return this->pixel_width_ * this->pixel_height_;
     }
 
-    Grid & set_centre(Point centre);
-    Grid & set_physical_size(pair<real> size);
+    PlacedGrid & set_centre(Point centre);
+    PlacedGrid & set_physical_size(pair<real> size);
 
     [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
     [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
@@ -65,15 +61,15 @@ public:
     void print() const;
     void print_world() const;
 
-    Grid & operator+=(Point shift);
-    Grid & operator-=(Point shift);
-    Grid & operator*=(pair<real> scale);
-    Grid & operator*=(real scale);
-    Grid & operator/=(pair<real> scale);
-    Grid & operator/=(real scale);
+    PlacedGrid & operator+=(Point shift);
+    PlacedGrid & operator-=(Point shift);
+    PlacedGrid & operator*=(pair<real> scale);
+    PlacedGrid & operator*=(real scale);
+    PlacedGrid & operator/=(pair<real> scale);
+    PlacedGrid & operator/=(real scale);
 };
 
-Grid operator+(const Grid & grid, Point shift);
+PlacedGrid operator+(const PlacedGrid & grid, Point shift);
 
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
 Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);

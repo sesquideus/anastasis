@@ -1,6 +1,7 @@
 #include "modelimage.h"
 
 ModelImage::ModelImage(int width, int height):
+    AbstractGrid(width, height),
     Image(width, height)
 { }
 
@@ -53,13 +54,13 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
 
                     // Calculate the overlap of model and data pixels
                     real overlap = model_pixel & image_pixel;
-                    if (overlap > Grid::NegligibleOverlap) {
+                    if (overlap > PlacedGrid::NegligibleOverlap) {
                         // If not zero or negligibly small, add to the value at [x, y] the value
                         // from source's [col, row], scaled by overlap and pixel area
                         (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
                         ++total;
                     }
-                    fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
+                    // fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
 
                     inspected++;
                 }

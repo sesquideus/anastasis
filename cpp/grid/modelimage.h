@@ -11,8 +11,8 @@
 class DetectorImage;
 
 
-/** ModelImage models a finale product of the data reduction.
- *  Its pixels are always equally sized and placed on an aligned orthogonal grid.
+/** ModelImage models a final product of the data reduction.
+ *  Its pixels are always square, 1×1 in size and placed on an aligned orthogonal grid starting at [0, 0].
  */
 class ModelImage: public Image {
 private:

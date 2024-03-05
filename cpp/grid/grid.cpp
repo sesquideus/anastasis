@@ -1,13 +1,12 @@
 #include "grid.h"
 #include <iostream>
 
-Grid::Grid(Point centre,
-           pair<int> grid_size,
-           pair<real> physical_size,
-           real rotation,
-           pair<real> pixfrac):
-    size_w_(grid_size.first),
-    size_h_(grid_size.second),
+PlacedGrid::PlacedGrid(Point centre,
+                       pair<int> grid_size,
+                       pair<real> physical_size,
+                       real rotation,
+                       pair<real> pixfrac):
+    AbstractGrid(grid_size),
     centre_(centre),
     phys_w_(physical_size.first),
     phys_h_(physical_size.second),
@@ -18,32 +17,32 @@ Grid::Grid(Point centre,
     pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(size_h_))
 { }
 
-Grid Grid::from_pixel_size(Point centre,
-                           pair<int> grid_size,
-                           pair<real> pixel_size,
-                           real rotation,
-                           pair<real> pixfrac) {
-    return Grid(centre, grid_size,
-                {
+PlacedGrid PlacedGrid::from_pixel_size(Point centre,
+                                       pair<int> grid_size,
+                                       pair<real> pixel_size,
+                                       real rotation,
+                                       pair<real> pixfrac) {
+    return PlacedGrid(centre, grid_size,
+                      {
                     pixel_size.first * static_cast<real>(grid_size.first),
                     pixel_size.second * static_cast<real>(grid_size.second)
                 }, rotation, pixfrac);
 }
 
-Point Grid::grid_centre(unsigned int x, unsigned int y) const {
+Point PlacedGrid::grid_centre(unsigned int x, unsigned int y) const {
     real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->size_w_) * this->phys_w_ - this->phys_w_ * 0.5;
     real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->size_h_) * this->phys_h_ - this->phys_h_ * 0.5;
     return Point(lx, ly);
 }
 
-Point Grid::world_centre(unsigned int x, unsigned int y) const {
+Point PlacedGrid::world_centre(unsigned int x, unsigned int y) const {
     Point grid_centre = this->grid_centre(x, y);
     real sina = std::sin(this->rotation_);
     real cosa = std::cos(this->rotation_);
     return Point(grid_centre.x * cosa - grid_centre.y * sina, grid_centre.x * sina + grid_centre.y * cosa);
 }
 
-Pixel Grid::grid_pixel(unsigned int x, unsigned int y) const {
+Pixel PlacedGrid::grid_pixel(unsigned int x, unsigned int y) const {
     Point grid_centre = this->grid_centre(x, y);
     real hw = this->pixel_width_ * this->pixfrac_x_ * 0.5;
     real hh = this->pixel_height_ * this->pixfrac_y_ * 0.5;
@@ -55,7 +54,7 @@ Pixel Grid::grid_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
+Pixel PlacedGrid::world_pixel(unsigned int x, unsigned int y) const {
     Pixel raw = this->grid_pixel(x, y);
     return Pixel(
         this->centre_ + raw.a().rotated(this->rotation_),
@@ -65,12 +64,12 @@ Pixel Grid::world_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-Grid & Grid::set_centre(Point centre) {
+PlacedGrid & PlacedGrid::set_centre(Point centre) {
     this->centre_ = centre;
     return *this;
 }
 
-Grid & Grid::set_physical_size(pair<real> size) {
+PlacedGrid & PlacedGrid::set_physical_size(pair<real> size) {
     this->phys_w_ = size.first;
     this->phys_h_ = size.second;
     return *this;
@@ -119,13 +118,13 @@ Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) c
     return matrix;
 }*/
 
-void Grid::print() const {
+void PlacedGrid::print() const {
     fmt::print("Grid at {}, size {:d}×{:d}, extent {:.6f} {:.6f}, rotation {:.6f}, pixfrac {:.3f}×{:.3f}\n",
                this->centre_, this->size_w_, this->size_h_, this->phys_w_, this->phys_h_,
                this->rotation_, this->pixfrac_x_, this->pixfrac_y_);
 }
 
-void Grid::print_world() const {
+void PlacedGrid::print_world() const {
     Point bottomleft = this->world_pixel(0, 0).a();
     Point bottomright = this->world_pixel(this->width() - 1, 0).b();
     Point topleft = this->world_pixel(0, this->height() - 1).d();
@@ -135,22 +134,22 @@ void Grid::print_world() const {
     );
 }
 
-Grid & Grid::operator+=(Point shift) {
+PlacedGrid & PlacedGrid::operator+=(Point shift) {
     this->centre_ += shift;
     return *this;
 }
 
-Grid & Grid::operator-=(Point shift) {
+PlacedGrid & PlacedGrid::operator-=(Point shift) {
     this->centre_ -= shift;
     return *this;
 }
 
-Grid & Grid::operator*=(real scale) {
+PlacedGrid & PlacedGrid::operator*=(real scale) {
     *this *= {scale, scale};
     return *this;
 }
 
-Grid & Grid::operator*=(pair<real> scale) {
+PlacedGrid & PlacedGrid::operator*=(pair<real> scale) {
     this->phys_w_ *= scale.first;
     this->phys_h_ *= scale.second;
     this->pixel_width_ *= scale.first;
@@ -158,12 +157,12 @@ Grid & Grid::operator*=(pair<real> scale) {
     return *this;
 }
 
-Grid & Grid::operator/=(real scale) {
+PlacedGrid & PlacedGrid::operator/=(real scale) {
     *this /= {scale, scale};
     return *this;
 }
 
-Grid & Grid::operator/=(pair<real> scale) {
+PlacedGrid & PlacedGrid::operator/=(pair<real> scale) {
     this->phys_w_ /= scale.first;
     this->phys_h_ /= scale.second;
     this->pixel_width_ /= scale.first;
@@ -261,7 +260,7 @@ Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrice
     return m;
 }
 
-Grid operator+(const Grid & grid, Point shift) {
+PlacedGrid operator+(const PlacedGrid & grid, Point shift) {
     auto new_grid = grid;
     new_grid += shift;
     return new_grid;

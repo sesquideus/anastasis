@@ -5,8 +5,7 @@
 
 
 Image::Image(int width, int height):
-    width_(width),
-    height_(height),
+    AbstractGrid(width, height),
     data_(width, height)
 {
     for (int row = 0; row < this->height(); ++row) {
@@ -17,8 +16,7 @@ Image::Image(int width, int height):
 }
 
 Image::Image(const Matrix & data):
-    width_(data.cols()),
-    height_(data.rows()),
+    AbstractGrid(data.cols(), data.rows()),
     data_(data)
 {}
 
@@ -70,7 +68,8 @@ void Image::save_raw(const std::string & filename) const {
 }
 
 /**
- * Save the image to a raw file of sequential real numbers with no size data. Very crude.
+ * Save the image to a raw file of sequential real numbers as a numpy array
+ * Only implements the very minimum to work, feel free to extend
  * @param filename
  */
 void Image::save_npy(const std::string & filename) const {
@@ -87,7 +86,8 @@ void Image::save_npy(const std::string & filename) const {
                                    sizeof(real), this->height(), this->width());
     out.write(desc.c_str(), desc.length());
     c = 0x20;
-    for (int i = 10 + desc.length(); i < 127; ++i) {
+    // The length of the header must be a multiple of 64, so it is padded with spaces
+    for (int i = 10 + desc.length(); i % 64 != 63; ++i) {
         out.write(reinterpret_cast<const char*>(&c), sizeof c);
     }
     c = 0x0A;
