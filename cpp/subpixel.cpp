@@ -72,22 +72,46 @@ ModelImage drizzle(
     return drizzled;
 }
 
+void print_usage(int code) {
+    fmt::print("Usage: subpixel <filename> model_size_x model_size_y subpixel_shifts_x subpixel_shifts_y "
+               "pixfrac_x pixfrac_y\n");
+    fmt::print("<filename>          valid path to an 8-bit bmp file\n");
+    fmt::print("model_size_x        int > 0, number of pixels in horizontal direction for downsampled images\n");
+    fmt::print("model_size_y        int > 0, number of pixels in vertical direction for downsampled images\n");
+    fmt::print("subpixel_shifts_x   int > 0, number of downsampled images to produce in horizontal direction\n");
+    fmt::print("subpixel_shifts_y   int > 0, number of downsampled images to produce in vertical direction\n");
+    fmt::print("pixfrac_x           float (0, 1], pixel fraction used in drizzling, horizontal direction "
+               "(recommended 1 / subpixel_shifts_x)\n");
+    fmt::print("pixfrac_y           float (0, 1], pixel fraction used in drizzling, vertical direction "
+               "(recommended 1 / subpixel_shifts_y)\n");
+    std::exit(code);
+}
+
 int main(int argc, char * argv[]) {
     std::string exec_name = argv[0];
     std::vector<std::string> args(argv + 1, argv + argc);
 
-    if (argc != 8) {
-        fmt::print("Usage: subpixel filename [model size x] [model size y] [subpixel shifts x] [subpixel shifts y] "
-                   "[pixfrac x] [pixfrac y]\n");
-        std::exit(1);
-    }
+    int model_width;
+    int model_height;
+    int subshifts_x;
+    int subshifts_y;
+    real pixfrac_x;
+    real pixfrac_y;
 
-    int model_width = std::stoi(args[1]);
-    int model_height = std::stoi(args[2]);
-    int subshifts_x = std::stoi(args[3]);
-    int subshifts_y = std::stoi(args[4]);
-    real pixfrac_x = std::stof(args[5]);
-    real pixfrac_y = std::stof(args[6]);
+    try {
+        if (argc != 8) {
+            print_usage(0);
+        }
+        model_width = std::stoi(args[1]);
+        model_height = std::stoi(args[2]);
+        subshifts_x = std::stoi(args[3]);
+        subshifts_y = std::stoi(args[4]);
+        pixfrac_x = std::stof(args[5]);
+        pixfrac_y = std::stof(args[6]);
+    } catch (std::invalid_argument & exc) {
+        fmt::print("Aborting due to invalid argument type: {}\n", exc.what());
+        print_usage(1);
+    }
 
     Point centre = {static_cast<real>(model_width) / 2, static_cast<real>(model_height) / 2};
 
@@ -119,8 +143,7 @@ int main(int argc, char * argv[]) {
 
         real angle = (clone * drizzled) / (std::sqrt(drizzled * drizzled) * std::sqrt(clone * clone));
         fmt::print("Angle difference is {}\n", std::acos(angle));
-    }
-    catch (std::runtime_error & exc) {
+    } catch (std::runtime_error & exc) {
         fmt::print("Could not map one to one: {}\n", exc.what());
         std::exit(3);
     }
