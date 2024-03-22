@@ -16,17 +16,22 @@ class DetectorImage;
  */
 class ModelImage: public Image {
 private:
-    Matrix noise_;
+    Matrix variance_;
 public:
     explicit ModelImage(int width, int height);
 
     [[nodiscard]] Pixel pixel(int x, int y) const;
 
-    void drizzle(const std::vector<DetectorImage> & images);
-    ModelImage & operator+=(const DetectorImage & image);
+    ModelImage & naive_drizzle(const std::vector<DetectorImage> & images);
+    ModelImage & weighted_drizzle(const std::vector<DetectorImage> & images);
+    //ModelImage & operator+=(const DetectorImage & image);
     ModelImage & operator+=(const ModelImage & other);
+    ModelImage & naive_drizzle(const DetectorImage & image);
+    ModelImage & weighted_drizzle(const DetectorImage & image);
     ModelImage & operator*=(real value);
     ModelImage & operator/=(real value);
+
+    Matrix overlap_matrix(const DetectorImage & other) const;
 
     // Find the mean square difference between the pictures, expressed as a number between 0 and 1
 

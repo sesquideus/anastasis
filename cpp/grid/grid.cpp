@@ -22,11 +22,9 @@ PlacedGrid PlacedGrid::from_pixel_size(Point centre,
                                        pair<real> pixel_size,
                                        real rotation,
                                        pair<real> pixfrac) {
-    return PlacedGrid(centre, grid_size,
-                      {
-                    pixel_size.first * static_cast<real>(grid_size.first),
-                    pixel_size.second * static_cast<real>(grid_size.second)
-                }, rotation, pixfrac);
+    real width = pixel_size.first * static_cast<real>(grid_size.first);
+    real height = pixel_size.second * static_cast<real>(grid_size.second);
+    return {centre, grid_size, {width, height}, rotation, pixfrac};
 }
 
 Point PlacedGrid::grid_centre(unsigned int x, unsigned int y) const {
@@ -72,6 +70,8 @@ PlacedGrid & PlacedGrid::set_centre(Point centre) {
 PlacedGrid & PlacedGrid::set_physical_size(pair<real> size) {
     this->phys_w_ = size.first;
     this->phys_h_ = size.second;
+    this->pixel_width_ = this->pixfrac_x_ * this->phys_w_ / static_cast<real>(this->size_w_);
+    this->pixel_height_ = this->pixfrac_y_ * this->phys_h_ / static_cast<real>(this->size_h_);
     return *this;
 }
 

@@ -6,11 +6,11 @@
 
 Image::Image(int width, int height):
     AbstractGrid(width, height),
-    data_(width, height)
+    data_(height, width)
 {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            this->data_(col, row) = 0;
+            this->data_(row, col) = 0;
         }
     }
 }
@@ -19,6 +19,62 @@ Image::Image(const Matrix & data):
     AbstractGrid(data.cols(), data.rows()),
     data_(data)
 {}
+
+Image::Image(const std::string & filename):
+    AbstractGrid(read_bitmap_header(filename))
+{
+    std::ifstream bitmap_file;
+    unsigned short planes, bpp;
+    unsigned char value;
+    int offset;
+    int width = this->width();
+    int height = this->height();
+
+    bitmap_file.open(filename);
+    bitmap_file.seekg(10, std::ios::beg);
+    bitmap_file.read((char *) &offset, 4);
+    bitmap_file.seekg(12, std::ios::cur);
+    bitmap_file.read((char *) &planes, 2);
+    if (planes != 0x0001) {
+        throw std::runtime_error(fmt::format("Invalid number of image planes {}, must be 1", planes));
+    }
+    bitmap_file.read((char *) &bpp, 2);
+    if (bpp != 0x0008) {
+        throw std::runtime_error(fmt::format("Invalid BPP {}, must be 8", bpp));
+    }
+    bitmap_file.seekg(offset, std::ios::beg);
+
+    this->data_.resize(height, width);
+    for (int row = 0; row < height; ++row) {
+        for (int col = 0; col < width; ++col) {
+            bitmap_file.read((char *) &value, 1);
+            this->data_(row, col) = static_cast<real>(value) / 255.0;
+        }
+    }
+    bitmap_file.close();
+    fmt::print("Loaded bitmap with size {} × {}\n", width, height);
+}
+
+pair<int> Image::read_bitmap_header(const std::string & filename) {
+    std::ifstream bitmap_file;
+    unsigned short header;
+    int width, height;
+
+    bitmap_file.open(filename);
+    if (!bitmap_file.is_open()) {
+        throw std::runtime_error(fmt::format("Could not open file {}", filename));
+    }
+    bitmap_file.seekg(0, std::ios::beg);
+    bitmap_file.read((char *) &header, 2);
+    if (header != 0x4D42) {
+        throw std::runtime_error(fmt::format("Invalid BMP magic value {:04x}", header));
+    }
+    bitmap_file.seekg(18, std::ios::beg);
+    bitmap_file.read((char *) &width, 4);
+    bitmap_file.read((char *) &height, 4);
+    bitmap_file.close();
+    return {width, height};
+}
 
 Image Image::map(const std::function<real(real)> & function) {
     auto image = *this;

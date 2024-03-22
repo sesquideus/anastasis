@@ -19,7 +19,9 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
         AbstractGrid(data.cols(), data.rows()),
         PlacedGrid(centre, {data.cols(), data.rows()}, physical_size, rotation, pixfrac),
         Image(data)
-{}
+{
+    fmt::print("Created a DetectorImage with size {}×{}, physical size {}\n", data.cols(), data.rows(), physical_size);
+}
 
 /**
  * Load a detector image from a BMP file (quick and easy, minimal error checking, requires 8bpp greyscale)
@@ -33,60 +35,8 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
                              const std::string & filename):
         AbstractGrid(read_bitmap_header(filename)),
         PlacedGrid(centre, read_bitmap_header(filename), physical_size, rotation, pixfrac),
-        Image(read_bitmap_header(filename).first, read_bitmap_header(filename).second)
-{
-    std::ifstream bitmap_file;
-    unsigned short planes, bpp;
-    unsigned char value;
-    int offset;
-    int width = this->width();
-    int height = this->height();
-
-    bitmap_file.open(filename);
-    bitmap_file.seekg(10, std::ios::beg);
-    bitmap_file.read((char *) &offset, 4);
-    bitmap_file.seekg(12, std::ios::cur);
-    bitmap_file.read((char *) &planes, 2);
-    if (planes != 0x0001) {
-        throw std::runtime_error(fmt::format("Invalid number of image planes {}, must be 1", planes));
-    }
-    bitmap_file.read((char *) &bpp, 2);
-    if (bpp != 0x0008) {
-        throw std::runtime_error(fmt::format("Invalid BPP {}, must be 8", bpp));
-    }
-    bitmap_file.seekg(offset, std::ios::beg);
-
-    this->_data.resize(width, height);
-    for (int row = 0; row < height; ++row) {
-        for (int col = 0; col < width; ++col) {
-            bitmap_file.read((char *) &value, 1);
-            this->_data(col, row) = static_cast<real>(value) / 255.0;
-        }
-    }
-    bitmap_file.close();
-    fmt::print("Loaded bitmap with size {} × {}\n", width, height);
-}
-
-pair<int> DetectorImage::read_bitmap_header(const std::string & filename) {
-    std::ifstream bitmap_file;
-    unsigned short header;
-    int width, height;
-
-    bitmap_file.open(filename);
-    if (!bitmap_file.is_open()) {
-        throw std::runtime_error(fmt::format("Could not open file {}", filename));
-    }
-    bitmap_file.seekg(0, std::ios::beg);
-    bitmap_file.read((char *) &header, 2);
-    if (header != 0x4D42) {
-        throw std::runtime_error(fmt::format("Invalid BMP magic value {:04x}", header));
-    }
-    bitmap_file.seekg(18, std::ios::beg);
-    bitmap_file.read((char *) &width, 4);
-    bitmap_file.read((char *) &height, 4);
-    bitmap_file.close();
-    return {width, height};
-}
+        Image(filename)
+{ }
 
 void DetectorImage::fill(const real value) {
     for (int row = 0; row < this->height(); ++row) {

@@ -33,10 +33,14 @@ typedef struct tagBITMAPINFOHEADER {
 #pragma pack(pop)
 
 
+/** An Image is an abstract grid with no placement, but contains a piece of data at every pixel.
+ *  Right now it is just for real numbers, but can be made into a template.
+ */
 class Image: public virtual AbstractGrid {
-private:
-    Matrix data_;
 protected:
+    Matrix data_;
+
+    static pair<int> read_bitmap_header(const std::string & filename);
     Image map(const std::function<real(real)> & function);
 
     Image & map_in_place(const std::function<real(real)> & function);
@@ -46,11 +50,12 @@ protected:
 public:
     Image(int width, int height);
     explicit Image(const Matrix & data);
+    explicit Image(const std::string & filename);
 
     [[nodiscard]] Matrix & data() { return this->data_; }
     [[nodiscard]] const Matrix & data() const { return this->data_; }
-    [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(x, y); };
-    [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(x, y); };
+    [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(y, x); };
+    [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(y, x); };
 
     void save_raw(const std::string & filename) const;
     void save_npy(const std::string & filename) const;

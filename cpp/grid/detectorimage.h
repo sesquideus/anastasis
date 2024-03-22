@@ -7,12 +7,10 @@
 
 
 /**
- * Extends an abstract grid with actual pixel data. Implemented in separate structures to enable vectorization
+ * Extends an abstract placed grid with actual pixel data, hence a combination of an Image and a PlacedGrid.
+ * Implemented in separate structures to enable vectorization
  */
 class DetectorImage: public PlacedGrid, public Image {
-private:
-    Matrix _data;
-    static pair<int> read_bitmap_header(const std::string & filename);
 public:
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   pair<std::size_t> grid_size);

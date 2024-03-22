@@ -10,5 +10,5 @@ parser.add_argument('infile', type=argparse.FileType('rb'))
 args = parser.parse_args()
 
 y = np.load(args.infile)
-plt.imshow(y, origin='lower', cmap='grey')
+plt.imshow(y, origin='lower', cmap='grey', vmin=0)
 plt.show()

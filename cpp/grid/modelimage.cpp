@@ -1,9 +1,12 @@
 #include "modelimage.h"
 
 ModelImage::ModelImage(int width, int height):
-    AbstractGrid(width, height),
-    Image(width, height)
-{ }
+        AbstractGrid(width, height),
+        Image(width, height),
+        variance_(height, width)
+{
+    this->variance_.setZero();
+}
 
 Pixel ModelImage::pixel(int x, int y) const {
     if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
@@ -22,17 +25,44 @@ Pixel ModelImage::pixel(int x, int y) const {
     }
 }
 
-void ModelImage::drizzle(const std::vector<DetectorImage> & images) {
+ModelImage & ModelImage::naive_drizzle(const std::vector<DetectorImage> & images) {
     /** Drizzle a vector of DetectorImages onto this ModelImage **/
     for (auto && image: images) {
-        *this += image;
+        this->naive_drizzle(image);
     }
+
+    return *this;
 }
 
-ModelImage & ModelImage::operator+=(const DetectorImage & image) {
+ModelImage & ModelImage::weighted_drizzle(const std::vector<DetectorImage> & images) {
+    /** Drizzle a vector of DetectorImages onto this ModelImage **/
+    for (auto && image: images) {
+        this->weighted_drizzle(image);
+    }
+
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            if (this->variance_(row, col) == 0) {
+                (*this)[col, row] = -1;
+            } else {
+                (*this)[col, row] /= this->variance_(row, col);
+            }
+        }
+    }
+
+    return *this;
+}
+
+Matrix ModelImage::overlap_matrix(const DetectorImage & image) const {
+    // Return a row-major matrix of overlaps
+    return Matrix();
+}
+
+ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
     /** Drizzle a DetectorImage into this ModelImage **/
     int total = 0;
     int inspected = 0;
+    real sum = 0;
 
     // For every pixel of the drizzling image
     for (int row = 0; row < image.height(); ++row) {
@@ -41,7 +71,7 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
             const Pixel & image_pixel = image.world_pixel(col, row);
             Box bounds = image_pixel.bounding_box(0);
 
-            // For every pixel caught in the drizzle
+            // For every pixel potentially caught in the drizzle
             for (int y = bounds.bottom; y < bounds.top; ++y) {
                 if ((y < 0) || (y >= this->height())) {
                     continue;
@@ -54,11 +84,13 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
 
                     // Calculate the overlap of model and data pixels
                     real overlap = model_pixel & image_pixel;
+                    // fmt::print("{} {} {} {}\n", model_pixel, image_pixel, overlap, (*this)[x, y]);
                     if (overlap > PlacedGrid::NegligibleOverlap) {
                         // If not zero or negligibly small, add to the value at [x, y] the value
                         // from source's [col, row], scaled by overlap and pixel area
                         (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
                         ++total;
+                        sum += (*this)[x, y];
                     }
                     // fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
 
@@ -67,6 +99,44 @@ ModelImage & ModelImage::operator+=(const DetectorImage & image) {
             }
         }
     }
+    return *this;
+}
+
+ModelImage & ModelImage::weighted_drizzle(const DetectorImage & image) {
+    /** Drizzle a DetectorImage into this ModelImage **/
+
+    // For every pixel of the drizzling image
+    for (int row = 0; row < image.height(); ++row) {
+        for (int col = 0; col < image.width(); ++col) {
+            const Pixel & image_pixel = image.world_pixel(col, row);
+            Box bounds = image_pixel.bounding_box(0);
+
+            for (int y = bounds.bottom; y < bounds.top; ++y) {
+                if ((y < 0) || (y >= this->height())) {
+                    continue;
+                }
+                for (int x = bounds.left; x < bounds.right; ++x) {
+                    if ((x < 0) || (x >= this->width())) {
+                        continue;
+                    }
+                    auto && model_pixel = this->pixel(x, y);
+
+                    real overlap = model_pixel & image_pixel;
+                    if (overlap > PlacedGrid::NegligibleOverlap) {
+                        // If not zero or negligibly small, add to the value at [x, y] the value
+                        // from source's [col, row], scaled by overlap and pixel area
+                        this->variance_(y, x) += overlap / image.pixel_area(col, row);
+                        (*this)[x, y] += image[col, row] * this->variance_(y, x);
+                        if ((3 * row + 2 * col) % 128 == 15) {
+                            fmt::print("{} {} - value {} to {} confidence {}\n",
+                                       col, row, (*this)[x, y], image[col, row], this->variance_(y, x));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return *this;
 }
 

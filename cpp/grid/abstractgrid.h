@@ -4,7 +4,7 @@
 #include "types/types.h"
 
 /** Abstract grid with no data, just size
- *  Not really useful by itself, but a good ancestor to images, placed grid and everything
+ *  Not really useful by itself, but a good last universal common ancestor for images, placed grids and everything
  */
 class AbstractGrid {
 protected:
