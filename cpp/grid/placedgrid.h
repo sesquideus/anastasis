@@ -10,6 +10,10 @@
 #include <fmt/format.h>
 
 
+/** A PlacedGrid is a grid that has a physical location somewhere in the world:
+ *  it has a central point, physical extent in both directions and a rotation.
+ *  Changing its logical size is still not possible, but its location can be altered.
+ */
 class PlacedGrid: public virtual AbstractGrid {
 private:
     Point centre_;
@@ -35,7 +39,6 @@ public:
                                       pair<real> pixfrac);
 
     [[nodiscard]] inline Point centre() const { return this->centre_; }
-    // [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }
     [[nodiscard]] inline pair<real> physical_size() const { return {this->phys_w_, this->phys_h_}; }
     [[nodiscard]] inline real rotation() const { return this->rotation_; }
     [[nodiscard]] inline pair<real> pixfrac() const { return {this->pixfrac_x_, this->pixfrac_y_}; }
@@ -58,7 +61,6 @@ public:
     //[[nodiscard]] std::vector<Overlap4D> onto_canonical(const ModelImage & canonical) const;
     //[[nodiscard]] Eigen::SparseMatrix<real> matrix_canonical(const ModelImage & canonical) const;
 
-    void print() const;
     void print_world() const;
 
     PlacedGrid & operator+=(Point shift);
@@ -67,6 +69,8 @@ public:
     PlacedGrid & operator*=(real scale);
     PlacedGrid & operator/=(pair<real> scale);
     PlacedGrid & operator/=(real scale);
+    PlacedGrid & operator<<=(real angle);
+    PlacedGrid & operator>>=(real angle);
 };
 
 PlacedGrid operator+(const PlacedGrid & grid, Point shift);

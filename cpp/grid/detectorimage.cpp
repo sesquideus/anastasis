@@ -8,7 +8,7 @@
 
 
 DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                             pair<std::size_t> grid_size):
+                             pair<int> grid_size):
         AbstractGrid(grid_size.first, grid_size.second),
         PlacedGrid(centre, grid_size, physical_size, rotation, pixfrac),
         Image(grid_size.first, grid_size.second)

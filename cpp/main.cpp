@@ -3,7 +3,7 @@
 #include "spatial/metrics.h"
 #include "spatial/structures/vpitree.h"
 #include "grid/pixel/pixel.h"
-#include "grid/grid.h"
+#include "grid/placedgrid.h"
 #include "grid/modelimage.h"
 #include "utils/functions.h"
 

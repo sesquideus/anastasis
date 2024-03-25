@@ -15,6 +15,10 @@ Image::Image(int width, int height):
     }
 }
 
+Image::Image(pair<int> size):
+    Image(size.first, size.second)
+{}
+
 Image::Image(const Matrix & data):
     AbstractGrid(data.cols(), data.rows()),
     data_(data)

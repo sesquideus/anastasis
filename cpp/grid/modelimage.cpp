@@ -8,6 +8,10 @@ ModelImage::ModelImage(int width, int height):
     this->variance_.setZero();
 }
 
+ModelImage::ModelImage(pair<int> size):
+    ModelImage(size.first, size.second)
+{}
+
 Pixel ModelImage::pixel(int x, int y) const {
     if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
         return Pixel::invalid();
@@ -53,9 +57,45 @@ ModelImage & ModelImage::weighted_drizzle(const std::vector<DetectorImage> & ima
     return *this;
 }
 
-Matrix ModelImage::overlap_matrix(const DetectorImage & image) const {
+SparseMatrix ModelImage::overlap_matrix(const DetectorImage & image) const {
+    std::vector<Overlap4D> active_pixels;
+    // There will be about four times as many overlaps as there are model pixels
+    active_pixels.reserve(4 * image.count());
+
+    for (int row = 0; row < image.height(); ++row) {
+        for (int col = 0; col < image.width(); ++col) {
+            const Pixel & image_pixel = image.world_pixel(col, row);
+            Box bounds = image_pixel.bounding_box(0);
+
+            // For every pixel potentially caught in the drizzle
+            for (int y = bounds.bottom; y < bounds.top; ++y) {
+                if ((y < 0) || (y >= this->height())) {
+                    continue;
+                }
+                for (int x = bounds.left; x < bounds.right; ++x) {
+                    if ((x < 0) || (x >= this->width())) {
+                        continue;
+                    }
+                    auto && model_pixel = this->pixel(x, y);
+
+                    // Calculate the overlap of model and data pixels
+                    real overlap = model_pixel & image_pixel;
+                    active_pixels.emplace_back(col, row, x, y, overlap);
+                }
+            }
+        }
+    }
     // Return a row-major matrix of overlaps
-    return Matrix();
+
+    SparseMatrix output(image.height() * image.width(), this->height() * this->width());
+    for (auto && pixel: active_pixels) {
+        output.insert(
+            image.width() * std::get<1>(pixel) + std::get<0>(pixel),
+            image.width() * std::get<3>(pixel) + std::get<2>(pixel)
+        ) = std::get<4>(pixel);
+    }
+    output.makeCompressed();
+    return output;
 }
 
 ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
@@ -93,7 +133,6 @@ ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
                         sum += (*this)[x, y];
                     }
                     // fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
-
                     inspected++;
                 }
             }
@@ -243,3 +282,4 @@ ModelImage & ModelImage::operator/=(real value) {
     }
     return *this;
 }
+

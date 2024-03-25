@@ -49,6 +49,14 @@ std::vector<T> & permutate_in_place(std::vector<T> & vec, const std::vector<std:
     return vec;
 }
 
+template<class T>
+std::vector<T> flatten(const std::vector<std::vector<T>> & twod) {
+    std::vector<T> output;
+    for (auto const & inner: twod) {
+        output.insert(output.end(), inner.begin(), inner.end());
+    }
+    return output;
+}
 
 template<class T, class U>
 std::vector<U> map(const std::vector<T> & vec, std::function<U(T)> f) {

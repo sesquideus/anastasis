@@ -2,7 +2,7 @@
 #define ANASTASIS_CPP_DETECTORIMAGE_H
 
 #include <random>
-#include "grid/grid.h"
+#include "grid/placedgrid.h"
 #include "image.h"
 
 
@@ -13,7 +13,7 @@
 class DetectorImage: public PlacedGrid, public Image {
 public:
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                  pair<std::size_t> grid_size);
+                  pair<int> grid_size);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const Matrix & data);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
@@ -43,7 +43,8 @@ public:
         return it;
     }
     auto format(const DetectorImage & image, format_context & ctx) const -> format_context::iterator {
-        return fmt::format_to(ctx.out(), "Detector image at {:f} with size {:d}×{:d}, rotation {:.3f}, pixfrac ({:.3f}, {:.3f})",
+        return fmt::format_to(ctx.out(),
+                              "Detector image at {:f} with size {:d}×{:d}, rotation {:.3f}, pixfrac ({:.3f}, {:.3f})",
                               image.centre(), image.size().first, image.size().second,
                               image.rotation(), image.pixfrac().first, image.pixfrac().second);
     }

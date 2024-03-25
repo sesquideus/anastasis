@@ -28,8 +28,8 @@ add_executable(
 #        spatial/structures/kdtree.h
 #        spatial/structures/balltree.cpp
 #        spatial/structures/balltree.h
-        grid/grid.cpp
-        grid/grid.h
+        grid/placedgrid.cpp
+        grid/placedgrid.h
         grid/pixel/pixel.cpp
         grid/pixel/pixel.h
         grid/modelimage.cpp
@@ -58,8 +58,8 @@ add_executable(
         grid/abstractgrid.h
         grid/image.h
         grid/image.cpp
-        grid/grid.h
-        grid/grid.cpp
+        grid/placedgrid.h
+        grid/placedgrid.cpp
         grid/pixel/pixel.cpp
         grid/pixel/pixel.h
         grid/modelimage.cpp

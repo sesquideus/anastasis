@@ -48,7 +48,8 @@ protected:
                     const std::function<real(real, real)> & reduce = std::plus<>(),
                     real init = 0);
 public:
-    Image(int width, int height);
+    explicit Image(int width, int height);
+    explicit Image(pair<int> size);
     explicit Image(const Matrix & data);
     explicit Image(const std::string & filename);
 

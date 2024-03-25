@@ -1,4 +1,4 @@
-#include "grid.h"
+#include "placedgrid.h"
 #include <iostream>
 
 PlacedGrid::PlacedGrid(Point centre,
@@ -76,7 +76,7 @@ PlacedGrid & PlacedGrid::set_physical_size(pair<real> size) {
 }
 
 
-/*
+/**
 std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const {
     std::vector<Overlap4D> active_pixels;
     // There will be about four times as many overlaps as there are model pixels
@@ -102,7 +102,7 @@ std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const 
     return active_pixels;
 }
 
-** Compute the overlap as a 2D matrix (huge size, even if sparse) **
+/** Compute the overlap as a 2D matrix (huge size, even if sparse) **/ /**
 Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) const {
     // Allocate the output matrix
     Eigen::SparseMatrix<real> matrix(canonical.width() * canonical.height(), this->size_w_ * this->size_h_);
@@ -116,13 +116,7 @@ Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) c
     }
     matrix.makeCompressed();
     return matrix;
-}*/
-
-void PlacedGrid::print() const {
-    fmt::print("Grid at {}, size {:d}×{:d}, extent {:.6f} {:.6f}, rotation {:.6f}, pixfrac {:.3f}×{:.3f}\n",
-               this->centre_, this->size_w_, this->size_h_, this->phys_w_, this->phys_h_,
-               this->rotation_, this->pixfrac_x_, this->pixfrac_y_);
-}
+} */
 
 void PlacedGrid::print_world() const {
     Point bottomleft = this->world_pixel(0, 0).a();
@@ -170,9 +164,20 @@ PlacedGrid & PlacedGrid::operator/=(pair<real> scale) {
     return *this;
 }
 
+PlacedGrid & PlacedGrid::operator<<=(real angle) {
+    this->rotation_ -= angle;
+    return *this;
+}
+
+PlacedGrid & PlacedGrid::operator>>=(real angle) {
+    this->rotation_ += angle;
+    return *this;
+}
+
 Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical) {
     /**
-     * Stack a vector of matrices
+     *  Stack a vector of sparse matrices, either vertically or horizontally, and produce a big sparse matrix.
+     *  The other (across) dimension must always match, the other one need not be equal.
      */
     long across = 0;
     long along = 0;
@@ -192,6 +197,7 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
     std::vector<Eigen::Triplet<real>> triplets;
     triplets.reserve(nonzeros);
 
+    // Just concatenate the triplets over all matrices
     Eigen::Index base = 0;
     for (auto && matrix: matrices) {
         for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {

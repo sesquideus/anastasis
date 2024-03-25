@@ -6,5 +6,5 @@ AbstractGrid::AbstractGrid(int width, int height):
 {}
 
 AbstractGrid::AbstractGrid(pair<int> size):
-    size_w_(size.first), size_h_(size.second)
+    AbstractGrid(size.first, size.second)
 {}

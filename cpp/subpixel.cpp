@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "grid/detectorimage.h"
 #include "grid/modelimage.h"
 
@@ -15,6 +17,10 @@ ModelImage one_to_one(const DetectorImage & image) {
     return clone;
 }
 
+/** Take a detector image and create <subsamples_x> * <subsamples_y> downsampled images with resolution
+ *  <model_width> * <model_height>, each shifted by a corresponding fraction of a *new* pixel size in both directions.
+ *  This can be then used to reconstruct the original image.
+ */
 std::vector<std::vector<DetectorImage>> downsample(
     const DetectorImage & image,
     int model_width, int model_height,
@@ -43,7 +49,25 @@ std::vector<std::vector<DetectorImage>> downsample(
                                         0, pair<real>(pixfrac_x, pixfrac_y), temp.data());
         }
     }
+    fmt::print("---- downsampling complete ----\n");
     return downsampled;
+}
+
+SparseMatrix overlap_matrix(
+    const std::vector<std::vector<DetectorImage>> & downsampled,
+    pair<int> output_size)
+{
+    ModelImage output(output_size);
+    auto images = flatten(downsampled);
+    std::vector<SparseMatrix> matrices;
+    fmt::print("Downsampled {:d}\n", images.size());
+
+    for (auto const & image: images) {
+        matrices.emplace_back(output.overlap_matrix(image));
+    }
+
+    SparseMatrix total = hstack(matrices);
+    return total;
 }
 
 ModelImage drizzle(
@@ -75,7 +99,7 @@ ModelImage drizzle(
 void print_usage(int code) {
     fmt::print("Usage: subpixel <filename> model_size_x model_size_y subpixel_shifts_x subpixel_shifts_y "
                "pixfrac_x pixfrac_y\n");
-    fmt::print("<filename>          valid path to an 8-bit bmp file\n");
+    fmt::print("<filename>          path to an 8-bit bmp file\n");
     fmt::print("model_size_x        int > 0, number of pixels in horizontal direction for downsampled images\n");
     fmt::print("model_size_y        int > 0, number of pixels in vertical direction for downsampled images\n");
     fmt::print("subpixel_shifts_x   int > 0, number of downsampled images to produce in horizontal direction\n");
@@ -134,6 +158,8 @@ int main(int argc, char * argv[]) {
         auto downsampled = downsample(input, model_width, model_height, subshifts_x, subshifts_y, pixfrac_x, pixfrac_y);
         // Save one of the downsampled images so that we can plot it and see what it looks like
         downsampled[0][0].save_npy("out/downsampled.npy");
+
+        overlap_matrix(downsampled, {model_width, model_height});
 
         auto drizzled = drizzle(downsampled, input.size());
         drizzled.save_npy("out/drizzled.npy");
