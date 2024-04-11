@@ -9,8 +9,8 @@ ModelImage one_to_one(const DetectorImage & image) {
     ModelImage clone(image.size().first, image.size().second);
     copy.set_centre({static_cast<real>(image.size().first) / 2.0, static_cast<real>(image.size().second) / 2.0});
     copy.set_physical_size(image.size());
-    fmt::print("Detector: {}\n", copy);
-    fmt::print("Model: {}\n", clone);
+    fmt::print("\tDetector: {}\n", copy);
+    fmt::print("\tModel: {}\n", clone);
     clone.naive_drizzle(copy);
     clone.save_npy("out/one-to-one.npy");
     fmt::print("---- one to one complete ----\n");
@@ -53,7 +53,7 @@ std::vector<std::vector<DetectorImage>> downsample(
     return downsampled;
 }
 
-SparseMatrix overlap_matrix(
+SparseMatrix compute_overlap_matrix(
     const std::vector<std::vector<DetectorImage>> & downsampled,
     pair<int> output_size)
 {
@@ -159,7 +159,7 @@ int main(int argc, char * argv[]) {
         // Save one of the downsampled images so that we can plot it and see what it looks like
         downsampled[0][0].save_npy("out/downsampled.npy");
 
-        overlap_matrix(downsampled, {model_width, model_height});
+        compute_overlap_matrix(downsampled, {model_width, model_height});
 
         auto drizzled = drizzle(downsampled, input.size());
         drizzled.save_npy("out/drizzled.npy");
@@ -167,6 +167,7 @@ int main(int argc, char * argv[]) {
         real similarity = clone ^ drizzled;
         fmt::print("Similarity score is {}\n", similarity);
 
+        /* Compute the angle difference (arccos of the dot product of the images) */
         real angle = (clone * drizzled) / (std::sqrt(drizzled * drizzled) * std::sqrt(clone * clone));
         fmt::print("Angle difference is {}\n", std::acos(angle));
     } catch (std::runtime_error & exc) {

@@ -1,7 +1,4 @@
-#include <cstddef>
 #include <istream>
-#include <fstream>
-#include <exception>
 
 #include "abstractgrid.h"
 #include "detectorimage.h"
@@ -20,11 +17,11 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
         PlacedGrid(centre, {data.cols(), data.rows()}, physical_size, rotation, pixfrac),
         Image(data)
 {
-    fmt::print("Created a DetectorImage with size {}×{}, physical size {}\n", data.cols(), data.rows(), physical_size);
+    // fmt::println("Created a DetectorImage with size {}×{}, physical size {}", data.cols(), data.rows(), physical_size);
 }
 
 /**
- * Load a detector image from a BMP file (quick and easy, minimal error checking, requires 8bpp greyscale)
+ * Load a detector image from a BMP file (quick and easy, only minimal error checking, requires 8bpp greyscale)
  * @param centre            Position of the centre of the image in world coordinates
  * @param physical_size     Physical dimensions of the image (w × h)
  * @param rotation          Rotation of the image (radians)
@@ -39,11 +36,7 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
 { }
 
 void DetectorImage::fill(const real value) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = value;
-        }
-    }
+    this->apply([=]() { return value; });
 }
 
 /** Apply a parameterless function to every pixel (constant, random, ...) **/
@@ -56,7 +49,7 @@ DetectorImage & DetectorImage::apply(const std::function<real(void)> & function)
     return *this;
 }
 
-/** Apply a R -> R function to every pixel **/
+/** Apply a R -> R function to every pixel depending on its current value **/
 DetectorImage & DetectorImage::apply(const std::function<real(real)> & function) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
@@ -66,7 +59,7 @@ DetectorImage & DetectorImage::apply(const std::function<real(real)> & function)
     return *this;
 }
 
-/** Apply a R -> R function to every pixel depending on pixel coordinates **/
+/** Apply a R -> R function to every pixel depending on pixel coordinates and current value **/
 DetectorImage & DetectorImage::apply(const std::function<real(int, int, real)> & function) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {

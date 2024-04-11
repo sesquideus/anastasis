@@ -7,11 +7,11 @@ name = "pypi"
 numpy = "*"
 scipy = "*"
 matplotlib = "*"
-pytest = "*"
 flake8 = "*"
-Pillow = ">=10.2.0"
+Pillow = ">=10.3.0"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.12"
