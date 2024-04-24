@@ -24,6 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="facdaec4-dac1-436a-a0b1-2754cf8e818c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/grid/Array2D.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/grid/Array2D.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/grid/abstractgrid.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/grid/abstractgrid.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/grid/abstractgrid.h" beforeDir="false" afterPath="$PROJECT_DIR$/grid/abstractgrid.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,7 +38,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Release" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
@@ -74,7 +79,7 @@
   }
 }</component>
   <component name="RunManager" selected="CMake Application.subpixel">
-    <configuration name="anastasis_cpp" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="anastasis_cpp" TARGET_NAME="anastasis_cpp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="anastasis_cpp" RUN_TARGET_NAME="anastasis_cpp">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -89,7 +94,12 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="subpixel" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="anastasis_cpp" TARGET_NAME="subpixel" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="anastasis_cpp" RUN_TARGET_NAME="subpixel">
+    <configuration name="anastasis_cpp" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="anastasis_cpp" TARGET_NAME="anastasis_cpp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="anastasis_cpp" RUN_TARGET_NAME="anastasis_cpp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="subpixel" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="../data/minimetis.bmp 64 64 4 4 1 1" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="anastasis_cpp" TARGET_NAME="subpixel" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="anastasis_cpp" RUN_TARGET_NAME="subpixel">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -123,7 +133,7 @@
       <workItem from="1711113756278" duration="323000" />
       <workItem from="1711114198175" duration="5773000" />
       <workItem from="1713177467624" duration="18000" />
-      <workItem from="1713177494449" duration="3000" />
+      <workItem from="1713177494449" duration="16709000" />
     </task>
     <servers />
   </component>

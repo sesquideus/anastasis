@@ -37,12 +37,9 @@ add_executable(
         grid/box.h
         grid/detectorimage.cpp
         grid/detectorimage.h
-        grid/Array2D.cpp
-        grid/Array2D.h
         grid/box.cpp
         grid/image.cpp
         grid/image.h
-        grid/abstractgrid.cpp
         grid/abstractgrid.h
 )
 
@@ -54,7 +51,6 @@ add_executable(
         types/point.cpp
         utils/functions.h
         utils/functions.cpp
-        grid/abstractgrid.cpp
         grid/abstractgrid.h
         grid/image.h
         grid/image.cpp
