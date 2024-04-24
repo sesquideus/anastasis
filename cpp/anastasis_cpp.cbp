@@ -106,16 +106,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/Array2D.cpp">
-			<Option target="anastasis_cpp"/>
-		</Unit>
-		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/Array2D.h">
-			<Option target="anastasis_cpp"/>
-		</Unit>
-		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/abstractgrid.cpp">
-			<Option target="anastasis_cpp"/>
-			<Option target="subpixel"/>
-		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/abstractgrid.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
