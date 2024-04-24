@@ -90,7 +90,7 @@ Image Image::map(const std::function<real(real)> & function) {
     return image;
 }
 
-Image & Image::map_in_place(const std::function<real(real)> & function) {
+Image & Image::map_in_place(const std::function<real(real &)> & function) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
             (*this)[col, row] = function((*this)[col, row]);
@@ -98,6 +98,17 @@ Image & Image::map_in_place(const std::function<real(real)> & function) {
     }
     return *this;
 }
+
+/** Multiply every pixel by `value` **/
+Image & Image::operator*=(real value) {
+    return this->map_in_place([&](real & x) { return x *= value; });
+}
+
+/** Divide every pixel by `value` **/
+Image & Image::operator/=(real value) {
+    return this->map_in_place([&](real & x) { return x /= value; });
+}
+
 
 real Image::map_reduce(const std::function<real(real)> & map,
                        const std::function<real(real, real)> & reduce,

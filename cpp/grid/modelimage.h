@@ -18,6 +18,8 @@ class DetectorImage;
 class ModelImage: public Image {
 private:
     Matrix variance_;
+
+    ModelImage & apply(const ModelImage & other, const std::function<real(real &, real)> & op);
 public:
     explicit ModelImage(int width, int height);
     explicit ModelImage(pair<int> size);
@@ -30,6 +32,7 @@ public:
     ModelImage & weighted_drizzle(const DetectorImage & image);
     //ModelImage & operator+=(const DetectorImage & image);
     ModelImage & operator+=(const ModelImage & other);
+    ModelImage & operator-=(const ModelImage & other);
     ModelImage & operator*=(real value);
     ModelImage & operator/=(real value);
 
@@ -38,6 +41,7 @@ public:
     // Find the mean square difference between the pictures, expressed as a number between 0 and 1
     [[nodiscard]] real dot_product(const ModelImage & other) const;
     [[nodiscard]] real squared_difference(const ModelImage & other) const;
+    ModelImage operator-(const ModelImage & other) const;
     real operator*(const ModelImage & other) const;
     real operator%(const ModelImage & other) const;
     real operator^(const ModelImage & other) const;

@@ -43,7 +43,7 @@ protected:
     static pair<int> read_bitmap_header(const std::string & filename);
     Image map(const std::function<real(real)> & function);
 
-    Image & map_in_place(const std::function<real(real)> & function);
+    Image & map_in_place(const std::function<real(real &)> & function);
     real map_reduce(const std::function<real(real)> & map,
                     const std::function<real(real, real)> & reduce = std::plus<>(),
                     real init = 0);
@@ -57,6 +57,9 @@ public:
     [[nodiscard]] const Matrix & data() const { return this->data_; }
     [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(y, x); };
     [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(y, x); };
+
+    Image & operator*=(real value);
+    Image & operator/=(real value);
 
     void save_raw(const std::string & filename) const;
     void save_npy(const std::string & filename) const;

@@ -238,6 +238,12 @@ real ModelImage::squared_difference(const ModelImage & other) const {
     }
 }
 
+ModelImage ModelImage::operator-(const ModelImage & other) const {
+    auto result = *this;
+    result -= other;
+    return result;
+}
+
 real ModelImage::operator*(const ModelImage & other) const {
     return this->dot_product(other);
 }
@@ -251,40 +257,30 @@ real ModelImage::operator^(const ModelImage & other) const {
     return (*this) * other / (((*this) * (*this)) * (other * other));
 }
 
+ModelImage & ModelImage::apply(const ModelImage & other, const std::function<real(real &, real)> & op) {
+    if (this->size() == other.size()) {
+        for (int row = 0; row < this->height(); ++row) {
+            for (int col = 0; col < this->width(); ++col) {
+                op((*this)[col, row], other[col, row]);
+            }
+        }
+        return (*this);
+    } else {
+        throw std::invalid_argument("ModelImage sizes do not match");
+    }
+}
+
 /** Add another ModelImage to this ModelImage
  *  @param other
  *      other ModelImage, must have the same dimensions
  *  @return reference to this ModelImage
  */
 ModelImage & ModelImage::operator+=(const ModelImage & other) {
-    if (this->size() == other.size()) {
-        for (int row = 0; row < this->height(); ++row) {
-            for (int col = 0; col < this->width(); ++col) {
-                (*this)[col, row] += other[col, row];
-            }
-        }
-        return *this;
-    } else {
-        throw std::invalid_argument("ModelImage sizes do not match");
-    }
+    this->apply(other, [&](real & x, real y) { return x += y; });
+    return (*this);
 }
 
-ModelImage & ModelImage::operator*=(real value) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] *= value;
-        }
-    }
-    return *this;
+ModelImage & ModelImage::operator-=(const ModelImage & other) {
+    this->apply(other, [&](real & x, real y) { return x -= y; });
+    return (*this);
 }
-
-/** Divide every pixel by `value` **/
-ModelImage & ModelImage::operator/=(real value) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] /= value;
-        }
-    }
-    return *this;
-}
-

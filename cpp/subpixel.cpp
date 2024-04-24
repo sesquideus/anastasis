@@ -171,7 +171,7 @@ int main(int argc, char * argv[]) {
         real angle = (clone * drizzled) / (std::sqrt(drizzled * drizzled) * std::sqrt(clone * clone));
         fmt::print("Angle difference is {}\n", std::acos(angle));
     } catch (std::runtime_error & exc) {
-        fmt::print("Could not map one to one: {}\n", exc.what());
+        fmt::print("Aborting: {}\n", exc.what());
         std::exit(3);
     }
 }

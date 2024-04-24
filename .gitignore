@@ -1,3 +1,10 @@
 out/
 __pycache__/
 */cmake-*/*
+*/.cmake*
+cpp/CMakeCache.txt
+cpp/CMakeFiles/*
+cpp/subpixel
+cpp/Makefile
+cpp/Testing/*
+
