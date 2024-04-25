@@ -138,29 +138,15 @@ PlacedGrid & PlacedGrid::operator-=(Point shift) {
     return *this;
 }
 
-PlacedGrid & PlacedGrid::operator*=(real scale) {
-    *this *= {scale, scale};
-    return *this;
+PlacedGrid & PlacedGrid::scale(real scale) {
+    return this->scale({scale, scale});
 }
 
-PlacedGrid & PlacedGrid::operator*=(pair<real> scale) {
+PlacedGrid & PlacedGrid::scale(pair<real> scale) {
     this->phys_w_ *= scale.first;
     this->phys_h_ *= scale.second;
     this->pixel_width_ *= scale.first;
     this->pixel_height_ *= scale.second;
-    return *this;
-}
-
-PlacedGrid & PlacedGrid::operator/=(real scale) {
-    *this /= {scale, scale};
-    return *this;
-}
-
-PlacedGrid & PlacedGrid::operator/=(pair<real> scale) {
-    this->phys_w_ /= scale.first;
-    this->phys_h_ /= scale.second;
-    this->pixel_width_ /= scale.first;
-    this->pixel_height_ /= scale.second;
     return *this;
 }
 
@@ -181,7 +167,7 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
      */
     long across = 0;
     long along = 0;
-    long nonzeros = 0;
+    long nonzeroes = 0;
     for (auto && matrix: matrices) {
         long num_along = vertical ? matrix.rows() : matrix.cols();
         long num_across = vertical ? matrix.cols() : matrix.rows();
@@ -190,12 +176,12 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
         }
         across = num_across;
         along += num_along;
-        nonzeros += matrix.nonZeros();
+        nonzeroes += matrix.nonZeros();
     }
 
    // fmt::print("Joining {} matrices along {} axis\n", matrices.size(), vertical ? "vertical" : "horizontal");
     std::vector<Eigen::Triplet<real>> triplets;
-    triplets.reserve(nonzeros);
+    triplets.reserve(nonzeroes);
 
     // Just concatenate the triplets over all matrices
     Eigen::Index base = 0;
@@ -216,8 +202,8 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
     long rows = vertical ? along : across;
 
     Eigen::SparseMatrix<real> m(rows, cols);
-    m.reserve(nonzeros);
-    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", cols, rows, nonzeros);
+    m.reserve(nonzeroes);
+    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", cols, rows, nonzeroes);
 
     m.setFromTriplets(triplets.begin(), triplets.end());
     return m;

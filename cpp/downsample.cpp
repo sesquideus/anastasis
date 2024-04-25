@@ -2,9 +2,71 @@
 
 #include "utils/resample.h"
 
+
+/** Take a detector image and create <subsamples_x> * <subsamples_y> downsampled images with resolution
+ *  <model_width> * <model_height>, each shifted by a corresponding fraction of a *new* pixel size in both directions.
+ *  This can be then used to reconstruct the original image.
+ */
+std::vector<std::vector<DetectorImage>> downsample_grid(
+        const DetectorImage & image,
+        pair<int> model_size,
+        pair<int> subsamples,
+        pair<real> pixfrac
+) {
+    std::vector<std::vector<DetectorImage>> downsampled;
+    Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
+
+    for (int j = 0; j < subsamples.second; ++j) {
+        downsampled.emplace_back();
+        for (int i = 0; i < subsamples.first; ++i) {
+            ModelImage temp(model_size);
+            real shift_x = static_cast<real>(i) / static_cast<real>(subsamples.first);
+            real shift_y = static_cast<real>(j) / static_cast<real>(subsamples.second);
+            Point shift = {shift_x, shift_y};
+            real downsampled_x = static_cast<real>(image.width()) / static_cast<real>(model_size.first) *
+                                 (model_centre.x - shift_x);
+            real downsampled_y = static_cast<real>(image.height()) / static_cast<real>(model_size.second) *
+                                 (model_centre.y - shift_y);
+            Point downsampled_centre = {downsampled_x, downsampled_y};
+
+            temp.naive_drizzle(image + shift);
+            fmt::print("Scaled down to {:d} × {:d} with shift {:6.3f} {:6.3f}, pixfrac ({:6.3f}, {:6.3f})\n",
+                       model_size.first, model_size.second,
+                       shift_x, shift_y,
+                       image.pixfrac().first, image.pixfrac().second);
+            downsampled[j].emplace_back(downsampled_centre, image.size(), 0, pixfrac, temp.data());
+        }
+    }
+    fmt::print("---- downsampling complete ----\n");
+    return downsampled;
+}
+
+/** Take an original image and downsample_grid it to many small subexposures at different rotations and positions
+ *  (currently of the same size)
+ *  For instance for METIS we want three subsamples in horizontal direction and three subsamples rotated 90°.
+ */
+std::vector<DetectorImage> downsample_with_rotations(
+        const DetectorImage & original,
+        pair<int> model_size,
+        const std::vector<std::tuple<real, real, real>> & positions,
+        pair<real> pixfrac
+) {
+    std::vector<DetectorImage> downsampled;
+    Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
+
+    for (auto && position: positions) {
+        ModelImage temp(model_size);
+        Point downsampled_centre = {0, 0};
+
+        downsampled.emplace_back(downsampled_centre,
+                                 pair<int>(std::get<0>(position), std::get<1>(position)),
+                                 std::get<2>(position), pixfrac, temp.data());
+    }
+}
+
 SparseMatrix compute_overlap_matrix(
-    const std::vector<std::vector<DetectorImage>> & downsampled,
-    pair<int> output_size)
+        const std::vector<std::vector<DetectorImage>> & downsampled,
+        pair<int> output_size)
 {
     ModelImage output(output_size);
     auto images = flatten(downsampled);
@@ -20,8 +82,8 @@ SparseMatrix compute_overlap_matrix(
 }
 
 ModelImage drizzle(
-    const std::vector<std::vector<DetectorImage>> & downsampled,    // 2D vector of images to drizzle
-    pair<int> output_size                                           // output size of the grid, [0, x), [0, y)
+        const std::vector<std::vector<DetectorImage>> & downsampled,    // 2D vector of images to drizzle
+        pair<int> output_size                                           // output size of the grid, [0, x), [0, y)
 ) {
     ModelImage drizzled(output_size.first, output_size.second);
     unsigned int samples_x = downsampled.size();

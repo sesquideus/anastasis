@@ -36,36 +36,24 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
 { }
 
 void DetectorImage::fill(const real value) {
-    this->apply([=]() { return value; });
+    this->map_in_place([=](real unused) { return value; });
 }
 
 /** Apply a parameterless function to every pixel (constant, random, ...) **/
-DetectorImage & DetectorImage::apply(const std::function<real(void)> & function) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = function();
-        }
-    }
+DetectorImage & DetectorImage::map_in_place(const std::function<real()> & function) {
+    Image::map_in_place(function);
     return *this;
 }
 
-/** Apply a R -> R function to every pixel depending on its current value **/
-DetectorImage & DetectorImage::apply(const std::function<real(real)> & function) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = function((*this)[col, row]);
-        }
-    }
+/** Apply a parameterless function to every pixel (constant, random, ...) **/
+DetectorImage & DetectorImage::map_in_place(const std::function<real(real)> & function) {
+    Image::map_in_place(function);
     return *this;
 }
 
 /** Apply a R -> R function to every pixel depending on pixel coordinates and current value **/
-DetectorImage & DetectorImage::apply(const std::function<real(int, int, real)> & function) {
-    for (int row = 0; row < this->height(); ++row) {
-        for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = function(col, row, (*this)[col, row]);
-        }
-    }
+DetectorImage & DetectorImage::map_in_place(const std::function<real(int, int, real)> & function) {
+    Image::map_in_place(function);
     return *this;
 }
 
@@ -74,11 +62,11 @@ void DetectorImage::randomize() {
     std::mt19937 gen(rd());
     std::weibull_distribution<> weibull;
 
-    this->apply([&]() { return weibull(gen); });
+    this->map_in_place([&]() { return weibull(gen); });
 }
 
 DetectorImage & DetectorImage::multiply(const real value) {
-    return this->apply([value](real x) { return value * x; });
+    return this->map_in_place([value](real x) { return value * x; });
 }
 
 DetectorImage operator+(const DetectorImage & image, Point shift) {
@@ -88,12 +76,6 @@ DetectorImage operator+(const DetectorImage & image, Point shift) {
 }
 
 DetectorImage operator*(const DetectorImage & image, real scale) {
-    auto out = image;
-    out *= scale;
-    return out;
-}
-
-DetectorImage operator*(const DetectorImage & image, pair<real> scale) {
     auto out = image;
     out *= scale;
     return out;

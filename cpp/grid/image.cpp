@@ -4,7 +4,8 @@
 #include <fmt/format.h>
 
 
-Image::Image(int width, int height):
+template<class Derived>
+Image<Derived>::Image(int width, int height):
     AbstractGrid(width, height),
     data_(height, width)
 {
@@ -15,16 +16,19 @@ Image::Image(int width, int height):
     }
 }
 
-Image::Image(pair<int> size):
+template<class Derived>
+Image<Derived>::Image(pair<int> size):
     Image(size.first, size.second)
 {}
 
-Image::Image(const Matrix & data):
+template<class Derived>
+Image<Derived>::Image(const Matrix & data):
     AbstractGrid(data.cols(), data.rows()),
     data_(data)
 {}
 
-Image::Image(const std::string & filename):
+template<class Derived>
+Image<Derived>::Image(const std::string & filename):
     AbstractGrid(read_bitmap_header(filename))
 {
     std::ifstream bitmap_file;
@@ -59,7 +63,8 @@ Image::Image(const std::string & filename):
     fmt::print("Loaded bitmap with size {} × {}\n", width, height);
 }
 
-pair<int> Image::read_bitmap_header(const std::string & filename) {
+template<class Derived>
+pair<int> Image<Derived>::read_bitmap_header(const std::string & filename) {
     std::ifstream bitmap_file;
     unsigned short header;
     int width, height;
@@ -80,37 +85,61 @@ pair<int> Image::read_bitmap_header(const std::string & filename) {
     return {width, height};
 }
 
-Image Image::map(const std::function<real(real)> & function) {
+template<class Derived>
+Image<Derived> Image<Derived>::map(const std::function<real(real)> & function) {
     auto image = *this;
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            image[col, row] = function(image[col, row]);
+            image[col, row] = function((*this)[col, row]);
         }
     }
     return image;
 }
 
-Image & Image::map_in_place(const std::function<real(real &)> & function) {
+template<class Derived>
+Derived & Image<Derived>::map_in_place(const std::function<real()> & function) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
-            (*this)[col, row] = function((*this)[col, row]);
+            (*this)[col, row] = function();
         }
     }
-    return *this;
+    return static_cast<Derived &>(*this);
+}
+
+template<class Derived>
+Derived & Image<Derived>::map_in_place(const std::function<real(real &)> & function) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            function((*this)[col, row]);
+        }
+    }
+    return static_cast<Derived &>(*this);
+}
+
+template<class Derived>
+Derived & Image<Derived>::map_in_place(const std::function<real(int, int, real &)> & function) {
+    for (int row = 0; row < this->height(); ++row) {
+        for (int col = 0; col < this->width(); ++col) {
+            function(col, row, (*this)[col, row]);
+        }
+    }
+    return static_cast<Derived &>(*this);
 }
 
 /** Multiply every pixel by `value` **/
-Image & Image::operator*=(real value) {
+template<class Derived>
+Image<Derived> & Image<Derived>::operator*=(real value) {
     return this->map_in_place([&](real & x) { return x *= value; });
 }
 
 /** Divide every pixel by `value` **/
-Image & Image::operator/=(real value) {
+template<class Derived>
+Image<Derived> & Image<Derived>::operator/=(real value) {
     return this->map_in_place([&](real & x) { return x /= value; });
 }
 
-
-real Image::map_reduce(const std::function<real(real)> & map,
+template<class Derived>
+real Image<Derived>::map_reduce(const std::function<real(real)> & map,
                        const std::function<real(real, real)> & reduce,
                        const real init) {
     real value = init;
@@ -126,7 +155,8 @@ real Image::map_reduce(const std::function<real(real)> & map,
  * Save the image to a raw file of sequential real numbers with no size data. Very crude.
  * @param filename
  */
-void Image::save_raw(const std::string & filename) const {
+template<class Derived>
+void Image<Derived>::save_raw(const std::string & filename) const {
     std::ofstream out;
     out.open(filename);
     for (int row = 0; row < this->height(); ++row) {
@@ -143,7 +173,8 @@ void Image::save_raw(const std::string & filename) const {
  * Only implements the very minimum to work, feel free to extend
  * @param filename
  */
-void Image::save_npy(const std::string & filename) const {
+template<class Derived>
+void Image<Derived>::save_npy(const std::string & filename) const {
     std::ofstream out;
     out.open(filename);
     unsigned char c = 0x93;
@@ -177,7 +208,8 @@ void Image::save_npy(const std::string & filename) const {
  * Save an image to a bitmap file with BMPHEADERINFO. Crude and inefficient but gets the job done.
  * @param filename
  */
-void Image::save_bmp(const std::string & filename) const {
+template<class Derived>
+void Image<Derived>::save_bmp(const std::string & filename) const {
     std::ofstream out;
     out.open(filename, std::ios::out | std::ios::binary);
 

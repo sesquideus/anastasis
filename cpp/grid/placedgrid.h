@@ -65,10 +65,8 @@ public:
 
     PlacedGrid & operator+=(Point shift);
     PlacedGrid & operator-=(Point shift);
-    PlacedGrid & operator*=(pair<real> scale);
-    PlacedGrid & operator*=(real scale);
-    PlacedGrid & operator/=(pair<real> scale);
-    PlacedGrid & operator/=(real scale);
+    PlacedGrid & scale(real scale);
+    PlacedGrid & scale(pair<real> scale);
     PlacedGrid & operator<<=(real angle);
     PlacedGrid & operator>>=(real angle);
 };

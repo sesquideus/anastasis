@@ -15,7 +15,7 @@ class DetectorImage;
  *  Its pixels are always square, 1×1 in size and placed on an aligned orthogonal grid starting at [0, 0].
  *  They contain image data and are thus a subclass of Image
  */
-class ModelImage: public Image {
+class ModelImage: public Image<ModelImage> {
 private:
     Matrix variance_;
 
@@ -33,8 +33,6 @@ public:
     //ModelImage & operator+=(const DetectorImage & image);
     ModelImage & operator+=(const ModelImage & other);
     ModelImage & operator-=(const ModelImage & other);
-    ModelImage & operator*=(real value);
-    ModelImage & operator/=(real value);
 
     [[nodiscard]] SparseMatrix overlap_matrix(const DetectorImage & image) const;
 

@@ -41,6 +41,8 @@ add_executable(
         grid/image.cpp
         grid/image.h
         grid/abstractgrid.h
+        utils/resample.cpp
+        utils/resample.h
 )
 
 add_executable(
@@ -51,9 +53,10 @@ add_executable(
         types/point.cpp
         utils/functions.h
         utils/functions.cpp
+        utils/resample.h
+        utils/resample.cpp
         grid/abstractgrid.h
         grid/image.h
-        grid/image.cpp
         grid/placedgrid.h
         grid/placedgrid.cpp
         grid/pixel/pixel.cpp

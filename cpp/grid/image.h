@@ -36,6 +36,8 @@ typedef struct tagBITMAPINFOHEADER {
 /** An Image is an abstract grid with no placement, but contains a piece of data at every pixel.
  *  Right now it is just for real numbers, but can be made into a template.
  */
+
+template<class Derived>
 class Image: public virtual AbstractGrid {
 protected:
     Matrix data_;
@@ -43,7 +45,11 @@ protected:
     static pair<int> read_bitmap_header(const std::string & filename);
     Image map(const std::function<real(real)> & function);
 
-    Image & map_in_place(const std::function<real(real &)> & function);
+    /* Rewrite these with CRTP */
+    Derived & map_in_place(const std::function<real()> & function);
+    Derived & map_in_place(const std::function<real(real &)> & function);
+    Derived & map_in_place(const std::function<real(int, int, real &)> & function);
+
     real map_reduce(const std::function<real(real)> & map,
                     const std::function<real(real, real)> & reduce = std::plus<>(),
                     real init = 0);
@@ -66,5 +72,6 @@ public:
     void save_bmp(const std::string & filename) const;
 };
 
+#include "grid/image.cpp"
 
 #endif //ANASTASIS_CPP_IMAGE_H

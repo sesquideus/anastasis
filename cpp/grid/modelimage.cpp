@@ -1,9 +1,9 @@
 #include "modelimage.h"
 
 ModelImage::ModelImage(int width, int height):
-        AbstractGrid(width, height),
-        Image(width, height),
-        variance_(height, width)
+    AbstractGrid(width, height),
+    Image(width, height),
+    variance_(height, width)
 {
     this->variance_.setZero();
 }
@@ -107,6 +107,38 @@ ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
     if ((std::abs(std::sin(image.rotation())) < 1e-10) || (std::abs(std::cos(image.rotation())) < 1e-10)) {
         // If the grid is aligned or rotated by right angle, we can do it much more quickly:
         // just find the overlap of corresponding line segments in both directions and multiply.
+        for (int row = 0; row < image.height(); ++row) {
+            for (int col = 0; col < image.width(); ++col) {
+                const Pixel & image_pixel = image.world_pixel(col, row);
+                Box bounds = image_pixel.bounding_box();
+
+                // For every pixel potentially caught in the drizzle
+                for (int y = bounds.bottom; y < bounds.top; ++y) {
+                    if ((y < 0) || (y >= this->height())) {
+                        continue;
+                    }
+                    for (int x = bounds.left; x < bounds.right; ++x) {
+                        if ((x < 0) || (x >= this->width())) {
+                            continue;
+                        }
+                        auto && model_pixel = this->pixel(x, y);
+
+                        // Calculate the overlap of model and data pixels
+                        real overlap = model_pixel & image_pixel;
+                        // fmt::print("{} {} {} {}\n", model_pixel, image_pixel, overlap, (*this)[x, y]);
+                        if (overlap > PlacedGrid::NegligibleOverlap) {
+                            // If not zero or negligibly small, add to the value at [x, y] the value
+                            // from source's [col, row], scaled by overlap and pixel area
+                            (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
+                            ++total;
+                            sum += (*this)[x, y];
+                        }
+                        // fmt::print("{} {} × {} {} -> {}\n", x, y, row, col, overlap);
+                        inspected++;
+                    }
+                }
+            }
+        }
     } else {
         // For every pixel of the drizzling image
         for (int row = 0; row < image.height(); ++row) {
@@ -254,6 +286,7 @@ real ModelImage::operator%(const ModelImage & other) const {
 
 /** Find the cosine of the angle between two images **/
 real ModelImage::operator^(const ModelImage & other) const {
+    fmt::print("What the hell {}\n", other);
     return (*this) * other / (((*this) * (*this)) * (other * other));
 }
 
