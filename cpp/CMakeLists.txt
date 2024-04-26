@@ -28,7 +28,7 @@ add_executable(
 #        spatial/structures/kdtree.h
 #        spatial/structures/balltree.cpp
 #        spatial/structures/balltree.h
-        grid/placedgrid.cpp
+        grid/placedgrid.tpp
         grid/placedgrid.h
         grid/pixel/pixel.cpp
         grid/pixel/pixel.h
@@ -38,7 +38,7 @@ add_executable(
         grid/detectorimage.cpp
         grid/detectorimage.h
         grid/box.cpp
-        grid/image.cpp
+        grid/image.tpp
         grid/image.h
         grid/abstractgrid.h
         utils/resample.cpp
@@ -58,11 +58,12 @@ add_executable(
         grid/abstractgrid.h
         grid/image.h
         grid/placedgrid.h
-        grid/placedgrid.cpp
         grid/pixel/pixel.cpp
         grid/pixel/pixel.h
         grid/modelimage.cpp
         grid/modelimage.h
         grid/detectorimage.cpp
         grid/detectorimage.h
+        utils/eigen.cpp
+        utils/eigen.h
 )

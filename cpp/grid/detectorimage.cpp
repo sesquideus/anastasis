@@ -35,40 +35,6 @@ DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotati
         Image(filename)
 { }
 
-void DetectorImage::fill(const real value) {
-    this->map_in_place([=](real unused) { return value; });
-}
-
-/** Apply a parameterless function to every pixel (constant, random, ...) **/
-DetectorImage & DetectorImage::map_in_place(const std::function<real()> & function) {
-    Image::map_in_place(function);
-    return *this;
-}
-
-/** Apply a parameterless function to every pixel (constant, random, ...) **/
-DetectorImage & DetectorImage::map_in_place(const std::function<real(real)> & function) {
-    Image::map_in_place(function);
-    return *this;
-}
-
-/** Apply a R -> R function to every pixel depending on pixel coordinates and current value **/
-DetectorImage & DetectorImage::map_in_place(const std::function<real(int, int, real)> & function) {
-    Image::map_in_place(function);
-    return *this;
-}
-
-void DetectorImage::randomize() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::weibull_distribution<> weibull;
-
-    this->map_in_place([&]() { return weibull(gen); });
-}
-
-DetectorImage & DetectorImage::multiply(const real value) {
-    return this->map_in_place([value](real x) { return value * x; });
-}
-
 DetectorImage operator+(const DetectorImage & image, Point shift) {
     auto out = image;
     out += shift;

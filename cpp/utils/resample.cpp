@@ -9,7 +9,7 @@ ModelImage one_to_one(const DetectorImage & image) {
     fmt::print("\tModel: {}\n", clone);
     clone.naive_drizzle(copy);
     clone.save_npy("out/one-to-one.npy");
-    fmt::print("---- one to one complete ----\n");
+    fmt::print("---- one to one drizzling complete ----\n");
     return clone;
 }
 
@@ -23,6 +23,7 @@ std::vector<std::vector<DetectorImage>> downsample_grid(
     Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
 
     for (int j = 0; j < subsamples.second; ++j) {
+        // Construct an empty vector
         downsampled.emplace_back();
         for (int i = 0; i < subsamples.first; ++i) {
             ModelImage temp(model_size);
@@ -36,7 +37,7 @@ std::vector<std::vector<DetectorImage>> downsample_grid(
             Point downsampled_centre = {downsampled_x, downsampled_y};
 
             temp.naive_drizzle(image + shift);
-            fmt::print("Scaled down to {:d} × {:d} with shift {:6.3f} {:6.3f}, pixfrac ({:6.3f}, {:6.3f})\n",
+            fmt::print("Scaled image down to {:d} × {:d} with shift {:6.3f} {:6.3f}, pixfrac ({:6.3f}, {:6.3f})\n",
                        model_size.first, model_size.second,
                        shift_x, shift_y,
                        image.pixfrac().first, image.pixfrac().second);

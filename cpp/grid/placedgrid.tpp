@@ -1,7 +1,9 @@
 #include "placedgrid.h"
 #include <iostream>
 
-PlacedGrid::PlacedGrid(Point centre,
+
+template<class Derived>
+PlacedGrid<Derived>::PlacedGrid(Point centre,
                        pair<int> grid_size,
                        pair<real> physical_size,
                        real rotation,
@@ -17,30 +19,34 @@ PlacedGrid::PlacedGrid(Point centre,
     pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(size_h_))
 { }
 
-PlacedGrid PlacedGrid::from_pixel_size(Point centre,
-                                       pair<int> grid_size,
-                                       pair<real> pixel_size,
-                                       real rotation,
-                                       pair<real> pixfrac) {
+template<class Derived>
+PlacedGrid<Derived> PlacedGrid<Derived>::from_pixel_size(Point centre,
+                                                         pair<int> grid_size,
+                                                         pair<real> pixel_size,
+                                                         real rotation,
+                                                         pair<real> pixfrac) {
     real width = pixel_size.first * static_cast<real>(grid_size.first);
     real height = pixel_size.second * static_cast<real>(grid_size.second);
     return {centre, grid_size, {width, height}, rotation, pixfrac};
 }
 
-Point PlacedGrid::grid_centre(unsigned int x, unsigned int y) const {
+template<class Derived>
+Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
     real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->size_w_) * this->phys_w_ - this->phys_w_ * 0.5;
     real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->size_h_) * this->phys_h_ - this->phys_h_ * 0.5;
     return Point(lx, ly);
 }
 
-Point PlacedGrid::world_centre(unsigned int x, unsigned int y) const {
+template<class Derived>
+Point PlacedGrid<Derived>::world_centre(unsigned int x, unsigned int y) const {
     Point grid_centre = this->grid_centre(x, y);
     real sina = std::sin(this->rotation_);
     real cosa = std::cos(this->rotation_);
     return Point(grid_centre.x * cosa - grid_centre.y * sina, grid_centre.x * sina + grid_centre.y * cosa);
 }
 
-Pixel PlacedGrid::grid_pixel(unsigned int x, unsigned int y) const {
+template<class Derived>
+Pixel PlacedGrid<Derived>::grid_pixel(unsigned int x, unsigned int y) const {
     Point grid_centre = this->grid_centre(x, y);
     real hw = this->pixel_width_ * this->pixfrac_x_ * 0.5;
     real hh = this->pixel_height_ * this->pixfrac_y_ * 0.5;
@@ -52,7 +58,8 @@ Pixel PlacedGrid::grid_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-Pixel PlacedGrid::world_pixel(unsigned int x, unsigned int y) const {
+template<class Derived>
+Pixel PlacedGrid<Derived>::world_pixel(unsigned int x, unsigned int y) const {
     Pixel raw = this->grid_pixel(x, y);
     return Pixel(
         this->centre_ + raw.a().rotated(this->rotation_),
@@ -62,17 +69,19 @@ Pixel PlacedGrid::world_pixel(unsigned int x, unsigned int y) const {
     );
 }
 
-PlacedGrid & PlacedGrid::set_centre(Point centre) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::set_centre(Point centre) {
     this->centre_ = centre;
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
-PlacedGrid & PlacedGrid::set_physical_size(pair<real> size) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::set_physical_size(pair<real> size) {
     this->phys_w_ = size.first;
     this->phys_h_ = size.second;
     this->pixel_width_ = this->pixfrac_x_ * this->phys_w_ / static_cast<real>(this->size_w_);
     this->pixel_height_ = this->pixfrac_y_ * this->phys_h_ / static_cast<real>(this->size_h_);
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
 
@@ -100,7 +109,7 @@ std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const 
         }
     }
     return active_pixels;
-}
+} **/
 
 /** Compute the overlap as a 2D matrix (huge size, even if sparse) **/ /**
 Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) const {
@@ -118,7 +127,8 @@ Eigen::SparseMatrix<real> Grid::matrix_canonical(const ModelImage & canonical) c
     return matrix;
 } */
 
-void PlacedGrid::print_world() const {
+template<class Derived>
+void PlacedGrid<Derived>::print_world() const {
     Point bottomleft = this->world_pixel(0, 0).a();
     Point bottomright = this->world_pixel(this->width() - 1, 0).b();
     Point topleft = this->world_pixel(0, this->height() - 1).d();
@@ -128,132 +138,40 @@ void PlacedGrid::print_world() const {
     );
 }
 
-PlacedGrid & PlacedGrid::operator+=(Point shift) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::operator+=(Point shift) {
     this->centre_ += shift;
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
-PlacedGrid & PlacedGrid::operator-=(Point shift) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::operator-=(Point shift) {
     this->centre_ -= shift;
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
-PlacedGrid & PlacedGrid::scale(real scale) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::scale(real scale) {
     return this->scale({scale, scale});
 }
 
-PlacedGrid & PlacedGrid::scale(pair<real> scale) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::scale(pair<real> scale) {
     this->phys_w_ *= scale.first;
     this->phys_h_ *= scale.second;
     this->pixel_width_ *= scale.first;
     this->pixel_height_ *= scale.second;
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
-PlacedGrid & PlacedGrid::operator<<=(real angle) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::operator<<=(real angle) {
     this->rotation_ -= angle;
-    return *this;
+    return static_cast<Derived &>(*this);
 }
 
-PlacedGrid & PlacedGrid::operator>>=(real angle) {
+template<class Derived>
+Derived & PlacedGrid<Derived>::operator>>=(real angle) {
     this->rotation_ += angle;
-    return *this;
-}
-
-Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical) {
-    /**
-     *  Stack a vector of sparse matrices, either vertically or horizontally, and produce a big sparse matrix.
-     *  The other (across) dimension must always match, the other one need not be equal.
-     */
-    long across = 0;
-    long along = 0;
-    long nonzeroes = 0;
-    for (auto && matrix: matrices) {
-        long num_along = vertical ? matrix.rows() : matrix.cols();
-        long num_across = vertical ? matrix.cols() : matrix.rows();
-        if (along > 0) {
-           assert((num_across == across) && "Across-concatenation dimensions do not match");
-        }
-        across = num_across;
-        along += num_along;
-        nonzeroes += matrix.nonZeros();
-    }
-
-   // fmt::print("Joining {} matrices along {} axis\n", matrices.size(), vertical ? "vertical" : "horizontal");
-    std::vector<Eigen::Triplet<real>> triplets;
-    triplets.reserve(nonzeroes);
-
-    // Just concatenate the triplets over all matrices
-    Eigen::Index base = 0;
-    for (auto && matrix: matrices) {
-        for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
-            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
-                triplets.emplace_back(
-                    vertical ? it.row() + base : it.row(),
-                    vertical ? it.col() : base + it.col(),
-                    it.value()
-                );
-            }
-        }
-        base += vertical ? matrix.rows() : matrix.cols();
-    }
-
-    long cols = vertical ? across : along;
-    long rows = vertical ? along : across;
-
-    Eigen::SparseMatrix<real> m(rows, cols);
-    m.reserve(nonzeroes);
-    fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", cols, rows, nonzeroes);
-
-    m.setFromTriplets(triplets.begin(), triplets.end());
-    return m;
-}
-
-Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
-    return stack(matrices, true);
-}
-
-Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
-    return stack(matrices, false);
-}
-
-
-Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices) {
-    long rows = 0;
-    long cols = 0;
-    long nonzeros = 0;
-    for (auto & matrix: matrices) {
-        if ((rows > 0) && (matrix.cols() != cols)) {
-            throw std::runtime_error("Sparse matrix width does not match");
-        }
-        cols = matrix.cols();
-        rows += matrix.rows();
-        nonzeros += matrix.nonZeros();
-    }
-
-    Eigen::SparseMatrix<real> m(rows, cols);
-    m.reserve(nonzeros);
-    fmt::print("{} {}\n", cols, nonzeros);
-
-    for (Eigen::Index c = 0; c < cols; ++c) {
-        Eigen::Index base = 0;
-        for (auto && matrix: matrices) {
-            m.startVec(c);
-            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
-                matrix.startVec(c);
-                fmt::print("s {} {}\n", it, c);
-                m.insertBack(base + it.row(), c) = it.value();
-                fmt::print("e {} {}\n", it, c);
-            }
-            base += matrix.rows();
-        }
-    }
-    m.finalize();
-    return m;
-}
-
-PlacedGrid operator+(const PlacedGrid & grid, Point shift) {
-    auto new_grid = grid;
-    new_grid += shift;
-    return new_grid;
+    return static_cast<Derived &>(*this);
 }

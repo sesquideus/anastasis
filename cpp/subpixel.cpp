@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "utils/resample.h"
+#include "utils/eigen.h"
 
 SparseMatrix compute_overlap_matrix(
     const std::vector<std::vector<DetectorImage>> & downsampled,
@@ -42,6 +43,8 @@ ModelImage drizzle(
                        downsampled[i][j].pixfrac().first, downsampled[i][j].pixfrac().second);
         }
     }
+
+    drizzled *= 1.0 / (samples_x * samples_y);
     return drizzled;
 }
 
@@ -98,9 +101,16 @@ int main(int argc, char * argv[]) {
         fmt::print("About to drizzle {} (image size {} × {}) down to model with size {} × {}, placed at {}\n",
                    args[0], size.first, size.second, model_width, model_height, centre);
         fmt::print("Pixel scaling factors are x = {}, y = {}\n", scale_x, scale_y);
-        fmt::print("Pixfrac is px = {}, py = {}\n", pixfrac_x, pixfrac_y);
+        fmt::print("Pixfrac is px = {:.6f}, py = {:.6f}\n", pixfrac_x, pixfrac_y);
 
         auto clone = one_to_one(input);
+        auto clone2 = ModelImage(pair<int>(model_width, model_height));
+        clone2.set_data(input.data());
+
+        (clone - clone2).save_npy("out/diff.npy");
+
+        fmt::print("Clone similarity is {}\n", clone ^ clone2);
+
         input.set_centre(centre);
         input.set_physical_size({model_width, model_height});
 
@@ -117,6 +127,8 @@ int main(int argc, char * argv[]) {
 
         real similarity = clone ^ drizzled;
         fmt::print("Similarity score is {}\n", similarity);
+
+        (clone - drizzled).save_npy("out/difference.npy");
 
         /* Compute the angle difference (arccos of the dot product of the images) */
         real angle = (clone * drizzled) / (std::sqrt(drizzled * drizzled) * std::sqrt(clone * clone));

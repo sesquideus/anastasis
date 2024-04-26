@@ -1,7 +1,6 @@
 #ifndef ANASTASIS_CPP_DETECTORIMAGE_H
 #define ANASTASIS_CPP_DETECTORIMAGE_H
 
-#include <random>
 #include "grid/placedgrid.h"
 #include "image.h"
 
@@ -10,7 +9,7 @@
  * Extends an abstract placed grid with actual pixel data, hence a combination of an Image and a PlacedGrid.
  * Implemented in separate structures in hope to be cache-friendly.
  */
-class DetectorImage: public PlacedGrid, public Image<DetectorImage> {
+class DetectorImage: public PlacedGrid<DetectorImage>, public Image<DetectorImage> {
 public:
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   pair<int> grid_size);
@@ -18,22 +17,7 @@ public:
                   const Matrix & data);
     DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                   const std::string & filename);
-
-    DetectorImage & apply(const std::function<real(void)> & function);
-    DetectorImage & map_in_place(const std::function<real()> & function);
-    DetectorImage & map_in_place(const std::function<real(real)> & function);
-    DetectorImage & map_in_place(const std::function<real(int, int, real)> & function);
-
-    DetectorImage & multiply(real value);
-
-    void fill(real value = 0.0);
-
-    void randomize();
 };
-
-DetectorImage operator*(const DetectorImage & image, real scale);
-DetectorImage operator*(const DetectorImage & image, pair<real> scale);
-DetectorImage operator+(const DetectorImage & image, Point shift);
 
 template<>
 class fmt::formatter<DetectorImage> {

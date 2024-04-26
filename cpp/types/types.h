@@ -18,6 +18,7 @@ typedef Eigen::SparseMatrix<real> SparseMatrix;
 // Simply tau = 2 * pi
 constexpr real Tau = 3.14159265358979232846264 * 2.0;
 
+
 template<class T>
 class fmt::formatter<pair<T>> {
 public:

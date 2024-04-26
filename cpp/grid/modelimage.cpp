@@ -126,7 +126,7 @@ ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
                         // Calculate the overlap of model and data pixels
                         real overlap = model_pixel & image_pixel;
                         // fmt::print("{} {} {} {}\n", model_pixel, image_pixel, overlap, (*this)[x, y]);
-                        if (overlap > PlacedGrid::NegligibleOverlap) {
+                        if (overlap > DetectorImage::NegligibleOverlap) {
                             // If not zero or negligibly small, add to the value at [x, y] the value
                             // from source's [col, row], scaled by overlap and pixel area
                             (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
@@ -161,7 +161,7 @@ ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
                         // Calculate the overlap of model and data pixels
                         real overlap = model_pixel & image_pixel;
                         // fmt::print("{} {} {} {}\n", model_pixel, image_pixel, overlap, (*this)[x, y]);
-                        if (overlap > PlacedGrid::NegligibleOverlap) {
+                        if (overlap > DetectorImage::NegligibleOverlap) {
                             // If not zero or negligibly small, add to the value at [x, y] the value
                             // from source's [col, row], scaled by overlap and pixel area
                             (*this)[x, y] += image[col, row] * overlap / image.pixel_area(col, row);
@@ -197,8 +197,9 @@ ModelImage & ModelImage::weighted_drizzle(const DetectorImage & image) {
                     }
                     auto && model_pixel = this->pixel(x, y);
 
+                    // Compute the overlaps of model and detector pixels
                     real overlap = model_pixel & image_pixel;
-                    if (overlap > PlacedGrid::NegligibleOverlap) {
+                    if (overlap > DetectorImage::NegligibleOverlap) {
                         // If not zero or negligibly small, add to the value at [x, y] the value
                         // from source's [col, row], scaled by overlap and pixel area
                         this->variance_(y, x) += overlap / image.pixel_area(col, row);
@@ -242,11 +243,11 @@ real ModelImage::total_flux() const {
     return out;
 }
 
-real ModelImage::dot_product(const ModelImage & other) const {
+real ModelImage::dot_product(const ModelImage & other, int border) const {
     if (this->size() == other.size()) {
         real diff = 0;
-        for (int row = 0; row < this->height(); ++row) {
-            for (int col = 0; col < this->width(); ++col) {
+        for (int row = border; row < this->height() - border; ++row) {
+            for (int col = border; col < this->width() - border; ++col) {
                 diff += (*this)[col, row] * other[col, row];
             }
         }
@@ -256,11 +257,11 @@ real ModelImage::dot_product(const ModelImage & other) const {
     }
 }
 
-real ModelImage::squared_difference(const ModelImage & other) const {
+real ModelImage::squared_difference(const ModelImage & other, int border) const {
     if (this->size() == other.size()) {
         real diff = 0;
-        for (int row = 0; row < this->height(); ++row) {
-            for (int col = 0; col < this->width(); ++col) {
+        for (int row = border; row < this->height() - border; ++row) {
+            for (int col = border; col < this->width() - border; ++col) {
                 diff += std::pow((*this)[col, row] - other[col, row], 2);
             }
         }
@@ -286,7 +287,6 @@ real ModelImage::operator%(const ModelImage & other) const {
 
 /** Find the cosine of the angle between two images **/
 real ModelImage::operator^(const ModelImage & other) const {
-    fmt::print("What the hell {}\n", other);
     return (*this) * other / (((*this) * (*this)) * (other * other));
 }
 

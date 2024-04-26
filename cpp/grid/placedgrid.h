@@ -14,6 +14,7 @@
  *  it has a central point, physical extent in both directions and a rotation.
  *  Changing its logical size is still not possible, but its location can be altered.
  */
+template<class Derived>
 class PlacedGrid: public virtual AbstractGrid {
 private:
     Point centre_;
@@ -49,8 +50,8 @@ public:
         return this->pixel_width_ * this->pixel_height_;
     }
 
-    PlacedGrid & set_centre(Point centre);
-    PlacedGrid & set_physical_size(pair<real> size);
+    Derived & set_centre(Point centre);
+    Derived & set_physical_size(pair<real> size);
 
     [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
     [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
@@ -63,19 +64,26 @@ public:
 
     void print_world() const;
 
-    PlacedGrid & operator+=(Point shift);
-    PlacedGrid & operator-=(Point shift);
-    PlacedGrid & scale(real scale);
-    PlacedGrid & scale(pair<real> scale);
-    PlacedGrid & operator<<=(real angle);
-    PlacedGrid & operator>>=(real angle);
+    // Shift the whole PlacedGrid by a constant vector
+    Derived & operator+=(Point shift);
+    Derived & operator-=(Point shift);
+    // Scale the PlacedGrid by constant in both directions
+    Derived & scale(real scale);
+    Derived & scale(pair<real> scale);
+    Derived & operator<<=(real angle);
+    Derived & operator>>=(real angle);
 };
 
-PlacedGrid operator+(const PlacedGrid & grid, Point shift);
+template<class Derived>
+Derived operator+(Derived grid, const Point & shift) {
+    return grid += shift;
+}
 
-Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
-Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
-Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
-Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices);
+template<class Derived>
+Derived operator-(Derived grid, const Point & shift) {
+    return grid -= shift;
+}
+
+#include "grid/placedgrid.tpp"
 
 #endif // GRID_H

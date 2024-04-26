@@ -26,10 +26,11 @@ public:
 
     [[nodiscard]] Pixel pixel(int x, int y) const;
 
-    ModelImage & naive_drizzle(const std::vector<DetectorImage> & images);
     ModelImage & naive_drizzle(const DetectorImage & image);
-    ModelImage & weighted_drizzle(const std::vector<DetectorImage> & images);
+    ModelImage & naive_drizzle(const std::vector<DetectorImage> & images);
     ModelImage & weighted_drizzle(const DetectorImage & image);
+    ModelImage & weighted_drizzle(const std::vector<DetectorImage> & images);
+
     //ModelImage & operator+=(const DetectorImage & image);
     ModelImage & operator+=(const ModelImage & other);
     ModelImage & operator-=(const ModelImage & other);
@@ -37,8 +38,8 @@ public:
     [[nodiscard]] SparseMatrix overlap_matrix(const DetectorImage & image) const;
 
     // Find the mean square difference between the pictures, expressed as a number between 0 and 1
-    [[nodiscard]] real dot_product(const ModelImage & other) const;
-    [[nodiscard]] real squared_difference(const ModelImage & other) const;
+    [[nodiscard]] real dot_product(const ModelImage & other, int border = 0) const;
+    [[nodiscard]] real squared_difference(const ModelImage & other, int border = 0) const;
     ModelImage operator-(const ModelImage & other) const;
     real operator*(const ModelImage & other) const;
     real operator%(const ModelImage & other) const;

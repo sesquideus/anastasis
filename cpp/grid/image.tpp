@@ -97,6 +97,11 @@ Image<Derived> Image<Derived>::map(const std::function<real(real)> & function) {
 }
 
 template<class Derived>
+Derived & Image<Derived>::fill(const real value) {
+    this->map_in_place([=]() { return value; });
+}
+
+template<class Derived>
 Derived & Image<Derived>::map_in_place(const std::function<real()> & function) {
     for (int row = 0; row < this->height(); ++row) {
         for (int col = 0; col < this->width(); ++col) {
@@ -126,16 +131,23 @@ Derived & Image<Derived>::map_in_place(const std::function<real(int, int, real &
     return static_cast<Derived &>(*this);
 }
 
-/** Multiply every pixel by `value` **/
 template<class Derived>
-Image<Derived> & Image<Derived>::operator*=(real value) {
+Derived & Image<Derived>::operator*=(real value) {
     return this->map_in_place([&](real & x) { return x *= value; });
 }
 
 /** Divide every pixel by `value` **/
 template<class Derived>
-Image<Derived> & Image<Derived>::operator/=(real value) {
+Derived & Image<Derived>::operator/=(real value) {
     return this->map_in_place([&](real & x) { return x /= value; });
+}
+
+template<class Derived>
+Derived & Image<Derived>::set_data(const Matrix & data) {
+    this->size_w_ = data.cols();
+    this->size_h_ = data.rows();
+    this->data_ = data;
+    return static_cast<Derived &>(*this);
 }
 
 template<class Derived>
@@ -150,6 +162,16 @@ real Image<Derived>::map_reduce(const std::function<real(real)> & map,
     }
     return value;
 }
+
+template<class Derived>
+Derived & Image<Derived>::randomize() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::weibull_distribution<> weibull;
+
+    return this->map_in_place([&]() { return weibull(gen); });
+}
+
 
 /**
  * Save the image to a raw file of sequential real numbers with no size data. Very crude.
