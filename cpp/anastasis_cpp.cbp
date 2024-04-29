@@ -124,13 +124,12 @@
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
 		</Unit>
-		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/image.cpp">
-			<Option target="anastasis_cpp"/>
-			<Option target="subpixel"/>
-		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/image.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/image.tpp">
+			<Option target="anastasis_cpp"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/modelimage.cpp">
 			<Option target="anastasis_cpp"/>
@@ -148,13 +147,12 @@
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
 		</Unit>
-		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/placedgrid.cpp">
-			<Option target="anastasis_cpp"/>
-			<Option target="subpixel"/>
-		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/placedgrid.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/placedgrid.tpp">
+			<Option target="anastasis_cpp"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/main.cpp">
 			<Option target="anastasis_cpp"/>
@@ -174,11 +172,25 @@
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
 		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/eigen.cpp">
+			<Option target="subpixel"/>
+		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/eigen.h">
+			<Option target="subpixel"/>
+		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/functions.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/functions.h">
+			<Option target="anastasis_cpp"/>
+			<Option target="subpixel"/>
+		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/resample.cpp">
+			<Option target="anastasis_cpp"/>
+			<Option target="subpixel"/>
+		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/resample.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
 		</Unit>

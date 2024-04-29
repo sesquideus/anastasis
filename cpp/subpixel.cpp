@@ -3,6 +3,8 @@
 #include "utils/resample.h"
 #include "utils/eigen.h"
 
+using namespace Astar;
+
 SparseMatrix compute_overlap_matrix(
     const std::vector<std::vector<DetectorImage>> & downsampled,
     pair<int> output_size)
@@ -137,4 +139,8 @@ int main(int argc, char * argv[]) {
         fmt::print("Aborting: {}\n", exc.what());
         std::exit(3);
     }
+
+    Point a;
+    Point b;
+    (a + b) = b;
 }
