@@ -18,6 +18,10 @@ namespace Astar {
     public:
         real x;
         real y;
+
+        template<typename T> requires std::is_convertible_v<T, real>
+        explicit Point(const pair<T> & point): x(point.first), y(point.second) {}
+
         [[nodiscard]] inline bool is_valid() const { return !(std::isnan(this->x) || std::isnan(this->y)); };
         [[nodiscard]] Point rotated(real angle) const;
         [[nodiscard]] real slope() const;

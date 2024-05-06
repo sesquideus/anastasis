@@ -9,7 +9,7 @@ namespace Astar {
      *  It is expected to be immutable: resizing is not allowed
      */
     class AbstractGrid {
-    protected:
+    private:
         int size_w_;
         int size_h_;
     public:

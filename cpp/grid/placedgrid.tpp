@@ -15,8 +15,8 @@ namespace Astar {
         rotation_(rotation),
         pixfrac_x_(pixfrac.first),
         pixfrac_y_(pixfrac.second),
-        pixel_width_(pixfrac_x_ * phys_w_ / static_cast<real>(size_w_)),
-        pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(size_h_))
+        pixel_width_(pixfrac_x_ * phys_w_ / static_cast<real>(grid_size.first)),
+        pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(grid_size.second))
     { }
 
     template<class Derived>
@@ -32,8 +32,8 @@ namespace Astar {
 
     template<class Derived>
     Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
-        real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->size_w_) * this->phys_w_ - this->phys_w_ * 0.5;
-        real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->size_h_) * this->phys_h_ - this->phys_h_ * 0.5;
+        real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) * this->phys_w_ - this->phys_w_ * 0.5;
+        real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) * this->phys_h_ - this->phys_h_ * 0.5;
         return Point(lx, ly);
     }
 
@@ -79,8 +79,8 @@ namespace Astar {
     Derived & PlacedGrid<Derived>::set_physical_size(pair<real> size) {
         this->phys_w_ = size.first;
         this->phys_h_ = size.second;
-        this->pixel_width_ = this->pixfrac_x_ * this->phys_w_ / static_cast<real>(this->size_w_);
-        this->pixel_height_ = this->pixfrac_y_ * this->phys_h_ / static_cast<real>(this->size_h_);
+        this->pixel_width_ = this->pixfrac_x_ * this->phys_w_ / static_cast<real>(this->width());
+        this->pixel_height_ = this->pixfrac_y_ * this->phys_h_ / static_cast<real>(this->height());
         return static_cast<Derived &>(*this);
     }
 
@@ -129,12 +129,8 @@ namespace Astar {
 
     template<class Derived>
     void PlacedGrid<Derived>::print_world() const {
-        Point bottomleft = this->world_pixel(0, 0).a();
-        Point bottomright = this->world_pixel(this->width() - 1, 0).b();
-        Point topleft = this->world_pixel(0, this->height() - 1).d();
-        Point topright = this->world_pixel(this->width() - 1, this->height() - 1).c();
-        fmt::print("Grid with world coordinates spanning {} {} {} {}\n",
-                   bottomleft, bottomright, topleft, topright
+        fmt::print("Grid at {}, physical size {}, logical size {}, rotation {}, pixfrac {}\n",
+                   this->centre(), this->physical_size(), this->size(), this->rotation(), this->pixfrac()
         );
     }
 

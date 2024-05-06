@@ -6,15 +6,12 @@
 using namespace Astar;
 
 SparseMatrix compute_overlap_matrix(
-    const std::vector<std::vector<DetectorImage>> & downsampled,
-    pair<int> output_size)
-{
-    ModelImage output(output_size);
-    auto images = flatten(downsampled);
+        const std::vector<DetectorImage> & downsampled,
+        const ModelImage & output
+) {
+    fmt::print("Downsampled {:d}\n", downsampled.size());
     std::vector<SparseMatrix> matrices;
-    fmt::print("Downsampled {:d}\n", images.size());
-
-    for (auto const & image: images) {
+    for (auto const & image: downsampled) {
         matrices.emplace_back(output.overlap_matrix(image));
     }
 
@@ -23,8 +20,8 @@ SparseMatrix compute_overlap_matrix(
 }
 
 ModelImage drizzle(
-    const std::vector<std::vector<DetectorImage>> & downsampled,    // 2D vector of images to drizzle
-    pair<int> output_size                                           // output size of the grid, [0, x), [0, y)
+        const std::vector<std::vector<DetectorImage>> & downsampled,    // 2D vector of images to drizzle
+        pair<int> output_size                                           // output size of the grid, [0, x), [0, y)
 ) {
     ModelImage drizzled(output_size.first, output_size.second);
     unsigned int samples_x = downsampled.size();
@@ -106,8 +103,7 @@ int main(int argc, char * argv[]) {
         fmt::print("Pixfrac is px = {:.6f}, py = {:.6f}\n", pixfrac_x, pixfrac_y);
 
         auto clone = one_to_one(input);
-        auto clone2 = ModelImage(pair<int>(model_width, model_height));
-        clone2.set_data(input.data());
+        auto clone2 = ModelImage(input);
 
         (clone - clone2).save_npy("out/diff.npy");
 
@@ -121,7 +117,7 @@ int main(int argc, char * argv[]) {
         // Save one of the downsampled images so that we can plot it and see what it looks like
         downsampled[0][0].save_npy("out/downsampled.npy");
 
-        compute_overlap_matrix(downsampled, {model_width, model_height});
+        compute_overlap_matrix(flatten(downsampled), {model_width, model_height});
 
         auto drizzled = drizzle(downsampled, input.size());
         fmt::print("Saving to out/drizzled.npy\n");
@@ -139,8 +135,4 @@ int main(int argc, char * argv[]) {
         fmt::print("Aborting: {}\n", exc.what());
         std::exit(3);
     }
-
-    Point a;
-    Point b;
-    (a + b) = b;
 }

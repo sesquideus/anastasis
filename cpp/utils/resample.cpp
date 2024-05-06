@@ -49,10 +49,6 @@ namespace Astar {
         return downsampled;
     }
 
-    /** Take an original image and downsample_grid it to many small subexposures at different rotations and positions
-     *  (currently of the same size)
-     *  For instance for METIS we want three subsamples in horizontal direction and three subsamples rotated 90°.
-     */
     std::vector<DetectorImage> downsample_with_rotations(
         const DetectorImage & original,
         pair<int> model_size,

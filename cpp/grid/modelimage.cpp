@@ -13,6 +13,16 @@ namespace Astar {
         ModelImage(size.first, size.second)
     {}
 
+    ModelImage::ModelImage(const DetectorImage & image):
+        AbstractGrid(image.size()),
+        Image(image.data())
+    { }
+
+    ModelImage::ModelImage(const Image & image):
+        AbstractGrid(image.size()),
+        Image(image.data())
+    { }
+
     Pixel ModelImage::pixel(int x, int y) const {
         if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
             return Pixel::invalid();
@@ -272,12 +282,6 @@ namespace Astar {
         }
     }
 
-    ModelImage ModelImage::operator-(const ModelImage & other) const {
-        auto result = *this;
-        result -= other;
-        return result;
-    }
-
     ModelImage & ModelImage::apply(const ModelImage & other, const std::function<real(real &, real)> & op) {
         if (this->size() == other.size()) {
             for (int row = 0; row < this->height(); ++row) {
@@ -304,6 +308,11 @@ namespace Astar {
     ModelImage & ModelImage::operator-=(const ModelImage & other) {
         this->apply(other, [&](real & x, real y) { return x -= y; });
         return (*this);
+    }
+
+    ModelImage operator-(const ModelImage & lhs, const ModelImage & rhs) {
+        auto result(lhs);
+        return (result -= rhs);
     }
 
     real operator*(const ModelImage & lhs, const ModelImage & rhs) {

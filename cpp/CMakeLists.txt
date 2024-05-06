@@ -67,3 +67,26 @@ add_executable(
         utils/eigen.cpp
         utils/eigen.h
 )
+
+add_executable(
+        metis
+        metis.cpp
+        types/types.h
+        types/point.h
+        types/point.cpp
+        utils/functions.h
+        utils/functions.cpp
+        utils/resample.h
+        utils/resample.cpp
+        grid/abstractgrid.h
+        grid/image.h
+        grid/placedgrid.h
+        grid/pixel/pixel.cpp
+        grid/pixel/pixel.h
+        grid/modelimage.cpp
+        grid/modelimage.h
+        grid/detectorimage.cpp
+        grid/detectorimage.h
+        utils/eigen.cpp
+        utils/eigen.h
+)

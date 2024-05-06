@@ -60,7 +60,7 @@ namespace Astar {
             }
         }
         bitmap_file.close();
-        fmt::print("Loaded bitmap with size {} × {}\n", width, height);
+        fmt::print("Loaded bitmap '{}' with size {} × {}\n", filename, width, height);
     }
 
     template<class Derived>
@@ -86,7 +86,7 @@ namespace Astar {
     }
 
     template<class Derived>
-    Image<Derived> Image<Derived>::map(const std::function<real(real)> & function) {
+    Derived Image<Derived>::map(const std::function<real(real)> & function) {
         auto image = *this;
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < this->width(); ++col) {
@@ -143,17 +143,9 @@ namespace Astar {
     }
 
     template<class Derived>
-    Derived & Image<Derived>::set_data(const Matrix & data) {
-        this->size_w_ = data.cols();
-        this->size_h_ = data.rows();
-        this->data_ = data;
-        return static_cast<Derived &>(*this);
-    }
-
-    template<class Derived>
     real Image<Derived>::map_reduce(const std::function<real(real)> & map,
                            const std::function<real(real, real)> & reduce,
-                           const real init) {
+                           const real init) const {
         real value = init;
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < this->width(); ++col) {
@@ -191,8 +183,8 @@ namespace Astar {
     }
 
     /**
-     * Save the image to a raw file of sequential real numbers as a numpy array
-     * Only implements the very minimum to work, feel free to extend
+     * Save the image to a raw file of sequential real numbers as a numpy array.
+     * Only implements the very minimum to work, feel free to extend.
      * @param filename
      */
     template<class Derived>

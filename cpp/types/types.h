@@ -17,6 +17,7 @@ typedef Eigen::SparseMatrix<real> SparseMatrix;
 
 // Simply tau = 2 * pi
 constexpr real Tau = 3.14159265358979232846264 * 2.0;
+constexpr real TauFourth = Tau * 0.25;
 
 
 template<class T>

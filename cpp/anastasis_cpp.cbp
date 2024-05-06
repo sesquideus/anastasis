@@ -85,6 +85,40 @@
 					<DistClean command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
+			<Target title="metis">
+				<Option output="/home/kvik/astar/anastasis/cpp/metis" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/kvik/astar/anastasis/cpp"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/kvik/astar/anastasis/cpp"/>
+					<Add directory="/usr/include/eigen3"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 metis"/>
+					<CompileFile command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="metis/fast">
+				<Option output="/home/kvik/astar/anastasis/cpp/metis" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/kvik/astar/anastasis/cpp"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/kvik/astar/anastasis/cpp"/>
+					<Add directory="/usr/include/eigen3"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 metis/fast"/>
+					<CompileFile command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -f &quot;/home/kvik/astar/anastasis/cpp/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
 			<Target title="edit_cache">
 				<Option working_dir="/home/kvik/astar/anastasis/cpp"/>
 				<Option type="4"/>
@@ -109,6 +143,7 @@
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/abstractgrid.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/box.cpp">
 			<Option target="anastasis_cpp"/>
@@ -119,14 +154,17 @@
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/detectorimage.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/detectorimage.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/image.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/image.tpp">
 			<Option target="anastasis_cpp"/>
@@ -134,22 +172,27 @@
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/modelimage.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/modelimage.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/pixel/pixel.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/pixel/pixel.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/placedgrid.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/grid/placedgrid.tpp">
 			<Option target="anastasis_cpp"/>
@@ -157,42 +200,54 @@
 		<Unit filename="/home/kvik/astar/anastasis/cpp/main.cpp">
 			<Option target="anastasis_cpp"/>
 		</Unit>
+		<Unit filename="/home/kvik/astar/anastasis/cpp/metis.cpp">
+			<Option target="metis"/>
+		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/subpixel.cpp">
 			<Option target="subpixel"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/types/point.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/types/point.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/types/types.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/eigen.cpp">
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/eigen.h">
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/functions.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/functions.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/resample.cpp">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/utils/resample.h">
 			<Option target="anastasis_cpp"/>
 			<Option target="subpixel"/>
+			<Option target="metis"/>
 		</Unit>
 		<Unit filename="/home/kvik/astar/anastasis/cpp/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>

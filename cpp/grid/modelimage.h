@@ -24,6 +24,8 @@ namespace Astar {
     public:
         explicit ModelImage(int width, int height);
         explicit ModelImage(pair<int> size);
+        explicit ModelImage(const DetectorImage & image);
+        explicit ModelImage(const Image & image);
 
         [[nodiscard]] Pixel pixel(int x, int y) const;
 
@@ -41,11 +43,11 @@ namespace Astar {
         // Find the mean square difference between the pictures, expressed as a number between 0 and 1
         [[nodiscard]] real dot_product(const ModelImage & other, int border = 0) const;
         [[nodiscard]] real squared_difference(const ModelImage & other, int border = 0) const;
-        ModelImage operator-(const ModelImage & other) const;
 
         [[nodiscard]] real total_flux() const;
     };
 
+    ModelImage operator-(const ModelImage & lhs, const ModelImage & rhs);
     real operator*(const ModelImage & lhs, const ModelImage & rhs);
     real operator%(const ModelImage & lhs, const ModelImage & rhs);
     real operator^(const ModelImage & lhs, const ModelImage & rhs);

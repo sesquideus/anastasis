@@ -91,7 +91,7 @@ namespace Astar {
             return 0;
         } else {
             // Otherwise find the centre of mass and move it to the origin along with all the points
-            Point centre = std::accumulate(vertices.cbegin(), vertices.cend(), Point()) / static_cast<real>(vertices.size());
+            Point centre = std::accumulate(vertices.cbegin(), vertices.cend(), Point(0, 0)) / static_cast<real>(vertices.size());
             for (auto && v: vertices) {
                 v -= centre;
             }

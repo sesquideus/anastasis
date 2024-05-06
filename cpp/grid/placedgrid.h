@@ -76,14 +76,16 @@ namespace Astar {
     };
 
     template<class Derived>
-    Derived operator+(Derived grid, const Point & shift) {
-        return grid += shift;
-    }
+    Derived operator+(Derived grid, const Point & shift) { return grid += shift; }
 
     template<class Derived>
-    Derived operator-(Derived grid, const Point & shift) {
-        return grid -= shift;
-    }
+    Derived operator-(Derived grid, const Point & shift) { return grid -= shift; }
+
+    template<class Derived>
+    Derived operator<<(Derived grid, real angle) { return grid <<= angle; }
+
+    template<class Derived>
+    Derived operator>>(Derived grid, real angle) { return grid >>= angle; }
 }
 
 #include "grid/placedgrid.tpp"

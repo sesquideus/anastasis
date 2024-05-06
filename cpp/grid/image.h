@@ -38,16 +38,15 @@ namespace Astar {
     /** An Image is an abstract grid with no placement, but contains a piece of data at every pixel.
      *  Right now it is just for real numbers, but can be made into a template.
      */
-
     template<class Derived>
     class Image: public virtual AbstractGrid {
     protected:
         Matrix data_;
 
         static pair<int> read_bitmap_header(const std::string & filename);
-        Image map(const std::function<real(real)> & function);
+        Derived map(const std::function<real(real)> & function);
 
-        Derived & fill(const real value);
+        Derived & fill(real value);
         /** Apply a parameterless function to every pixel (constant, random, ...) **/
         Derived & map_in_place(const std::function<real()> & function);
         /** Apply a R -> R function to every pixel **/
@@ -57,7 +56,7 @@ namespace Astar {
 
         real map_reduce(const std::function<real(real)> & map,
                         const std::function<real(real, real)> & reduce = std::plus<>(),
-                        real init = 0);
+                        real init = 0) const;
     public:
         explicit Image(int width, int height);
         explicit Image(pair<int> size);
@@ -73,8 +72,6 @@ namespace Astar {
 
         Derived & operator*=(real value);
         Derived & operator/=(real value);
-
-        Derived & set_data(const Matrix & data);
 
         void save_raw(const std::string & filename) const;
         void save_npy(const std::string & filename) const;

@@ -1,7 +1,7 @@
 #include "utils/eigen.h"
 
 
-Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical) {
+SparseMatrix stack(const std::vector<SparseMatrix> & matrices, bool vertical) {
     /**
      *  Stack a vector of sparse matrices, either vertically or horizontally, and produce a big sparse matrix.
      *  The other (across) dimension must always match, the other one need not be equal.
@@ -28,7 +28,7 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
     Eigen::Index base = 0;
     for (auto && matrix: matrices) {
         for (Eigen::Index c = 0; c < matrix.outerSize(); ++c) {
-            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
+            for (SparseMatrix::InnerIterator it(matrix, c); it; ++it) {
                 triplets.emplace_back(
                         vertical ? it.row() + base : it.row(),
                         vertical ? it.col() : base + it.col(),
@@ -42,7 +42,7 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
     long cols = vertical ? across : along;
     long rows = vertical ? along : across;
 
-    Eigen::SparseMatrix<real> m(rows, cols);
+    SparseMatrix m(rows, cols);
     m.reserve(nonzeroes);
     fmt::print("After stacking: {}×{} matrix with {} nonzero elements\n", cols, rows, nonzeroes);
 
@@ -50,16 +50,16 @@ Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & m
     return m;
 }
 
-Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
+SparseMatrix vstack(const std::vector<SparseMatrix> & matrices) {
     return stack(matrices, true);
 }
 
-Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices) {
+SparseMatrix hstack(const std::vector<SparseMatrix> & matrices) {
     return stack(matrices, false);
 }
 
 
-Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices) {
+SparseMatrix vstack2(std::vector<SparseMatrix> matrices) {
     long rows = 0;
     long cols = 0;
     long nonzeros = 0;
@@ -72,7 +72,7 @@ Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrice
         nonzeros += matrix.nonZeros();
     }
 
-    Eigen::SparseMatrix<real> m(rows, cols);
+    SparseMatrix m(rows, cols);
     m.reserve(nonzeros);
     fmt::print("{} {}\n", cols, nonzeros);
 
@@ -80,7 +80,7 @@ Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrice
         Eigen::Index base = 0;
         for (auto && matrix: matrices) {
             m.startVec(c);
-            for (Eigen::SparseMatrix<real>::InnerIterator it(matrix, c); it; ++it) {
+            for (SparseMatrix::InnerIterator it(matrix, c); it; ++it) {
                 matrix.startVec(c);
                 fmt::print("s {} {}\n", it, c);
                 m.insertBack(base + it.row(), c) = it.value();
