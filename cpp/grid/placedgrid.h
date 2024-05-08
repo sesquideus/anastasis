@@ -13,7 +13,7 @@
 namespace Astar {
     /** A PlacedGrid is a grid that has a physical location somewhere in the world:
      *  it has a central point, physical extent in both directions and a rotation.
-     *  Changing its logical size is still not possible, but its location can be altered.
+     *  Changing its logical size is still not allowed, but its location can be altered.
      */
     template<class Derived>
     class PlacedGrid: public virtual AbstractGrid {
@@ -64,6 +64,7 @@ namespace Astar {
         //[[nodiscard]] Eigen::SparseMatrix<real> matrix_canonical(const ModelImage & canonical) const;
 
         void print_world() const;
+        void print_corners() const;
 
         // Shift the whole PlacedGrid by a constant vector
         Derived & operator+=(Point shift);

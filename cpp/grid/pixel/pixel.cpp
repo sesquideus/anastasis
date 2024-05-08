@@ -110,13 +110,33 @@ namespace Astar {
         }
     }
 
+    real Pixel::orthogonal_overlap(const Pixel & other) const {
+        return linear_overlap({this->corners_[0][1].x, this->corners_[0][0].x},
+                              {other.corners_[0][1].x, other.corners_[0][0].x}) *
+               linear_overlap({this->corners_[1][0].y, this->corners_[0][0].y},
+                              {other.corners_[1][0].y, other.corners_[0][0].y});
+    }
+
     real Pixel::operator&(const Pixel & other) const {
-        /** Operator shorthand for overlap (pixel * other) **/
         return this->overlap(other);
     }
 
     real Pixel::operator|(const Pixel & other) const {
-        /** Operator shorthand for area of union **/
         return this->area() + other.area() - ((*this) & other);
+    }
+}
+
+real linear_overlap(pair<real> int1, pair<real> int2) {
+    real c1 = (int1.first + int1.second) / 2;
+    real c2 = (int2.first + int2.second) / 2;
+    real w1 = (int1.second - int1.first) / 2;
+    real w2 = (int2.second - int2.first) / 2;
+    real delta = std::abs(c2 - c1);
+    if (delta <= std::abs(w2 - w1)) {
+        return 0;
+    } else if (delta <= std::abs(w1 + w2)) {
+        return (std::abs(w1 + w2) - delta) / w2;
+    } else {
+        return std::min(w1, w2);
     }
 }

@@ -4,6 +4,5 @@ __pycache__/
 */.cmake*
 cpp/CMakeCache.txt
 cpp/CMakeFiles/*
-cpp/subpixel
 cpp/Makefile
 cpp/Testing/*

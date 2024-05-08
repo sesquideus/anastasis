@@ -19,6 +19,8 @@ namespace Astar {
         explicit AbstractGrid(pair<int> size):
             AbstractGrid(size.first, size.second) {}
 
+        virtual ~AbstractGrid() = default;
+
         [[nodiscard]] inline int width() const { return this->size_w_; }
         [[nodiscard]] inline int height() const { return this->size_h_; }
         [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }

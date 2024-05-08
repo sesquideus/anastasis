@@ -30,11 +30,18 @@ namespace Astar {
         [[nodiscard]] bool contains(Point point) const;
 
         [[nodiscard]] real area() const;
+
+        /** Operator shorthand for overlap **/
         [[nodiscard]] real operator&(const Pixel & other) const;
+        /** Operator shorthand for area of union **/
         [[nodiscard]] real operator|(const Pixel & other) const;
         [[nodiscard]] real overlap(const Pixel & other) const; // Area of overlap
+        [[nodiscard]] real orthogonal_overlap(const Pixel & other) const; // Area of overlap
+
     };
 }
+
+real linear_overlap(pair<real> int1, pair<real> int2);
 
 template<>
 class fmt::formatter<Astar::Pixel> {

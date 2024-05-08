@@ -135,6 +135,16 @@ namespace Astar {
     }
 
     template<class Derived>
+    void PlacedGrid<Derived>::print_corners() const {
+        Point bottomleft = this->world_pixel(0, 0).a();
+        Point bottomright = this->world_pixel(this->width() - 1, 0).b();
+        Point topleft = this->world_pixel(0, this->height() - 1).d();
+        Point topright = this->world_pixel(this->width() - 1, this->height() - 1).c();
+        fmt::print("Grid corners: {}, {}, {}, {}",
+                   bottomleft, bottomright, topleft, topright);
+    }
+
+    template<class Derived>
     Derived & PlacedGrid<Derived>::operator+=(Point shift) {
         this->centre_ += shift;
         return static_cast<Derived &>(*this);
