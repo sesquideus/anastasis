@@ -84,6 +84,10 @@ namespace Astar {
         return static_cast<Derived &>(*this);
     }
 
+    template<class Derived>
+    Derived & PlacedGrid<Derived>::set_physical_size(real width, real height) {
+        return this->set_physical_size({width, height});
+    }
 
     /**
     std::vector<Overlap4D> Grid::onto_canonical(const ModelImage & canonical) const {
@@ -140,7 +144,7 @@ namespace Astar {
         Point bottomright = this->world_pixel(this->width() - 1, 0).b();
         Point topleft = this->world_pixel(0, this->height() - 1).d();
         Point topright = this->world_pixel(this->width() - 1, this->height() - 1).c();
-        fmt::print("Grid corners: {}, {}, {}, {}",
+        fmt::print("Grid corners: {}, {}, {}, {}\n",
                    bottomleft, bottomright, topleft, topright);
     }
 

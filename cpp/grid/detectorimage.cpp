@@ -35,16 +35,4 @@ namespace Astar {
             PlacedGrid(centre, read_bitmap_header(filename), physical_size, rotation, pixfrac),
             Image(filename)
     { }
-
-    DetectorImage operator+(const DetectorImage & image, Point shift) {
-        auto out = image;
-        out += shift;
-        return out;
-    }
-
-    DetectorImage operator*(const DetectorImage & image, real scale) {
-        auto out = image;
-        out *= scale;
-        return out;
-    }
 }

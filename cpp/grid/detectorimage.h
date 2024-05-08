@@ -30,8 +30,10 @@ public:
     }
     auto format(const Astar::DetectorImage & image, format_context & ctx) const -> format_context::iterator {
         return fmt::format_to(ctx.out(),
-                              "Detector image at {:f} with size {:d}×{:d}, rotation {:.3f}, pixfrac ({:.3f}, {:.3f})",
-                              image.centre(), image.size().first, image.size().second,
+                              "Detector image at {:f} with logical size {:d}×{:d}, physical size {:f}×{:f}, rotation {:.3f}, pixfrac ({:.3f}, {:.3f})",
+                              image.centre(),
+                              image.size().first, image.size().second,
+                              image.physical_size().first, image.physical_size().second,
                               image.rotation(), image.pixfrac().first, image.pixfrac().second);
     }
 };

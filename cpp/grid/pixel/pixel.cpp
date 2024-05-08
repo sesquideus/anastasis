@@ -14,6 +14,18 @@ namespace Astar {
         corners_ {{{bottomleft, bottomright}, {topleft, topright}}}
     { }
 
+    /** Construct from a Box type
+     * @param box
+     */
+    Pixel::Pixel(const Box & box):
+        Pixel(
+            {static_cast<real>(box.left), static_cast<real>(box.bottom)},
+            {static_cast<real>(box.right), static_cast<real>(box.bottom)},
+            {static_cast<real>(box.left), static_cast<real>(box.top)},
+            {static_cast<real>(box.right), static_cast<real>(box.top)}
+        )
+    { }
+
     Box Pixel::bounding_box(real slack) const {
         /**
          * Returns a bounding box: the smallest aligned Pixel structure that is guaranteed to cover
@@ -110,11 +122,17 @@ namespace Astar {
         }
     }
 
+    /** Orthogonal overlap works only if pixel boundaries are aligned with the grid
+     * @param other
+     * @return real
+     */
     real Pixel::orthogonal_overlap(const Pixel & other) const {
-        return linear_overlap({this->corners_[0][1].x, this->corners_[0][0].x},
-                              {other.corners_[0][1].x, other.corners_[0][0].x}) *
-               linear_overlap({this->corners_[1][0].y, this->corners_[0][0].y},
-                              {other.corners_[1][0].y, other.corners_[0][0].y});
+        auto ortho_me = Pixel(this->bounding_box());
+        auto ortho_other = Pixel(other.bounding_box());
+        return linear_overlap({ortho_me.corners_[0][1].x, ortho_me.corners_[0][0].x},
+                              {ortho_other.corners_[0][1].x, ortho_other.corners_[0][0].x}) *
+               linear_overlap({ortho_me.corners_[1][0].y, ortho_me.corners_[0][0].y},
+                              {ortho_other.corners_[1][0].y, ortho_other.corners_[0][0].y});
     }
 
     real Pixel::operator&(const Pixel & other) const {

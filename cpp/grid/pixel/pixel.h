@@ -18,6 +18,7 @@ namespace Astar {
     public:
         explicit Pixel();
         explicit Pixel(Point bottomleft, Point bottomright, Point topleft, Point topright);
+        explicit Pixel(const Box & box);
         inline static Pixel invalid() { return Pixel(Point::invalid(), Point::invalid(), Point::invalid(), Point::invalid()); };
 
         [[nodiscard]] inline Point a() const { return this->corners_[0][0]; }

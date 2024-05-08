@@ -38,6 +38,10 @@ namespace Astar {
     /** An Image is an abstract grid with no placement, but contains a piece of data at every pixel.
      *  Right now it is just for real numbers, but can be made into a template.
      */
+    class DetectorImage;
+    template<class Derived> class PlacedGrid;
+
+
     template<class Derived>
     class Image: public virtual AbstractGrid {
     protected:
@@ -68,6 +72,13 @@ namespace Astar {
         [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(y, x); };
         [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(y, x); };
 
+        /*PlacedGrid<Derived> as_grid() const {
+            return PlacedGrid<Derived>(Point(this->width(), this->height()) / 2, this->size(), this->size(), 0, {1, 1});
+        }*/
+
+        DetectorImage project_onto(const PlacedGrid<Derived> & image);
+
+
         Derived & randomize();
 
         Derived & operator*=(real value);
@@ -77,6 +88,12 @@ namespace Astar {
         void save_npy(const std::string & filename) const;
         void save_bmp(const std::string & filename) const;
     };
+
+    template<class Derived>
+    PlacedGrid<Derived> Image<Derived>::project_onto(const PlacedGrid<Derived> & image) {
+        auto new_centre = -image.centre();
+        return drizzle(-image.centre(), -rotation)
+    }
 
     template<class Derived> Derived operator*(Image<Derived> image, real value);
     template<class Derived> Derived operator/(Image<Derived> image, real value);

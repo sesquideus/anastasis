@@ -34,6 +34,7 @@ namespace Astar {
                    pair<real> physical_size,
                    real rotation,
                    pair<real> pixfrac);
+
         static PlacedGrid from_pixel_size(Point centre,
                                           pair<int> grid_size,
                                           pair<real> pixel_size,
@@ -53,6 +54,9 @@ namespace Astar {
 
         Derived & set_centre(Point centre);
         Derived & set_physical_size(pair<real> size);
+        Derived & set_physical_size(real width, real height);
+
+       // Derived inverse_transform(const PlacedGrid<Derived> & other) const;
 
         [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
         [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
@@ -75,6 +79,11 @@ namespace Astar {
         Derived & operator<<=(real angle);
         Derived & operator>>=(real angle);
     };
+
+   /* template<class Derived>
+    Derived PlacedGrid<Derived>::inverse_transform(const PlacedGrid<Derived> & other) const {
+        return PlacedGrid<Derived>( this->rotation - other.rotation_);
+    }*/
 
     template<class Derived>
     Derived operator+(Derived grid, const Point & shift) { return grid += shift; }

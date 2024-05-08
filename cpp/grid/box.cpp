@@ -2,15 +2,7 @@
 
 namespace Astar {
     Pixel Box::as_pixel() const {
-        /** Represent this box as a Pixel class for computation of intersections and such
-         *
-         */
-        return Pixel(
-                {static_cast<real>(this->left), static_cast<real>(this->bottom)},
-                {static_cast<real>(this->right), static_cast<real>(this->bottom)},
-                {static_cast<real>(this->left), static_cast<real>(this->top)},
-                {static_cast<real>(this->right), static_cast<real>(this->top)}
-        );
+        return Pixel(*this);
     }
 
     real interval_overlap(pair<real> a, pair<real> b) {

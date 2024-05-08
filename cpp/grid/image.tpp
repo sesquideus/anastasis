@@ -216,6 +216,7 @@ namespace Astar {
             }
         }
         out.close();
+        fmt::print("Image with size {} saved to {}\n", this->size(), filename);
     }
 
     /**

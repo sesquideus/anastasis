@@ -5,28 +5,38 @@ using namespace Astar;
 
 std::vector<DetectorImage> prepare(
         const DetectorImage & original,
-        const pair<int> size
+        const pair<int> resolution
 ) {
     std::vector<DetectorImage> result;
     result.reserve(6);
-
+    pair<int> new_size = {std::max(original.width(), original.height()), std::max(original.width(), original.height())};
     Point centre = Point(original.size()) / 2;
+    Point new_centre = Point(new_size) / 2;
 
     for (int i = -1; i <= 1; ++i) {
-        Point shift = {static_cast<real>(i) * original.width() / size.first, 0};
-        ModelImage downsampled(size);
+        auto copy = original;
+        copy.set_physical_size(resolution);
+        Point shift = {static_cast<real>(i) / 3, 0};
+        ModelImage downsampled(resolution);
 
-        downsampled.naive_drizzle(original - shift);
-        result.emplace_back(centre + shift, original.size(), 0, pair<int>(1, 1), downsampled.data());
+        fmt::print("Drizzle: {}\n", copy - shift);
+        (copy - shift).print_corners();
+        downsampled.naive_drizzle(copy - shift);
+        result.emplace_back(centre + shift * 600     / 28, original.size(), 0, pair<int>(1, 1), downsampled.data());
     }
 
+    real rotation = TauFourth;
     for (int i = -1; i <= 1; ++i) {
-        Point shift = {0, static_cast<real>(i)};
-        ModelImage downsampled(size);
+        auto copy = original;
+        copy.set_physical_size(resolution.second, resolution.first);
+        Point shift = {static_cast<real>(i) / 3, 0};
+        ModelImage downsampled(resolution);
 
         // These are rotated by one quarter
-        downsampled.naive_drizzle((original - shift) >> TauFourth);
-        result.emplace_back(centre + shift, original.size(), TauFourth, pair<int>(1, 1), downsampled.data());
+        fmt::print("Drizzle: {}\n", (copy - shift) << rotation);
+        downsampled.naive_drizzle((copy - shift) << rotation);
+        ((copy - shift) << rotation).print_corners();
+        result.emplace_back(new_centre + shift.rotated(rotation) * 600 / 28, original.size(), rotation, pair<int>(1, 1), downsampled.data());
     }
 
 
@@ -73,6 +83,11 @@ int main(int argc, char * argv[]) {
             it.print_world();
             it.save_npy(fmt::format("out/downsample-{}.npy", index++));
         }
+
+        ModelImage output(std::max(original.width(), original.height()), std::max(original.width(), original.height()));
+        output.naive_drizzle(downsampled);
+
+        output.save_npy("out/drizzled.npy");
 
     } catch (std::runtime_error & exc) {
         fmt::print("Aborting: {}\n", exc.what());

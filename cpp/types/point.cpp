@@ -14,7 +14,7 @@ namespace Astar {
     }
 
     Point Point::operator-() const {
-        return {this->x, -this->y};
+        return {-this->x, -this->y};
     }
 
     Point & Point::operator+=(Point shift) {
