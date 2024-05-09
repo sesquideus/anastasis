@@ -12,6 +12,8 @@ template<class T>
 using pair = std::pair<T, T>;
 
 typedef std::tuple<long, long, long, long, real> Overlap4D;
+
+typedef Eigen::Matrix<real, 2, 2> Matrix2D;
 typedef Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 typedef Eigen::SparseMatrix<real> SparseMatrix;
 

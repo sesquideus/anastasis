@@ -89,12 +89,6 @@ namespace Astar {
         void save_bmp(const std::string & filename) const;
     };
 
-    template<class Derived>
-    PlacedGrid<Derived> Image<Derived>::project_onto(const PlacedGrid<Derived> & image) {
-        auto new_centre = -image.centre();
-        return drizzle(-image.centre(), -rotation)
-    }
-
     template<class Derived> Derived operator*(Image<Derived> image, real value);
     template<class Derived> Derived operator/(Image<Derived> image, real value);
 

@@ -4,9 +4,12 @@
 #include <Eigen/Eigen>
 #include "types/types.h"
 
-Eigen::SparseMatrix<real> stack(const std::vector<Eigen::SparseMatrix<real>> & matrices, bool vertical);
-Eigen::SparseMatrix<real> vstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
-Eigen::SparseMatrix<real> hstack(const std::vector<Eigen::SparseMatrix<real>> & matrices);
-Eigen::SparseMatrix<real> vstack2(std::vector<Eigen::SparseMatrix<real>> matrices);
+Matrix2D rotation_matrix(real rotation);
+Matrix2D scaling_matrix(pair<real> scale);
+
+SparseMatrix stack(const std::vector<SparseMatrix> & matrices, bool vertical);
+SparseMatrix vstack(const std::vector<SparseMatrix> & matrices);
+SparseMatrix hstack(const std::vector<SparseMatrix> & matrices);
+SparseMatrix vstack2(std::vector<SparseMatrix> matrices);
 
 #endif //ANASTASIS_CPP_EIGEN_H

@@ -9,8 +9,8 @@ std::vector<DetectorImage> prepare(
 ) {
     std::vector<DetectorImage> result;
     result.reserve(6);
-    pair<int> new_size = {std::max(original.width(), original.height()), std::max(original.width(), original.height())};
-    Point centre = Point(original.size()) / 2;
+    int new_max = std::max(resolution.first, resolution.second);
+    pair<int> new_size = {new_max, new_max};
     Point new_centre = Point(new_size) / 2;
 
     for (int i = -1; i <= 1; ++i) {
@@ -20,9 +20,9 @@ std::vector<DetectorImage> prepare(
         ModelImage downsampled(resolution);
 
         fmt::print("Drizzle: {}\n", copy - shift);
-        (copy - shift).print_corners();
         downsampled.naive_drizzle(copy - shift);
-        result.emplace_back(centre + shift * 600     / 28, original.size(), 0, pair<int>(1, 1), downsampled.data());
+        result.emplace_back(new_centre + shift * 3,
+                            new_size, 0, pair<int>(1, 1), downsampled.data());
     }
 
     real rotation = TauFourth;
@@ -35,12 +35,24 @@ std::vector<DetectorImage> prepare(
         // These are rotated by one quarter
         fmt::print("Drizzle: {}\n", (copy - shift) << rotation);
         downsampled.naive_drizzle((copy - shift) << rotation);
-        ((copy - shift) << rotation).print_corners();
-        result.emplace_back(new_centre + shift.rotated(rotation) * 600 / 28, original.size(), rotation, pair<int>(1, 1), downsampled.data());
+        result.emplace_back(new_centre + shift.rotated(rotation) * 3,
+                            new_size, rotation, pair<int>(1, 1), downsampled.data());
     }
 
-
     return result;
+}
+
+ModelImage prepare_direct(
+        const DetectorImage & original,
+        const pair<int> resolution
+) {
+    ModelImage out(resolution);
+    auto copy = original;
+    copy.set_physical_size(resolution);
+    copy.set_centre(Point(resolution) / 2);
+
+    out.naive_drizzle(copy);
+    return out;
 }
 
 void print_usage(int code) {
@@ -76,6 +88,7 @@ int main(int argc, char * argv[]) {
 
     try {
         DetectorImage original(centre, model_size, 0, {1, 1}, args[1]);
+        ModelImage raw_original(original);
         std::vector<DetectorImage> downsampled = prepare(original, model_size);
 
         int index = 0;
@@ -84,10 +97,16 @@ int main(int argc, char * argv[]) {
             it.save_npy(fmt::format("out/downsample-{}.npy", index++));
         }
 
-        ModelImage output(std::max(original.width(), original.height()), std::max(original.width(), original.height()));
-        output.naive_drizzle(downsampled);
-
+        ModelImage output(84, 84);
+        output.naive_drizzle(downsampled) /= (6.0 * 600 * 600 / 84 / 84);
         output.save_npy("out/drizzled.npy");
+
+        raw_original.save_npy("out/original.npy");
+
+        ModelImage direct = prepare_direct(original, {84, 84});
+        direct /= (600.0 * 600 / 84 / 84);
+        direct.save_npy("out/direct.npy");
+        (direct - output).save_npy("out/difference.npy");
 
     } catch (std::runtime_error & exc) {
         fmt::print("Aborting: {}\n", exc.what());

@@ -2,9 +2,10 @@
 #define GRID_H
 
 #include <cstddef>
-#include "../types/types.h"
+#include "types/types.h"
 #include "grid/abstractgrid.h"
 #include "grid/pixel/pixel.h"
+#include "grid/transform/affine.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -78,12 +79,14 @@ namespace Astar {
         Derived & scale(pair<real> scale);
         Derived & operator<<=(real angle);
         Derived & operator>>=(real angle);
+
+        Derived & transform(const AffineTransformation & transform);
     };
 
-   /* template<class Derived>
-    Derived PlacedGrid<Derived>::inverse_transform(const PlacedGrid<Derived> & other) const {
-        return PlacedGrid<Derived>( this->rotation - other.rotation_);
-    }*/
+    /* template<class Derived>
+     Derived PlacedGrid<Derived>::inverse_transform(const PlacedGrid<Derived> & other) const {
+         return PlacedGrid<Derived>( this->rotation - other.rotation_);
+     }*/
 
     template<class Derived>
     Derived operator+(Derived grid, const Point & shift) { return grid += shift; }

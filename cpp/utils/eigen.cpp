@@ -1,5 +1,18 @@
 #include "utils/eigen.h"
 
+Matrix2D rotation_matrix(const real rotation) {
+    Matrix2D result;
+    real c = std::cos(rotation);
+    real s = std::sin(rotation);
+    result << c, s, -s, c;
+    return result;
+}
+
+Matrix2D scaling_matrix(pair<real> scale) {
+    Matrix2D result;
+    result << scale.first, 0, 0, scale.second;
+    return result;
+}
 
 SparseMatrix stack(const std::vector<SparseMatrix> & matrices, bool vertical) {
     /**
@@ -92,9 +105,3 @@ SparseMatrix vstack2(std::vector<SparseMatrix> matrices) {
     m.finalize();
     return m;
 }
-
-//
-// Created by kvik on 26/04/24.
-//
-
-#include "eigen.h"

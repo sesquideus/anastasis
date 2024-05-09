@@ -43,6 +43,8 @@ add_executable(
         grid/abstractgrid.h
         utils/resample.cpp
         utils/resample.h
+        grid/transform/affine.cpp
+        grid/transform/affine.h
 )
 
 add_executable(
@@ -66,6 +68,8 @@ add_executable(
         grid/detectorimage.h
         utils/eigen.cpp
         utils/eigen.h
+        grid/transform/affine.cpp
+        grid/transform/affine.h
 )
 
 add_executable(
@@ -89,4 +93,6 @@ add_executable(
         grid/detectorimage.h
         utils/eigen.cpp
         utils/eigen.h
+        grid/transform/affine.cpp
+        grid/transform/affine.h
 )

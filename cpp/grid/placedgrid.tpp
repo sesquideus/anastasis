@@ -34,7 +34,7 @@ namespace Astar {
     Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
         real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) * this->phys_w_ - this->phys_w_ * 0.5;
         real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) * this->phys_h_ - this->phys_h_ * 0.5;
-        return Point(lx, ly);
+        return {lx, ly};
     }
 
     template<class Derived>
@@ -42,7 +42,7 @@ namespace Astar {
         Point grid_centre = this->grid_centre(x, y);
         real sina = std::sin(this->rotation_);
         real cosa = std::cos(this->rotation_);
-        return Point(grid_centre.x * cosa - grid_centre.y * sina, grid_centre.x * sina + grid_centre.y * cosa);
+        return {grid_centre.x * cosa - grid_centre.y * sina, grid_centre.x * sina + grid_centre.y * cosa};
     }
 
     template<class Derived>
@@ -130,6 +130,12 @@ namespace Astar {
         matrix.makeCompressed();
         return matrix;
     } */
+    template<class Derived>
+    Derived & PlacedGrid<Derived>::transform(const AffineTransformation & transform) {
+        this->centre_ += transform.translation();
+        this->rotation_ += 0;
+        return static_cast<Derived &>(*this);
+    }
 
     template<class Derived>
     void PlacedGrid<Derived>::print_world() const {
