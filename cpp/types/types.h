@@ -13,10 +13,6 @@ using pair = std::pair<T, T>;
 
 typedef std::tuple<long, long, long, long, real> Overlap4D;
 
-typedef Eigen::Matrix<real, 2, 2> Matrix2D;
-typedef Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-typedef Eigen::SparseMatrix<real> SparseMatrix;
-
 // Simply tau = 2 * pi
 constexpr real Tau = 3.14159265358979232846264 * 2.0;
 constexpr real TauFourth = Tau * 0.25;

@@ -5,7 +5,7 @@
 #include "types/types.h"
 
 
-real trim(real value, real lower, real upper) {
+real trim(real value, real lower = 0.0, real upper = 1.0) {
     return (value < lower) ? lower : ((value > upper) ? upper : value);
 }
 

@@ -5,7 +5,8 @@ using namespace Astar;
 
 std::vector<DetectorImage> prepare(
         const DetectorImage & original,
-        const pair<int> resolution
+        const pair<int> resolution,
+        const pair<real> pixfrac = {1, 1}
 ) {
     std::vector<DetectorImage> result;
     result.reserve(6);
@@ -22,7 +23,7 @@ std::vector<DetectorImage> prepare(
         fmt::print("Drizzle: {}\n", copy - shift);
         downsampled.naive_drizzle(copy - shift);
         result.emplace_back(new_centre + shift * 3,
-                            new_size, 0, pair<int>(1, 1), downsampled.data());
+                            new_size, 0, pixfrac, downsampled.data());
     }
 
     real rotation = TauFourth;
@@ -36,7 +37,7 @@ std::vector<DetectorImage> prepare(
         fmt::print("Drizzle: {}\n", (copy - shift) << rotation);
         downsampled.naive_drizzle((copy - shift) << rotation);
         result.emplace_back(new_centre + shift.rotated(rotation) * 3,
-                            new_size, rotation, pair<int>(1, 1), downsampled.data());
+                            new_size, rotation, pixfrac, downsampled.data());
     }
 
     return result;
@@ -89,7 +90,7 @@ int main(int argc, char * argv[]) {
     try {
         DetectorImage original(centre, model_size, 0, {1, 1}, args[1]);
         ModelImage raw_original(original);
-        std::vector<DetectorImage> downsampled = prepare(original, model_size);
+        std::vector<DetectorImage> downsampled = prepare(original, model_size, pixfrac);
 
         int index = 0;
         for (auto && it: downsampled) {
@@ -97,16 +98,22 @@ int main(int argc, char * argv[]) {
             it.save_npy(fmt::format("out/downsample-{}.npy", index++));
         }
 
-        ModelImage output(84, 84);
-        output.naive_drizzle(downsampled) /= (6.0 * 600 * 600 / 84 / 84);
+        pair<int> output_size = {84, 84};
+        ModelImage output(output_size);
+        output.naive_drizzle(downsampled) /= (6.0 * original.count() / output.count());
         output.save_npy("out/drizzled.npy");
 
         raw_original.save_npy("out/original.npy");
 
-        ModelImage direct = prepare_direct(original, {84, 84});
-        direct /= (600.0 * 600 / 84 / 84);
+        ModelImage direct = prepare_direct(original, output_size);
+        direct /= (static_cast<real>(original.count()) / output.count());
         direct.save_npy("out/direct.npy");
-        (direct - output).save_npy("out/difference.npy");
+
+        auto difference = direct - output;
+        difference.save_npy("out/difference.npy");
+
+        fmt::print("Maximum absolute error is {}\n", difference.maximum());
+        fmt::print("RMS error is {}\n", difference.rms());
 
     } catch (std::runtime_error & exc) {
         fmt::print("Aborting: {}\n", exc.what());

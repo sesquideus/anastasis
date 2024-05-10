@@ -5,8 +5,9 @@
 
 namespace Astar {
     /** Abstract grid with no data nor placement, just size
-     *  Not really useful by itself, but a good universal common ancestor for images, placed grids and everything.
-     *  It is expected to be immutable: resizing is not allowed
+     *  Not really useful by itself, but a good universal common ancestor
+     *  for images, placed grids and everything related.
+     *  It is expected to be immutable: resizing is not allowed.
      */
     class AbstractGrid {
     private:

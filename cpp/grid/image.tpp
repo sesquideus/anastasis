@@ -192,19 +192,19 @@ namespace Astar {
         std::ofstream out;
         out.open(filename);
         unsigned char c = 0x93;
-        out.write(reinterpret_cast<const char*>(&c), sizeof c);
+        out.write(reinterpret_cast<const char *>(&c), sizeof c);
         out.write("NUMPY", 5);
         unsigned short d = 1;
-        out.write(reinterpret_cast<const char*>(&d), sizeof d);
+        out.write(reinterpret_cast<const char *>(&d), sizeof d);
         d = 0x76;
-        out.write(reinterpret_cast<const char*>(&d), sizeof d);
+        out.write(reinterpret_cast<const char *>(&d), sizeof d);
         std::string desc = fmt::format("{{'descr': '<f{}', 'fortran_order': False, 'shape': ({}, {})}}",
                                        sizeof(real), this->height(), this->width());
         out.write(desc.c_str(), desc.length());
         c = 0x20;
         // The length of the header must be a multiple of 64, so it is padded with spaces
         for (int i = 10 + desc.length(); i % 64 != 63; ++i) {
-            out.write(reinterpret_cast<const char*>(&c), sizeof c);
+            out.write(reinterpret_cast<const char *>(&c), sizeof c);
         }
         c = 0x0A;
         out.write(reinterpret_cast<const char*>(&c), sizeof c);
@@ -212,7 +212,7 @@ namespace Astar {
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < this->width(); ++col) {
                 real value = (*this)[col, row];
-                out.write(reinterpret_cast<const char*>(&value), sizeof value);
+                out.write(reinterpret_cast<const char *>(&value), sizeof value);
             }
         }
         out.close();
@@ -245,11 +245,23 @@ namespace Astar {
         unsigned char value;
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < (this->width() + 3) / 4 * 4; ++col) {
-                value = col < this->width() ? static_cast<char>(trim((*this)[col, row], 0, 1) * 255) : 0;
-                out.write((char *) &value, 1);
+                value = col < this->width() ? static_cast<char>(trim((*this)[col, row]) * 255) : 0;
+                out.write(reinterpret_cast<char *>(&value), 1);
             }
         }
         fmt::print("Saved to {}\n", filename);
         out.close();
+    }
+
+    template<class Derived>
+    real Image<Derived>::maximum() const {
+        return this->map_reduce([](real x) { return std::abs<real>(x); }, [](real x, real y) { return x > y ? x : y; });
+    }
+
+    template<class Derived>
+    real Image<Derived>::rms() const {
+        return std::sqrt(this->map_reduce(
+            [](real x) { return x * x; }
+        ) / static_cast<real>(this->count()));
     }
 }

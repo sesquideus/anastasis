@@ -10,13 +10,13 @@ namespace Astar {
                            pair<real> pixfrac):
         AbstractGrid(grid_size),
         centre_(centre),
-        phys_w_(physical_size.first),
-        phys_h_(physical_size.second),
+        physical_size_(physical_size),
+        pixfrac_(pixfrac),
         rotation_(rotation),
-        pixfrac_x_(pixfrac.first),
-        pixfrac_y_(pixfrac.second),
-        pixel_width_(pixfrac_x_ * phys_w_ / static_cast<real>(grid_size.first)),
-        pixel_height_(pixfrac_y_ * phys_h_ / static_cast<real>(grid_size.second))
+        pixel_size_({
+            pixfrac.first * physical_size.first / static_cast<real>(grid_size.first),
+            pixfrac.second * physical_size.second / static_cast<real>(grid_size.second)
+        })
     { }
 
     template<class Derived>
@@ -32,9 +32,10 @@ namespace Astar {
 
     template<class Derived>
     Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
-        real lx = (static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) * this->phys_w_ - this->phys_w_ * 0.5;
-        real ly = (static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) * this->phys_h_ - this->phys_h_ * 0.5;
-        return {lx, ly};
+        return {
+            ((static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) - 0.5) * this->physical_size_.first,
+            ((static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) - 0.5) * this->physical_size_.second
+        };
     }
 
     template<class Derived>
@@ -47,14 +48,14 @@ namespace Astar {
 
     template<class Derived>
     Pixel PlacedGrid<Derived>::grid_pixel(unsigned int x, unsigned int y) const {
-        Point grid_centre = this->grid_centre(x, y);
-        real hw = this->pixel_width_ * this->pixfrac_x_ * 0.5;
-        real hh = this->pixel_height_ * this->pixfrac_y_ * 0.5;
+        const Point & grid_centre = this->grid_centre(x, y);
+        real half_width = this->pixel_size_.first * this->pixfrac_.first * 0.5;
+        real half_height = this->pixel_size_.second * this->pixfrac_.second * 0.5;
         return Pixel(
-            {grid_centre.x - hw, grid_centre.y - hh},
-            {grid_centre.x + hw, grid_centre.y - hh},
-            {grid_centre.x - hw, grid_centre.y + hh},
-            {grid_centre.x + hw, grid_centre.y + hh}
+            {grid_centre.x - half_width, grid_centre.y - half_height},
+            {grid_centre.x + half_width, grid_centre.y - half_height},
+            {grid_centre.x - half_width, grid_centre.y + half_height},
+            {grid_centre.x + half_width, grid_centre.y + half_height}
         );
     }
 
@@ -77,10 +78,11 @@ namespace Astar {
 
     template<class Derived>
     Derived & PlacedGrid<Derived>::set_physical_size(pair<real> size) {
-        this->phys_w_ = size.first;
-        this->phys_h_ = size.second;
-        this->pixel_width_ = this->pixfrac_x_ * this->phys_w_ / static_cast<real>(this->width());
-        this->pixel_height_ = this->pixfrac_y_ * this->phys_h_ / static_cast<real>(this->height());
+        this->physical_size_ = size;
+        this->pixel_size_ = {
+                this->pixfrac_.first * this->physical_size_.first / static_cast<real>(this->size().first),
+                this->pixfrac_.second * this->physical_size_.second / static_cast<real>(this->size().second)
+        };
         return static_cast<Derived &>(*this);
     }
 
@@ -130,12 +132,6 @@ namespace Astar {
         matrix.makeCompressed();
         return matrix;
     } */
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::transform(const AffineTransformation & transform) {
-        this->centre_ += transform.translation();
-        this->rotation_ += 0;
-        return static_cast<Derived &>(*this);
-    }
 
     template<class Derived>
     void PlacedGrid<Derived>::print_world() const {

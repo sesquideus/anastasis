@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include "types/types.h"
+#include "utils/eigen.h"
 #include "grid/abstractgrid.h"
 #include "grid/pixel/pixel.h"
 #include "grid/transform/affine.h"
@@ -20,13 +21,10 @@ namespace Astar {
     class PlacedGrid: public virtual AbstractGrid {
     private:
         Point centre_;
-        real phys_w_;
-        real phys_h_;
+        pair<real> physical_size_;
+        pair<real> pixfrac_;
         real rotation_;
-        real pixfrac_x_;
-        real pixfrac_y_;
-        real pixel_width_;
-        real pixel_height_;
+        pair<real> pixel_size_;
     public:
         constexpr static real NegligibleOverlap = 1e-15;
 
@@ -43,14 +41,14 @@ namespace Astar {
                                           pair<real> pixfrac);
 
         [[nodiscard]] inline Point centre() const { return this->centre_; }
-        [[nodiscard]] inline pair<real> physical_size() const { return {this->phys_w_, this->phys_h_}; }
+        [[nodiscard]] inline pair<real> physical_size() const { return this->physical_size_; }
         [[nodiscard]] inline real rotation() const { return this->rotation_; }
-        [[nodiscard]] inline pair<real> pixfrac() const { return {this->pixfrac_x_, this->pixfrac_y_}; }
+        [[nodiscard]] inline pair<real> pixfrac() const { return this->pixfrac_; }
 
         [[nodiscard]] inline real pixel_area(int col, int row) const {
             (void) col;
             (void) row;
-            return this->pixel_width_ * this->pixel_height_;
+            return this->pixel_size_.first * this->pixel_size_.second * this->pixfrac_.first * this->pixfrac_.second;
         }
 
         Derived & set_centre(Point centre);
@@ -80,7 +78,7 @@ namespace Astar {
         Derived & operator<<=(real angle);
         Derived & operator>>=(real angle);
 
-        Derived & transform(const AffineTransformation & transform);
+        Derived & transform(const AffineTransform & transform);
     };
 
     /* template<class Derived>
