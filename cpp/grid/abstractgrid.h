@@ -4,7 +4,7 @@
 #include "types/types.h"
 
 namespace Astar {
-    /** Abstract grid with no data nor placement, just size
+    /** Abstract grid with no data nor placement, just logical size
      *  Not really useful by itself, but a good universal common ancestor
      *  for images, placed grids and everything related.
      *  It is expected to be immutable: resizing is not allowed.

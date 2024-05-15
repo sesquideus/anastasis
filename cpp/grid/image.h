@@ -89,8 +89,9 @@ namespace Astar {
         void save_npy(const std::string & filename) const;
         void save_bmp(const std::string & filename) const;
 
-        real maximum() const;
-        real rms() const;
+        [[nodiscard]] real minimum() const;
+        [[nodiscard]] real maximum() const;
+        [[nodiscard]] real rms() const;
     };
 
     template<class Derived> Derived operator*(Image<Derived> image, real value);

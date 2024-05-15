@@ -6,49 +6,41 @@
 #include "utils/eigen.h"
 #include "grid/abstractgrid.h"
 #include "grid/pixel/pixel.h"
-#include "grid/transform/affine.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 
 namespace Astar {
-    /** A PlacedGrid is a grid that has a physical location somewhere in the world:
-     *  it has a central point, physical extent in both directions and a rotation.
-     *  Changing its logical size is still not allowed, but its location can be altered.
+    /** A PlacedGrid is a grid that has a physical location somewhere in the world.
+     *  Its physical position and size are determined by the canonical transform of the [0, 0] -> [1, 1] square.
+     *  Changing its logical size is not allowed, but its location position and size can be altered.
      */
     template<class Derived>
     class PlacedGrid: public virtual AbstractGrid {
     private:
-        Point centre_;
-        pair<real> physical_size_;
-        pair<real> pixfrac_;
-        real rotation_;
-        pair<real> pixel_size_;
+        AffineTransform transform_;         // Affine transform of rectangle [0, 0] [1, 1] to my position
+        pair<real> pixfrac_;                // Pixel fraction in both directions
     public:
         constexpr static real NegligibleOverlap = 1e-15;
 
-        PlacedGrid(Point centre,
-                   pair<int> grid_size,
-                   pair<real> physical_size,
-                   real rotation,
-                   pair<real> pixfrac);
+        explicit PlacedGrid(const AffineTransform & transform, pair<real> pixfrac = {1.0, 1.0});
 
-        static PlacedGrid from_pixel_size(Point centre,
-                                          pair<int> grid_size,
-                                          pair<real> pixel_size,
-                                          real rotation,
-                                          pair<real> pixfrac);
-
-        [[nodiscard]] inline Point centre() const { return this->centre_; }
-        [[nodiscard]] inline pair<real> physical_size() const { return this->physical_size_; }
-        [[nodiscard]] inline real rotation() const { return this->rotation_; }
+        [[nodiscard]] inline AffineTransform transform() const { return this->transform_; }
         [[nodiscard]] inline pair<real> pixfrac() const { return this->pixfrac_; }
 
+        [[nodiscard]] inline Vector physical_centre() const { return this->transform() * this->logical_centre(); }
+        [[nodiscard]] inline Vector logical_centre() const { return this->transform().linear() / 2; }
+
+        [[nodiscard]] inline pair<real> physical_size() const { return this->physical_size_; }
+
         [[nodiscard]] inline real pixel_area(int col, int row) const {
-            (void) col;
+            return this->pixel_full_area(col, row) * this->pixfrac().first * this->pixfrac().second;
+        }
+        [[nodiscard]] inline real pixel_full_area(int col, int row) const {
+            (void) col; // Currently all pixels are the same
             (void) row;
-            return this->pixel_size_.first * this->pixel_size_.second * this->pixfrac_.first * this->pixfrac_.second;
+            return this->transform_.linear().determinant();
         }
 
         Derived & set_centre(Point centre);
@@ -77,9 +69,8 @@ namespace Astar {
         Derived & scale(pair<real> scale);
         Derived & operator<<=(real angle);
         Derived & operator>>=(real angle);
-
-        Derived & transform(const AffineTransform & transform);
     };
+
 
     /* template<class Derived>
      Derived PlacedGrid<Derived>::inverse_transform(const PlacedGrid<Derived> & other) const {

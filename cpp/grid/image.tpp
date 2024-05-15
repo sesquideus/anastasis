@@ -18,7 +18,7 @@ namespace Astar {
 
     template<class Derived>
     Image<Derived>::Image(pair<int> size):
-        Image(size.first, size.second)
+        AbstractGrid(size.first, size.second)
     {}
 
     template<class Derived>
@@ -251,6 +251,11 @@ namespace Astar {
         }
         fmt::print("Saved to {}\n", filename);
         out.close();
+    }
+
+    template<class Derived>
+    real Image<Derived>::minimum() const {
+        return this->map_reduce([](real x) { return std::abs<real>(x); }, [](real x, real y) { return x < y ? x : y; });
     }
 
     template<class Derived>

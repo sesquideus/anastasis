@@ -35,7 +35,7 @@ namespace Astar {
         Point & operator*=(real scale);
         Point & operator/=(real scale);
 
-        inline static Point invalid() { return Point(Invalid, Invalid); };
+        inline static Point invalid() { return {Invalid, Invalid}; };
         static Point line_segment_intersection(Point p0, Point p1, Point q0, Point q1);
     };
 

@@ -2,33 +2,10 @@
 #include <iostream>
 
 namespace Astar {
-    template<class Derived>
-    PlacedGrid<Derived>::PlacedGrid(Point centre,
-                           pair<int> grid_size,
-                           pair<real> physical_size,
-                           real rotation,
-                           pair<real> pixfrac):
-        AbstractGrid(grid_size),
-        centre_(centre),
-        physical_size_(physical_size),
-        pixfrac_(pixfrac),
-        rotation_(rotation),
-        pixel_size_({
-            pixfrac.first * physical_size.first / static_cast<real>(grid_size.first),
-            pixfrac.second * physical_size.second / static_cast<real>(grid_size.second)
-        })
-    { }
-
-    template<class Derived>
-    PlacedGrid<Derived> PlacedGrid<Derived>::from_pixel_size(Point centre,
-                                                             pair<int> grid_size,
-                                                             pair<real> pixel_size,
-                                                             real rotation,
-                                                             pair<real> pixfrac) {
-        real width = pixel_size.first * static_cast<real>(grid_size.first);
-        real height = pixel_size.second * static_cast<real>(grid_size.second);
-        return {centre, grid_size, {width, height}, rotation, pixfrac};
-    }
+    explicit PlacedGrid(const AffineTransform & transform, pair<real> pixfrac = {1.0, 1.0}):
+        AbstractGrid(transform.linear()),
+        pixfrac_(pixfrac)
+    {}
 
     template<class Derived>
     Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
@@ -61,13 +38,7 @@ namespace Astar {
 
     template<class Derived>
     Pixel PlacedGrid<Derived>::world_pixel(unsigned int x, unsigned int y) const {
-        Pixel raw = this->grid_pixel(x, y);
-        return Pixel(
-            this->centre_ + raw.a().rotated(this->rotation_),
-            this->centre_ + raw.b().rotated(this->rotation_),
-            this->centre_ + raw.d().rotated(this->rotation_),
-            this->centre_ + raw.c().rotated(this->rotation_)
-        );
+        return this->transform_ * this->world_pixel();
     }
 
     template<class Derived>
