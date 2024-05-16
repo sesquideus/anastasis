@@ -5,7 +5,6 @@
 #include "grid/image.h"
 #include "grid/placedgrid.h"
 #include "grid/pixel/pixel.h"
-#include "grid/detectorimage.h"
 
 
 namespace Astar {

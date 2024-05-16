@@ -10,6 +10,7 @@ namespace Astar {
     typedef Eigen::Translation<real, 2> Translation;
     //typedef std::conditional<std::is_same<real, double>::value, Eigen::Vector2d, Eigen::Vector2f> Vector;
     typedef Eigen::Vector2d Vector;
+    typedef Eigen::Matrix<real, 2, 4> Parallelogram;
     typedef Eigen::Transform<real, 2, Eigen::AffineCompact> AffineTransform;
     typedef Eigen::SparseMatrix<real> SparseMatrix;
 
@@ -17,6 +18,11 @@ namespace Astar {
     SparseMatrix vstack(const std::vector<SparseMatrix> & matrices);
     SparseMatrix hstack(const std::vector<SparseMatrix> & matrices);
     SparseMatrix vstack2(std::vector<SparseMatrix> matrices);
+
+    /** 2D pseudo cross product **/
+    inline real operator^(const Vector & lhs, const Vector & rhs) {
+        return lhs.x() * rhs.y() - lhs.y() * rhs.x();
+    }
 }
 
 #endif //ANASTASIS_CPP_EIGEN_H

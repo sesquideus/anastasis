@@ -2,6 +2,7 @@
 
 #include "utils/resample.h"
 #include "utils/eigen.h"
+#include "grid/placedimage.h"
 
 using namespace Astar;
 
@@ -91,6 +92,7 @@ int main(int argc, char * argv[]) {
     Point centre = {static_cast<real>(model_width) / 2, static_cast<real>(model_height) / 2};
 
     try {
+        PlacedImage input(
         DetectorImage input(centre, {model_width, model_height}, 0, {1, 1}, args[0]);
         input.set_centre({input.physical_size().first / 2, input.physical_size().second / 2});
 

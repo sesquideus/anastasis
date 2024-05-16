@@ -1,74 +1,8 @@
 #include "modelimage.h"
 
+/*
 namespace Astar {
-    ModelImage::ModelImage(int width, int height):
-        AbstractGrid(width, height),
-        Image(width, height),
-        variance_(height, width)
-    {
-        this->variance_.setZero();
-    }
-
-    ModelImage::ModelImage(pair<int> size):
-        ModelImage(size.first, size.second)
-    {}
-
-    ModelImage::ModelImage(const DetectorImage & image):
-        AbstractGrid(image.size()),
-        Image(image.data())
-    { }
-
-    ModelImage::ModelImage(const Image & image):
-        AbstractGrid(image.size()),
-        Image(image.data())
-    { }
-
-    Pixel ModelImage::pixel(int x, int y) const {
-        if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
-            return Pixel::invalid();
-        } else {
-            real left = static_cast<real>(x);
-            real right = left + 1.0;
-            real bottom = static_cast<real>(y);
-            real top = bottom + 1.0;
-            return Pixel(
-                Point(left, bottom),
-                Point(right, bottom),
-                Point(left, top),
-                Point(right, top)
-            );
-        }
-    }
-
-    ModelImage & ModelImage::naive_drizzle(const std::vector<DetectorImage> & images) {
-        /** Drizzle a vector of DetectorImages onto this ModelImage **/
-        for (auto && image: images) {
-            this->naive_drizzle(image);
-        }
-
-        return *this;
-    }
-
-    ModelImage & ModelImage::weighted_drizzle(const std::vector<DetectorImage> & images) {
-        /** Drizzle a vector of DetectorImages onto this ModelImage **/
-        for (auto && image: images) {
-            this->weighted_drizzle(image);
-        }
-
-        for (int row = 0; row < this->height(); ++row) {
-            for (int col = 0; col < this->width(); ++col) {
-                if (this->variance_(row, col) == 0) {
-                    (*this)[col, row] = -1;
-                } else {
-                    (*this)[col, row] /= this->variance_(row, col);
-                }
-            }
-        }
-
-        return *this;
-    }
-
-    SparseMatrix ModelImage::overlap_matrix(const DetectorImage & image) const {
+    SparseMatrix ModelImage::overlap_matrix(const PlacedImage & image) const {
         std::vector<Overlap4D> active_pixels;
         // There will be about four times as many overlaps as there are model pixels
         active_pixels.reserve(4 * image.count());
@@ -110,7 +44,7 @@ namespace Astar {
     }
 
     ModelImage & ModelImage::naive_drizzle(const DetectorImage & image) {
-        /** Drizzle a DetectorImage into this ModelImage **/
+        /** Drizzle a DetectorImage into this ModelImage **
         int total = 0;
         int inspected = 0;
         real sum = 0;
@@ -190,7 +124,7 @@ namespace Astar {
     }
 
     ModelImage & ModelImage::weighted_drizzle(const DetectorImage & image) {
-        /** Drizzle a DetectorImage into this ModelImage **/
+        /** Drizzle a DetectorImage into this ModelImage **
 
         // For every pixel of the drizzling image
         for (int row = 0; row < image.height(); ++row) {
@@ -299,7 +233,7 @@ namespace Astar {
      *  @param other
      *      other ModelImage, must have the same dimensions
      *  @return reference to this ModelImage
-     */
+     *
     ModelImage & ModelImage::operator+=(const ModelImage & other) {
         this->apply(other, [&](real & x, real y) { return x += y; });
         return (*this);
@@ -323,8 +257,8 @@ namespace Astar {
         return lhs.squared_difference(rhs);
     }
 
-    /** Find the cosine of the angle between two images **/
+    /** Find the cosine of the angle between two images **
     real operator^(const ModelImage & lhs, const ModelImage & rhs) {
         return (lhs * rhs) / ((lhs * lhs) * (rhs * rhs));
     }
-}
+} */

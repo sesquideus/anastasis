@@ -18,16 +18,6 @@ add_executable(
         types/point.cpp
         utils/functions.h
         utils/functions.cpp
-        #spatial/spatial.h
-#        spatial/metrics.h
-#        spatial/structures/vpitree.tpp
-#        spatial/structures/vpitree.h
-#        spatial/distant.cpp
-#        spatial/distant.h
-#        spatial/structures/kdtree.cpp
-#        spatial/structures/kdtree.h
-#        spatial/structures/balltree.cpp
-#        spatial/structures/balltree.h
         grid/placedgrid.tpp
         grid/placedgrid.h
         grid/pixel/pixel.cpp
@@ -35,8 +25,6 @@ add_executable(
         grid/modelimage.cpp
         grid/modelimage.h
         grid/box.h
-        grid/detectorimage.cpp
-        grid/detectorimage.h
         grid/box.cpp
         grid/image.tpp
         grid/image.h
@@ -64,8 +52,6 @@ add_executable(
         grid/pixel/pixel.h
         grid/modelimage.cpp
         grid/modelimage.h
-        grid/detectorimage.cpp
-        grid/detectorimage.h
         utils/eigen.cpp
         utils/eigen.h
         grid/placedimage.cpp
@@ -89,8 +75,6 @@ add_executable(
         grid/pixel/pixel.h
         grid/modelimage.cpp
         grid/modelimage.h
-        grid/detectorimage.cpp
-        grid/detectorimage.h
         utils/eigen.cpp
         utils/eigen.h
         grid/placedimage.cpp

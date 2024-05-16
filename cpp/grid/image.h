@@ -39,7 +39,6 @@ namespace Astar {
     /** An Image is an abstract grid with no placement, but contains a piece of data at every pixel.
      *  Right now it is just for real numbers, but can be made into a template.
      */
-    class DetectorImage;
     template<class Derived> class PlacedGrid;
 
 
@@ -77,9 +76,7 @@ namespace Astar {
             return PlacedGrid<Derived>(Point(this->width(), this->height()) / 2, this->size(), this->size(), 0, {1, 1});
         }*/
 
-        DetectorImage project_onto(const PlacedGrid<Derived> & image);
-
-
+        Derived & zero();
         Derived & randomize();
 
         Derived & operator*=(real value);

@@ -24,7 +24,7 @@ namespace Astar {
     public:
         constexpr static real NegligibleOverlap = 1e-15;
 
-        explicit PlacedGrid(const AffineTransform & transform, pair<real> pixfrac = {1.0, 1.0});
+        explicit PlacedGrid(AffineTransform transform, pair<int> grid_size, pair<real> pixfrac = {1.0, 1.0});
 
         [[nodiscard]] inline AffineTransform transform() const { return this->transform_; }
         [[nodiscard]] inline pair<real> pixfrac() const { return this->pixfrac_; }
@@ -32,7 +32,7 @@ namespace Astar {
         [[nodiscard]] inline Vector physical_centre() const { return this->transform() * this->logical_centre(); }
         [[nodiscard]] inline Vector logical_centre() const { return this->transform().linear() / 2; }
 
-        [[nodiscard]] inline pair<real> physical_size() const { return this->physical_size_; }
+        [[nodiscard]] inline pair<real> physical_size() const { return this->transform().linear(); }
 
         [[nodiscard]] inline real pixel_area(int col, int row) const {
             return this->pixel_full_area(col, row) * this->pixfrac().first * this->pixfrac().second;
@@ -47,10 +47,9 @@ namespace Astar {
         Derived & set_physical_size(pair<real> size);
         Derived & set_physical_size(real width, real height);
 
-       // Derived inverse_transform(const PlacedGrid<Derived> & other) const;
+        Derived inverse_transform(const PlacedGrid<Derived> & other) const;
 
         [[nodiscard]] Point grid_centre(unsigned int x, unsigned int y) const;
-        [[nodiscard]] Point world_centre(unsigned int x, unsigned int y) const;
 
         [[nodiscard]] Pixel grid_pixel(unsigned int x, unsigned int y) const;
         [[nodiscard]] Pixel world_pixel(unsigned int x, unsigned int y) const;

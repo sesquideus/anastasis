@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "types.h"
+#include "utils/eigen.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -52,22 +53,22 @@ namespace Astar {
 
     // Subtraction of two points: effectively a new difference vector
     inline Point operator-(Point first, Point second) {
-        return Point(first.x - second.x, first.y - second.y);
+        return {first.x - second.x, first.y - second.y};
     }
 
     // Multiplication by a scalar: multiplication of a vector
     inline Point operator*(real scale, Point point) {
-        return Point(scale * point.x, scale * point.y);
+        return {scale * point.x, scale * point.y};
     }
 
     // Inverse order of the same
     inline Point operator*(Point point, real scale) {
-        return Point(scale * point.x, scale * point.y);
+        return {scale * point.x, scale * point.y};
     }
 
     // Division by a scalar: effectively shortening of a vector
     inline Point operator/(Point point, real scale) {
-        return Point(point.x / scale, point.y / scale);
+        return {point.x / scale, point.y / scale};
     }
 
     // Dot product
@@ -86,7 +87,7 @@ namespace Astar {
 }
 
 template<>
-class fmt::formatter<Astar::Point> {
+class fmt::formatter<Astar::Vector> {
 private:
     char presentation = 'f';
 
@@ -98,10 +99,10 @@ public:
         return it;
     }
 
-    auto format(const Astar::Point & point, format_context & ctx) const -> format_context::iterator {
+    auto format(const Astar::Vector & point, format_context & ctx) const -> format_context::iterator {
         return presentation == 'f'
-               ? fmt::format_to(ctx.out(), "({:.6f}, {:.6f})", point.x, point.y)
-               : fmt::format_to(ctx.out(), "({:.6e}, {:.6e})", point.x, point.y);
+               ? fmt::format_to(ctx.out(), "({:.6f}, {:.6f})", point.x(), point.y())
+               : fmt::format_to(ctx.out(), "({:.6e}, {:.6e})", point.x(), point.y());
     }
 };
 

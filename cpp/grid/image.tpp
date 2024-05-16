@@ -156,6 +156,11 @@ namespace Astar {
     }
 
     template<class Derived>
+    Derived & Image<Derived>::zero() {
+        return this->map_in_place([]() { return 0; });
+    }
+
+    template<class Derived>
     Derived & Image<Derived>::randomize() {
         std::random_device rd;
         std::mt19937 gen(rd());

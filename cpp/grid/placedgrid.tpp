@@ -1,10 +1,13 @@
 #include "placedgrid.h"
 #include <iostream>
+#include <utility>
 
 namespace Astar {
-    explicit PlacedGrid(const AffineTransform & transform, pair<real> pixfrac = {1.0, 1.0}):
-        AbstractGrid(transform.linear()),
-        pixfrac_(pixfrac)
+    template<class Derived>
+    PlacedGrid<Derived>::PlacedGrid(AffineTransform transform, pair<int> grid_size, pair<real> pixfrac):
+        AbstractGrid(grid_size),
+        transform_(std::move(transform)),
+        pixfrac_(std::move(pixfrac))
     {}
 
     template<class Derived>
@@ -13,14 +16,6 @@ namespace Astar {
             ((static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) - 0.5) * this->physical_size_.first,
             ((static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) - 0.5) * this->physical_size_.second
         };
-    }
-
-    template<class Derived>
-    Point PlacedGrid<Derived>::world_centre(unsigned int x, unsigned int y) const {
-        Point grid_centre = this->grid_centre(x, y);
-        real sina = std::sin(this->rotation_);
-        real cosa = std::cos(this->rotation_);
-        return {grid_centre.x * cosa - grid_centre.y * sina, grid_centre.x * sina + grid_centre.y * cosa};
     }
 
     template<class Derived>
@@ -38,7 +33,7 @@ namespace Astar {
 
     template<class Derived>
     Pixel PlacedGrid<Derived>::world_pixel(unsigned int x, unsigned int y) const {
-        return this->transform_ * this->world_pixel();
+        return this->transform() * this->grid_pixel(x, y);
     }
 
     template<class Derived>
@@ -122,40 +117,7 @@ namespace Astar {
     }
 
     template<class Derived>
-    Derived & PlacedGrid<Derived>::operator+=(Point shift) {
-        this->centre_ += shift;
-        return static_cast<Derived &>(*this);
-    }
-
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::operator-=(Point shift) {
-        this->centre_ -= shift;
-        return static_cast<Derived &>(*this);
-    }
-
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::scale(real scale) {
-        return this->scale({scale, scale});
-    }
-
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::scale(pair<real> scale) {
-        this->phys_w_ *= scale.first;
-        this->phys_h_ *= scale.second;
-        this->pixel_width_ *= scale.first;
-        this->pixel_height_ *= scale.second;
-        return static_cast<Derived &>(*this);
-    }
-
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::operator<<=(real angle) {
-        this->rotation_ -= angle;
-        return static_cast<Derived &>(*this);
-    }
-
-    template<class Derived>
-    Derived & PlacedGrid<Derived>::operator>>=(real angle) {
-        this->rotation_ += angle;
-        return static_cast<Derived &>(*this);
+    Derived PlacedGrid<Derived>::inverse_transform(const PlacedGrid<Derived> & other) const {
+        return Derived(this->transform() * other.transform().inverse(), this->size(), this->pixfrac());
     }
 }

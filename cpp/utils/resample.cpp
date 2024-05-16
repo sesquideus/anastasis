@@ -1,33 +1,25 @@
 #include "utils/resample.h"
 
 namespace Astar {
-    ModelImage one_to_one(const DetectorImage & image) {
+    PlacedImage one_to_one(const PlacedImage & image) {
         auto copy = image;
-        ModelImage clone(image.size().first, image.size().second);
-        copy.set_centre({static_cast<real>(image.size().first) / 2.0, static_cast<real>(image.size().second) / 2.0});
-        copy.set_physical_size(image.size());
-        fmt::print("\tDetector: {}\n", copy);
-        fmt::print("\tModel: {}\n", clone);
-        clone.naive_drizzle(copy);
-        clone.save_npy("out/one-to-one.npy");
-        fmt::print("---- one to one drizzling complete ----\n");
-        return clone;
+        copy.zero();
+        copy.naive_drizzle(image);
+        return copy;
     }
 
-    std::vector<std::vector<DetectorImage>> downsample_grid(
-        const DetectorImage & image,
+    std::vector<PlacedImage> downsample_grid(
+        const PlacedImage & image,
         pair<int> model_size,
         pair<int> subsamples,
         pair<real> pixfrac
     ) {
-        std::vector<std::vector<DetectorImage>> downsampled;
+        std::vector<PlacedImage> downsampled;
         Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
 
         for (int j = 0; j < subsamples.second; ++j) {
-            // Construct an empty vector
-            downsampled.emplace_back();
             for (int i = 0; i < subsamples.first; ++i) {
-                ModelImage temp(model_size);
+                PlacedImage temp(AffineTransform(), model_size);
                 real shift_x = static_cast<real>(i) / static_cast<real>(subsamples.first);
                 real shift_y = static_cast<real>(j) / static_cast<real>(subsamples.second);
                 Point shift = {shift_x, shift_y};
@@ -42,29 +34,30 @@ namespace Astar {
                            model_size.first, model_size.second,
                            shift_x, shift_y,
                            image.pixfrac().first, image.pixfrac().second);
-                downsampled[j].emplace_back(downsampled_centre, image.size(), 0, pixfrac, temp.data());
+                // temporarily disabled downsampled.emplace_back(downsampled_centre, image.size(), 0, pixfrac, temp.data());
             }
         }
         fmt::print("---- downsampling complete ----\n");
         return downsampled;
     }
 
-    std::vector<DetectorImage> downsample_with_rotations(
-        const DetectorImage & original,
+    std::vector<PlacedImage> downsample_with_rotations(
+        const PlacedImage & original,
         pair<int> model_size,
         const std::vector<std::tuple<real, real, real>> & positions,
         pair<real> pixfrac
     ) {
-        std::vector<DetectorImage> downsampled;
+        std::vector<PlacedImage> downsampled;
         Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
 
         for (auto && position: positions) {
-            ModelImage temp(model_size);
+            PlacedImage temp(AffineTransform(), model_size);
             Point downsampled_centre = {0, 0};
 
+            /* temporarily disabled
             downsampled.emplace_back(downsampled_centre,
                                      pair<int>(std::get<0>(position), std::get<1>(position)),
-                                     std::get<2>(position), pixfrac, temp.data());
+                                     std::get<2>(position), pixfrac, temp.data());*/
         }
 
         return downsampled;

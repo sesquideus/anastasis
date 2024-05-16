@@ -3,12 +3,12 @@
 
 using namespace Astar;
 
-std::vector<DetectorImage> prepare(
-        const DetectorImage & original,
+std::vector<PlacedImage> prepare(
+        const PlacedImage & original,
         const pair<int> resolution,
         const pair<real> pixfrac = {1, 1}
 ) {
-    std::vector<DetectorImage> result;
+    std::vector<PlacedImage> result;
     result.reserve(6);
     int new_max = std::max(resolution.first, resolution.second);
     pair<int> new_size = {new_max, new_max};
@@ -18,7 +18,7 @@ std::vector<DetectorImage> prepare(
         auto copy = original;
         copy.set_physical_size(resolution);
         Point shift = {static_cast<real>(i) / 3, 0};
-        ModelImage downsampled(resolution);
+        PlacedImage downsampled(resolution);
 
         fmt::print("Drizzle: {}\n", copy - shift);
         downsampled.naive_drizzle(copy - shift);
@@ -31,7 +31,7 @@ std::vector<DetectorImage> prepare(
         auto copy = original;
         copy.set_physical_size(resolution.second, resolution.first);
         Point shift = {static_cast<real>(i) / 3, 0};
-        ModelImage downsampled(resolution);
+        PlacedImage downsampled(resolution);
 
         // These are rotated by one quarter
         fmt::print("Drizzle: {}\n", (copy - shift) << rotation);
@@ -88,9 +88,9 @@ int main(int argc, char * argv[]) {
     Point centre = Point(model_size) / 2;
 
     try {
-        DetectorImage original(centre, model_size, 0, {1, 1}, args[1]);
-        ModelImage raw_original(original);
-        std::vector<DetectorImage> downsampled = prepare(original, model_size, pixfrac);
+        PlacedImage original(centre, model_size, 0, {1, 1}, args[1]);
+        PlacedImage raw_original(original);
+        std::vector<PlacedImage> downsampled = prepare(original, model_size, pixfrac);
 
         int index = 0;
         for (auto && it: downsampled) {
@@ -99,13 +99,13 @@ int main(int argc, char * argv[]) {
         }
 
         pair<int> output_size = {84, 84};
-        ModelImage output(output_size);
+        PlacedImage output(AffineTransform(), output_size);
         output.naive_drizzle(downsampled) /= (6.0 * original.count() / output.count());
         output.save_npy("out/drizzled.npy");
 
         raw_original.save_npy("out/original.npy");
 
-        ModelImage direct = prepare_direct(original, output_size);
+        PlacedImage direct = prepare_direct(original, output_size);
         direct /= (static_cast<real>(original.count()) / output.count());
         direct.save_npy("out/direct.npy");
 

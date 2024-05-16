@@ -2,8 +2,10 @@
 #define ANASTASIS_CPP_PIXEL_H
 
 #include <array>
+
 #include "types/point.h"
 #include "grid/box.h"
+#include "utils/eigen.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -13,22 +15,31 @@ namespace Astar {
 
     class Pixel {
     private:
-        std::array<std::array<Point, 2>, 2> corners_;
+        Parallelogram corners_;
         constexpr static real Slack = 1e-12;
     public:
         explicit Pixel();
-        explicit Pixel(Point bottomleft, Point bottomright, Point topleft, Point topright);
+        explicit Pixel(const Vector & bottom_left, const Vector & bottom_right,
+                       const Vector & top_left, const Vector & top_right);
+        explicit Pixel(Parallelogram  parallelogram);
         explicit Pixel(const Box & box);
-        inline static Pixel invalid() { return Pixel(Point::invalid(), Point::invalid(), Point::invalid(), Point::invalid()); };
+        inline static Pixel invalid() {
+            return Pixel(
+                {Astar::Invalid, Astar::Invalid},
+                {Astar::Invalid, Astar::Invalid},
+                {Astar::Invalid, Astar::Invalid},
+                {Astar::Invalid, Astar::Invalid});
+        }
 
-        [[nodiscard]] inline Point a() const { return this->corners_[0][0]; }
-        [[nodiscard]] inline Point b() const { return this->corners_[0][1]; }
-        [[nodiscard]] inline Point c() const { return this->corners_[1][1]; }
-        [[nodiscard]] inline Point d() const { return this->corners_[1][0]; }
+        [[nodiscard]] inline Parallelogram corners() const { return this->corners_; }
 
-        [[nodiscard]] inline std::array<std::array<Point, 2>, 2> corners() const { return this->corners_; };
+        [[nodiscard]] inline Vector a() const { return this->corners().col(0); }
+        [[nodiscard]] inline Vector b() const { return this->corners().col(1); }
+        [[nodiscard]] inline Vector c() const { return this->corners().col(2); }
+        [[nodiscard]] inline Vector d() const { return this->corners().col(3); }
+
         [[nodiscard]] Box bounding_box(real slack = Pixel::Slack) const;
-        [[nodiscard]] bool contains(Point point) const;
+        [[nodiscard]] bool contains(const Vector& point) const;
 
         [[nodiscard]] real area() const;
 

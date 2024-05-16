@@ -2,27 +2,35 @@
 #include <fmt/ranges.h>
 #include <numeric>
 #include <algorithm>
+#include <utility>
 #include <vector>
+
 #include "pixel.h"
+#include "utils/eigen.h"
 
 namespace Astar {
     Pixel::Pixel():
-        corners_ {{{Point(0, 0), Point(0, 0)}, {Point(0, 0), Point(0, 0)}}}
+        corners_((Parallelogram() << 0, 0, 0, 0, 0, 0, 0, 0).finished())
     {}
 
-    Pixel::Pixel(const Point bottomleft, const Point bottomright, const Point topleft, const Point topright):
-        corners_ {{{bottomleft, bottomright}, {topleft, topright}}}
-    { }
+    Pixel::Pixel(const Vector & bottom_left, const Vector & bottom_right,
+                 const Vector & top_left, const Vector & top_right):
+        corners_((Parallelogram() << bottom_left, bottom_right, top_left, top_right).finished())
+    {}
+
+    Pixel::Pixel(Parallelogram parallelogram):
+        corners_(std::move(parallelogram))
+    {}
 
     /** Construct from a Box type
      * @param box
      */
     Pixel::Pixel(const Box & box):
         Pixel(
-            {static_cast<real>(box.left), static_cast<real>(box.bottom)},
-            {static_cast<real>(box.right), static_cast<real>(box.bottom)},
-            {static_cast<real>(box.left), static_cast<real>(box.top)},
-            {static_cast<real>(box.right), static_cast<real>(box.top)}
+            Vector(static_cast<real>(box.left), static_cast<real>(box.bottom)),
+            Vector(static_cast<real>(box.right), static_cast<real>(box.bottom)),
+            Vector(static_cast<real>(box.left), static_cast<real>(box.top)),
+            Vector(static_cast<real>(box.right), static_cast<real>(box.top))
         )
     { }
 
@@ -32,8 +40,8 @@ namespace Astar {
          * the entire area of the pixel + optionally a tiny constant <slack>.
          * Useful for determining overlaps with the canonical grid.
          */
-        auto xs = {this->a().x, this->b().x, this->c().x, this->d().x};
-        auto ys = {this->a().y, this->b().y, this->c().y, this->d().y};
+        auto xs = {this->a().x(), this->b().x(), this->c().x(), this->d().x()};
+        auto ys = {this->a().y(), this->b().y(), this->c().y(), this->d().y()};
         int minx = static_cast<int>(floor(std::min(xs) - slack));
         int maxx = static_cast<int>(ceil(std::max(xs) + slack));
         int miny = static_cast<int>(floor(std::min(ys) - slack));
@@ -42,17 +50,17 @@ namespace Astar {
         return Box(minx, maxx, miny, maxy);
     }
 
-    bool Pixel::contains(Point point) const {
+    bool Pixel::contains(const Vector & point) const {
         /** Determine whether a point is contained within the pixel
          *  Adds a small slack since there is only a tiny penalty for including a pixel
          *  that is very close to the bounds, but a catastrophic failure if a pixel
          *  is falsely reported as outside due to rounding errors.
          */
-        Point p = this->b() - this->a(); // Line AB
-        Point q = this->d() - this->a(); // Line AD
-        Point x = point - this->a();     // Line AX
-        real t = (p * x) / (p * p);      // Projection of AX onto AB
-        real u = (q * x) / (q * q);      // Projection of AX onto AD
+        Vector p = this->b() - this->a(); // Line AB
+        Vector q = this->d() - this->a(); // Line AD
+        Vector x = point - this->a();     // Line AX
+        real t = (p.dot(x)) / p.squaredNorm();      // Projection of AX onto AB
+        real u = (q.dot(x)) / q.squaredNorm();      // Projection of AX onto AD
         return ((-Pixel::Slack <= t) && (t <= 1.0 + Pixel::Slack) && (-Pixel::Slack <= u) && (u <= 1.0 + Pixel::Slack));
     }
 
@@ -65,17 +73,17 @@ namespace Astar {
 
     real Pixel::overlap(const Pixel & other) const {
         /** Compute the area of the overlap of this pixel with another pixel */
-        std::vector<Point> vertices;
+        std::vector<Vector> vertices;
         vertices.reserve(8);
 
         // Check if any of this pixel's vertices lie within the other pixel, if so, add it as a candidate
-        for (auto candidate: {this->a(), this->b(), this->c(), this->d()}) {
+        for (const auto & candidate: {this->a(), this->b(), this->c(), this->d()}) {
             if (other.contains(candidate)) {
                 vertices.push_back(candidate);
             }
         }
         // Check if any of the other pixel's vertices lie within this pixel, if so, add it as a candidate
-        for (auto candidate: {other.a(), other.b(), other.c(), other.d()}) {
+        for (const auto & candidate: {other.a(), other.b(), other.c(), other.d()}) {
             if (this->contains(candidate)) {
                 vertices.push_back(candidate);
             }
@@ -89,10 +97,10 @@ namespace Astar {
          * "Definitely add comments to lines where you are proud of how clever your solution is.
          * From my own experience it often pays off to start looking for insidious bugs right there." */
         for (unsigned char i = 0; i < 16; ++i) {
-            auto point = Point::line_segment_intersection(this->corners_[(i & 2) >> 1][((i + 1) & 2) >> 1],
-                                                          this->corners_[((i + 1) & 2) >> 1][((i + 2) & 2) >> 1],
-                                                          other.corners_[(i & 8) >> 3][((i + 4) & 8) >> 3],
-                                                          other.corners_[((i + 4) & 8) >> 3][((i + 8) & 8) >> 3]);
+            auto point = Point::line_segment_intersection(this->corners_(      (i & 2) >> 1, ((i + 1) & 2) >> 1),
+                                                          this->corners_(((i + 1) & 2) >> 1, ((i + 2) & 2) >> 1),
+                                                          other.corners_(      (i & 8) >> 3, ((i + 4) & 8) >> 3),
+                                                          other.corners_(((i + 4) & 8) >> 3, ((i + 8) & 8) >> 3));
             if (point.is_valid()) {
                 vertices.push_back(point);
             }
@@ -103,19 +111,22 @@ namespace Astar {
             return 0;
         } else {
             // Otherwise find the centre of mass and move it to the origin along with all the points
-            Point centre = std::accumulate(vertices.cbegin(), vertices.cend(), Point(0, 0)) / static_cast<real>(vertices.size());
+            Vector centre = std::accumulate(vertices.cbegin(), vertices.cend(), Vector(0, 0)) / static_cast<real>(vertices.size());
             for (auto && v: vertices) {
                 v -= centre;
             }
             // Sort vertices by azimuth from the centre
             // TODO This can be precomputed! Sort by another vector of v.slope()
-            std::sort(vertices.begin(), vertices.end(), [&](Point a, Point b) -> bool { return a.slope() < b.slope(); });
+            std::sort(vertices.begin(), vertices.end(),
+                      [&](const Vector & a, const Vector & b) -> bool {
+                          return std::atan2(a.y(), a.x()) < std::atan2(b.y(), b.x());
+                      });
 
             // Run the shoelace algorithm to compute the area of the convex polygon
             real shoelace = 0;
             std::size_t size = vertices.size();
             for (std::size_t i = 0; i < size; ++i) {
-                shoelace += vertices[i].x * (vertices[(i + 1) % size].y - vertices[(i - 1 + size) % size].y);
+                shoelace += vertices[i].x() * (vertices[(i + 1) % size].y() - vertices[(i - 1 + size) % size].y());
             }
 
             return shoelace * 0.5;
@@ -129,10 +140,10 @@ namespace Astar {
     real Pixel::orthogonal_overlap(const Pixel & other) const {
         auto ortho_me = Pixel(this->bounding_box());
         auto ortho_other = Pixel(other.bounding_box());
-        return linear_overlap({ortho_me.corners_[0][1].x, ortho_me.corners_[0][0].x},
-                              {ortho_other.corners_[0][1].x, ortho_other.corners_[0][0].x}) *
-               linear_overlap({ortho_me.corners_[1][0].y, ortho_me.corners_[0][0].y},
-                              {ortho_other.corners_[1][0].y, ortho_other.corners_[0][0].y});
+        return linear_overlap({ortho_me.b().x(), ortho_me.a().x()},
+                              {ortho_other.b().x(), ortho_other.a().x()}) *
+               linear_overlap({ortho_me.d().y(), ortho_me.a().y()},
+                              {ortho_other.d().y(), ortho_other.a().y()});
     }
 
     real Pixel::operator&(const Pixel & other) const {
