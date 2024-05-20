@@ -1,18 +1,27 @@
 #include "utils/eigen.h"
 
 namespace Astar {
-    Matrix2D rotation_matrix(const real rotation) {
-        Matrix2D result;
-        real c = std::cos(rotation);
-        real s = std::sin(rotation);
-        result << c, s, -s, c;
-        return result;
+    bool is_valid(const Vector & vector) {
+        return !(std::isnan(vector.x()) || std::isnan(vector.y()));
     }
 
-    Matrix2D scaling_matrix(pair<real> scale) {
-        Matrix2D result;
-        result << scale.first, 0, 0, scale.second;
-        return result;
+    Vector line_segment_intersection(const Vector & p0, const Vector & p1, const Vector & q0, const Vector & q1) {
+        auto p(p1 - p0);
+        auto q(q1 - q0);
+        auto b(q0 - p0);
+        real det = p ^ q;
+
+        if (std::abs(det) < Astar::MinimumDeterminant) {
+            return InvalidVector;
+        } else {
+            real t = (b ^ q) / det;
+            real u = (b ^ p) / det;
+            if ((-Astar::Slack <= t) && (t <= 1.0 + Astar::Slack) && (-Astar::Slack <= u) && (u <= 1.0 + Astar::Slack)) {
+                return p0 + t * p;
+            } else {
+                return InvalidVector;
+            }
+        }
     }
 
     SparseMatrix stack(const std::vector<SparseMatrix> & matrices, bool vertical) {

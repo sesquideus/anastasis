@@ -1,41 +1,23 @@
 #include "placedimage.h"
 
 namespace Astar {
-    PlacedImage::PlacedImage(const AffineTransform & transform, pair<int> size, pair<real> pixfrac):
+    PlacedImage::PlacedImage(pair<int> size, const AffineTransform & transform, pair<real> pixfrac):
         AbstractGrid(size),
         PlacedGrid(transform, pixfrac),
         Image(size)
     {}
 
-    PlacedImage::PlacedImage(const AffineTransform & transform, const Matrix & data, pair<real> pixfrac):
+    PlacedImage::PlacedImage(const Matrix & data, const AffineTransform & transform, pair<real> pixfrac):
         AbstractGrid(data.cols(), data.rows()),
         PlacedGrid(transform, pixfrac),
         Image(data)
     {}
 
-    PlacedImage::PlacedImage(const AffineTransform & transform, const std::string & filename, pair<real> pixfrac):
+    PlacedImage::PlacedImage(const std::string & filename, const AffineTransform & transform, pair<real> pixfrac):
         AbstractGrid(read_bitmap_header(filename)),
         PlacedGrid(transform, pixfrac),
         Image(filename)
     {}
-
-    Pixel PlacedImage::pixel(int x, int y) const {
-        if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
-            return Pixel::invalid();
-        } else {
-            real left = static_cast<real>(x);
-            real right = left + 1.0;
-            real bottom = static_cast<real>(y);
-            real top = bottom + 1.0;
-            return Pixel(this->transform() * Pixel(
-                {left, bottom},
-                {right, bottom},
-                {left, top},
-                {right, top}
-            ).corners());
-        }
-    }
-
 
     PlacedImage & PlacedImage::naive_drizzle(const Astar::PlacedImage & image) {
         real total = 0;
@@ -57,7 +39,7 @@ namespace Astar {
                         if ((x < 0) || (x >= this->width())) {
                             continue;
                         }
-                        auto && model_pixel = this->pixel(x, y);
+                        auto && model_pixel = this->world_pixel(x, y);
 
                         // Calculate the overlap of model and data pixels
                         real overlap = model_pixel & image_pixel;

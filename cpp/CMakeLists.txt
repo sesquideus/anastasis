@@ -15,7 +15,6 @@ add_executable(
         main.cpp
         types/types.h
         types/point.h
-        types/point.cpp
         utils/functions.h
         utils/functions.cpp
         grid/placedgrid.tpp
@@ -40,7 +39,6 @@ add_executable(
         subpixel.cpp
         types/types.h
         types/point.h
-        types/point.cpp
         utils/functions.h
         utils/functions.cpp
         utils/resample.h
@@ -63,7 +61,6 @@ add_executable(
         metis.cpp
         types/types.h
         types/point.h
-        types/point.cpp
         utils/functions.h
         utils/functions.cpp
         utils/resample.h

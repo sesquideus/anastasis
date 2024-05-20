@@ -14,8 +14,6 @@ namespace Astar {
 
     class Point {
     private:
-        constexpr static real Slack = 1e-15;
-        constexpr static real MinimumDeterminant = 1e-12;
     public:
         real x;
         real y;
@@ -37,7 +35,6 @@ namespace Astar {
         Point & operator/=(real scale);
 
         inline static Point invalid() { return {Invalid, Invalid}; };
-        static Point line_segment_intersection(Point p0, Point p1, Point q0, Point q1);
     };
 
     inline real distance_euclidean(const Point p1, const Point p2) {

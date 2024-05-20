@@ -29,6 +29,13 @@ namespace Astar {
         [[nodiscard]] inline AffineTransform transform() const { return this->transform_; }
         [[nodiscard]] inline pair<real> pixfrac() const { return this->pixfrac_; }
 
+        // Pixel coordinates on a unit square
+        [[nodiscard]] Pixel unit_pixel(int x, int y) const;
+        // Pixel coordinates on a W×H rectangle
+        [[nodiscard]] Pixel grid_pixel(int x, int y) const;
+        // Pixel coordinates in the world system
+        [[nodiscard]] Pixel world_pixel(int x, int y) const;
+
         [[nodiscard]] inline Vector physical_centre() const { return this->transform() * this->logical_centre(); }
         [[nodiscard]] inline Vector logical_centre() const { return this->transform().linear() / 2; }
 

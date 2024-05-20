@@ -19,7 +19,7 @@ namespace Astar {
 
         for (int j = 0; j < subsamples.second; ++j) {
             for (int i = 0; i < subsamples.first; ++i) {
-                PlacedImage temp(AffineTransform(), model_size);
+                PlacedImage temp(model_size, AffineTransform());
                 real shift_x = static_cast<real>(i) / static_cast<real>(subsamples.first);
                 real shift_y = static_cast<real>(j) / static_cast<real>(subsamples.second);
                 Point shift = {shift_x, shift_y};
@@ -51,7 +51,7 @@ namespace Astar {
         Point model_centre = {static_cast<real>(model_size.first) / 2, static_cast<real>(model_size.second) / 2};
 
         for (auto && position: positions) {
-            PlacedImage temp(AffineTransform(), model_size);
+            PlacedImage temp(model_size, AffineTransform());
             Point downsampled_centre = {0, 0};
 
             /* temporarily disabled

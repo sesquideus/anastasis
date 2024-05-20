@@ -10,16 +10,16 @@
 
 namespace Astar {
     Pixel::Pixel():
-        corners_((Parallelogram() << 0, 0, 0, 0, 0, 0, 0, 0).finished())
+        corners_((Quadrangle() << 0, 0, 0, 0, 0, 0, 0, 0).finished())
     {}
 
     Pixel::Pixel(const Vector & bottom_left, const Vector & bottom_right,
                  const Vector & top_left, const Vector & top_right):
-        corners_((Parallelogram() << bottom_left, bottom_right, top_left, top_right).finished())
+        corners_((Quadrangle() << bottom_left, bottom_right, top_left, top_right).finished())
     {}
 
-    Pixel::Pixel(Parallelogram parallelogram):
-        corners_(std::move(parallelogram))
+    Pixel::Pixel(Quadrangle quadrangle):
+        corners_(std::move(quadrangle))
     {}
 
     /** Construct from a Box type
@@ -90,24 +90,24 @@ namespace Astar {
         }
 
         /* Find all the intersections over the Cartesian product of this and other pixel's edges
-         * The order of the evaluation is 00, 01, 10, 11 × 00, 01, 10, 11
-         *
-         * The index cycles through the edges of both rectangles in a clever way
+         * The indices cycle through the edges of both rectangles in a clever way
          * See https://ksvi.mff.cuni.cz/~kryl/dokumentace.htm#koment, last line:
          * "Definitely add comments to lines where you are proud of how clever your solution is.
          * From my own experience it often pays off to start looking for insidious bugs right there." */
-        for (unsigned char i = 0; i < 16; ++i) {
-            auto point = Point::line_segment_intersection(this->corners_(      (i & 2) >> 1, ((i + 1) & 2) >> 1),
-                                                          this->corners_(((i + 1) & 2) >> 1, ((i + 2) & 2) >> 1),
-                                                          other.corners_(      (i & 8) >> 3, ((i + 4) & 8) >> 3),
-                                                          other.corners_(((i + 4) & 8) >> 3, ((i + 8) & 8) >> 3));
-            if (point.is_valid()) {
-                vertices.push_back(point);
+        for (unsigned char i = 0; i < 4; ++i) {
+            for (unsigned char j = 0; j < 4; ++j) {
+                auto point = line_segment_intersection(this->corners().col(i % 4),
+                                                       this->corners().col((i + 1) % 4),
+                                                       other.corners().col(j % 4),
+                                                       other.corners().col((j + 1) % 4));
+                if (is_valid(point)) {
+                    vertices.push_back(point);
+                }
             }
         }
 
         if (vertices.size() < 3) {
-            // If there are less than 3 candidate vertices, there is certainly no overlap
+            // If there are less than 3 candidate vertices, there is certainly no overlap with area
             return 0;
         } else {
             // Otherwise find the centre of mass and move it to the origin along with all the points

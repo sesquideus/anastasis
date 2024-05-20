@@ -90,9 +90,11 @@ int main(int argc, char * argv[]) {
     }
 
     Point centre = {static_cast<real>(model_width) / 2, static_cast<real>(model_height) / 2};
+    pair<int> model_size(model_width, model_height);
 
     try {
-        PlacedImage input(
+        AffineTransform original = Eigen::Scaling(model_width, model_height)
+        PlacedImage input(model_size, AffineTransform(), {1, 1});
         DetectorImage input(centre, {model_width, model_height}, 0, {1, 1}, args[0]);
         input.set_centre({input.physical_size().first / 2, input.physical_size().second / 2});
 

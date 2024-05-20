@@ -43,19 +43,6 @@ std::vector<PlacedImage> prepare(
     return result;
 }
 
-ModelImage prepare_direct(
-        const DetectorImage & original,
-        const pair<int> resolution
-) {
-    ModelImage out(resolution);
-    auto copy = original;
-    copy.set_physical_size(resolution);
-    copy.set_centre(Point(resolution) / 2);
-
-    out.naive_drizzle(copy);
-    return out;
-}
-
 void print_usage(int code) {
     fmt::print("Usage: metis <filename> model_size_x model_size_y pixfrac_x pixfrac_y\n");
     fmt::print("<filename>          path to an 8-bit bmp file\n");
@@ -99,7 +86,7 @@ int main(int argc, char * argv[]) {
         }
 
         pair<int> output_size = {84, 84};
-        PlacedImage output(AffineTransform(), output_size);
+        PlacedImage output(output_size, AffineTransform());
         output.naive_drizzle(downsampled) /= (6.0 * original.count() / output.count());
         output.save_npy("out/drizzled.npy");
 

@@ -14,9 +14,9 @@ using pair = std::pair<T, T>;
 typedef std::tuple<long, long, long, long, real> Overlap4D;
 
 // Simply tau = 2 * pi
-constexpr real Tau = 3.14159265358979232846264 * 2.0;
+constexpr real Tau = 3.1415926535897923284626433832795 * 2.0;
+constexpr real TauHalf = 3.1415926535897932384626433832795;
 constexpr real TauFourth = Tau * 0.25;
-
 
 template<class T>
 class fmt::formatter<pair<T>> {

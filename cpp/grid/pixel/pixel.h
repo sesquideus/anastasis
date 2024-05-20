@@ -15,13 +15,13 @@ namespace Astar {
 
     class Pixel {
     private:
-        Parallelogram corners_;
+        Quadrangle corners_;
         constexpr static real Slack = 1e-12;
     public:
         explicit Pixel();
         explicit Pixel(const Vector & bottom_left, const Vector & bottom_right,
                        const Vector & top_left, const Vector & top_right);
-        explicit Pixel(Parallelogram  parallelogram);
+        explicit Pixel(Quadrangle quadrangle);
         explicit Pixel(const Box & box);
         inline static Pixel invalid() {
             return Pixel(
@@ -31,7 +31,7 @@ namespace Astar {
                 {Astar::Invalid, Astar::Invalid});
         }
 
-        [[nodiscard]] inline Parallelogram corners() const { return this->corners_; }
+        [[nodiscard]] inline Quadrangle corners() const { return this->corners_; }
 
         [[nodiscard]] inline Vector a() const { return this->corners().col(0); }
         [[nodiscard]] inline Vector b() const { return this->corners().col(1); }

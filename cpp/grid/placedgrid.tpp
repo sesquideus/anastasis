@@ -11,29 +11,41 @@ namespace Astar {
     {}
 
     template<class Derived>
+    Pixel PlacedGrid<Derived>::unit_pixel(int x, int y) const {
+
+    }
+
+    template<class Derived>
+    Pixel PlacedGrid<Derived>::grid_pixel(int x, int y) const {
+        if ((x < 0) || (x >= this->width()) || (y < 0) || (y >= this->height())) {
+            return Pixel::invalid();
+        } else {
+            real half_width = (1 - this->pixfrac().first) * 0.5;
+            real half_height = (1 - this->pixfrac().second) * 0.5;
+            real left = static_cast<real>(x) - half_width;
+            real right = static_cast<real>(x) + half_width;
+            real bottom = static_cast<real>(y) - half_height;
+            real top = static_cast<real>(y) + half_height;
+            return Pixel(
+                {left, bottom},
+                {right, bottom},
+                {left, top},
+                {right, top}
+            );
+        }
+    }
+
+    template<class Derived>
+    Pixel PlacedGrid<Derived>::world_pixel(int x, int y) const {
+        return this->transform() * this->grid_pixel(x, y).corners();
+    }
+
+    template<class Derived>
     Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
         return {
-            ((static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) - 0.5) * this->physical_size_.first,
-            ((static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) - 0.5) * this->physical_size_.second
+            ((static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) - 0.5) * this->physical_size().first,
+            ((static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) - 0.5) * this->physical_size().second
         };
-    }
-
-    template<class Derived>
-    Pixel PlacedGrid<Derived>::grid_pixel(unsigned int x, unsigned int y) const {
-        const Point & grid_centre = this->grid_centre(x, y);
-        real half_width = this->pixel_size_.first * this->pixfrac_.first * 0.5;
-        real half_height = this->pixel_size_.second * this->pixfrac_.second * 0.5;
-        return Pixel(
-            {grid_centre.x - half_width, grid_centre.y - half_height},
-            {grid_centre.x + half_width, grid_centre.y - half_height},
-            {grid_centre.x - half_width, grid_centre.y + half_height},
-            {grid_centre.x + half_width, grid_centre.y + half_height}
-        );
-    }
-
-    template<class Derived>
-    Pixel PlacedGrid<Derived>::world_pixel(unsigned int x, unsigned int y) const {
-        return this->transform() * this->grid_pixel(x, y);
     }
 
     template<class Derived>
