@@ -156,7 +156,7 @@ namespace Astar {
     }
 
     template<class Derived>
-    Derived & Image<Derived>::randomize() {
+    Derived & Image<Derived>::randomize(const std::distribu) {
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<> weibull;
