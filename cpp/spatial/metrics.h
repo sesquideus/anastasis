@@ -7,10 +7,10 @@
 namespace Astar {
     /** Does not enforce that this is an actual metric, just that the signature matches.
      *  A true metric must satisfy
-     *  -   T × T -> R,
-     *  -   d(A, B) == d(B, A)
-     *  -   d(A, B) == 0 <=> A == B
-     *  -   d(A, B) + d(B, C) >= d(A, C)
+     *  -   T × T -> R,                     // enforced
+     *  -   d(A, B) == d(B, A)              // difficult to check automatically
+     *  -   d(A, B) == 0 <=> A == B         // same
+     *  -   d(A, B) + d(B, C) >= d(A, C)    // same
     **/
     template<class T, class Metric> concept IsMetric = requires(Metric m, T a, T b) {
         { m(a, b) } -> std::same_as<real>;
@@ -40,7 +40,7 @@ namespace Astar {
     };
 
     template<real P>
-    class Minkowski<P> {
+    class Minkowski {
     public:
         inline real operator()(const Point first, const Point second) const {
             real dx = second.x - first.x;

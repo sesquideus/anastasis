@@ -1,3 +1,6 @@
+#ifndef IMAGE_TPP
+#define IMAGE_TPP
+
 #include "image.h"
 
 #define FMT_HEADER_ONLY
@@ -40,13 +43,13 @@ namespace Astar {
 
         bitmap_file.open(filename);
         bitmap_file.seekg(10, std::ios::beg);
-        bitmap_file.read((char *) &offset, 4);
+        bitmap_file.read(reinterpret_cast<char *>(&offset), 4);
         bitmap_file.seekg(12, std::ios::cur);
-        bitmap_file.read((char *) &planes, 2);
+        bitmap_file.read(reinterpret_cast<char *>(&planes), 2);
         if (planes != 0x0001) {
             throw std::runtime_error(fmt::format("Invalid number of image planes {}, must be 1", planes));
         }
-        bitmap_file.read((char *) &bpp, 2);
+        bitmap_file.read(reinterpret_cast<char *>(&bpp), 2);
         if (bpp != 0x0008) {
             throw std::runtime_error(fmt::format("Invalid BPP {}, must be 8", bpp));
         }
@@ -55,7 +58,7 @@ namespace Astar {
         this->data_.resize(height, width);
         for (int row = 0; row < height; ++row) {
             for (int col = 0; col < width; ++col) {
-                bitmap_file.read((char *) &value, 1);
+                bitmap_file.read(reinterpret_cast<char *>(&value), 1);
                 this->data_(row, col) = static_cast<real>(value) / 255.0;
             }
         }
@@ -74,13 +77,13 @@ namespace Astar {
             throw std::runtime_error(fmt::format("Could not open file {}", filename));
         }
         bitmap_file.seekg(0, std::ios::beg);
-        bitmap_file.read((char *) &header, 2);
+        bitmap_file.read(reinterpret_cast<char *>(&header), 2);
         if (header != 0x4D42) {
             throw std::runtime_error(fmt::format("Invalid BMP magic value {:04x}", header));
         }
         bitmap_file.seekg(18, std::ios::beg);
-        bitmap_file.read((char *) &width, 4);
-        bitmap_file.read((char *) &height, 4);
+        bitmap_file.read(reinterpret_cast<char *>(&width), 4);
+        bitmap_file.read(reinterpret_cast<char *>(&height), 4);
         bitmap_file.close();
         return {width, height};
     }
@@ -98,7 +101,7 @@ namespace Astar {
 
     template<class Derived>
     Derived & Image<Derived>::fill(const real value) {
-        this->map_in_place([=]() { return value; });
+        return this->map_in_place([=] { return value; });
     }
 
     template<class Derived>
@@ -132,13 +135,13 @@ namespace Astar {
     }
 
     template<class Derived>
-    Derived & Image<Derived>::operator*=(real value) {
+    Derived & Image<Derived>::operator*=(const real value) {
         return this->map_in_place([&](real & x) { return x *= value; });
     }
 
     /** Divide every pixel by `value` **/
     template<class Derived>
-    Derived & Image<Derived>::operator/=(real value) {
+    Derived & Image<Derived>::operator/=(const real value) {
         return this->map_in_place([&](real & x) { return x /= value; });
     }
 
@@ -156,12 +159,12 @@ namespace Astar {
     }
 
     template<class Derived>
-    Derived & Image<Derived>::randomize(const std::distribu) {
+    Derived & Image<Derived>::randomize() {
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<> weibull;
 
-        return this->map_in_place([&]() { return weibull(gen); });
+        return this->map_in_place([&] { return weibull(gen); });
     }
 
 
@@ -235,11 +238,11 @@ namespace Astar {
         BITMAPINFOHEADER bitmapinfoheader;
         bitmapinfoheader.biWidth = this->width();
         bitmapinfoheader.biHeight = this->height();
-        out.write((char *) &bitmapheader, 14);
-        out.write((char *) &bitmapinfoheader, 40);
+        out.write(reinterpret_cast<char *>(&bitmapheader), 14);
+        out.write(reinterpret_cast<char *>(&bitmapinfoheader), 40);
 
         for (int colour = 0; colour < 0x01000000; colour += 0x00010101) {
-            out.write((char *) &colour, 4);
+            out.write(reinterpret_cast<char *>(&colour), 4);
         }
 
         unsigned char value;
@@ -255,7 +258,10 @@ namespace Astar {
 
     template<class Derived>
     real Image<Derived>::maximum() const {
-        return this->map_reduce([](real x) { return std::abs<real>(x); }, [](real x, real y) { return x > y ? x : y; });
+        return this->map_reduce(
+            [](real x) { return std::abs(x); },
+            [](real x, real y) { return x > y ? x : y; }
+        );
     }
 
     template<class Derived>
@@ -265,3 +271,5 @@ namespace Astar {
         ) / static_cast<real>(this->count()));
     }
 }
+
+#endif // IMAGE_TPP

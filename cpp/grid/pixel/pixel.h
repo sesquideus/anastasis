@@ -45,7 +45,7 @@ namespace Astar {
 real linear_overlap(pair<real> int1, pair<real> int2);
 
 template<>
-class fmt::formatter<Astar::Pixel> {
+struct fmt::formatter<Astar::Pixel> {
 private:
     char presentation = 'f';
 public:

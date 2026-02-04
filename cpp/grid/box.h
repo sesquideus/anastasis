@@ -3,6 +3,9 @@
 
 #include "grid/pixel/pixel.h"
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
 /** The Box class represents a rectangular box aligned with the coordinate grid.
  *  Similar to Pixel, but optimized for this specific case
  */
@@ -25,8 +28,7 @@ namespace Astar {
 }
 
 template<>
-class fmt::formatter<Astar::Box> {
-public:
+struct fmt::formatter<Astar::Box> {
     auto format(const Astar::Box & box, format_context & ctx) const -> format_context::iterator {
         return fmt::format_to(ctx.out(), "(x {:d} to {:d}, y {:d} to {:d})",
                               box.left, box.right, box.bottom, box.top);
