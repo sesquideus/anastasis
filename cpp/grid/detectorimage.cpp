@@ -5,8 +5,12 @@
 
 
 namespace Astar {
-    DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
-                                 pair<int> grid_size):
+    DetectorImage::DetectorImage(
+        Point centre,
+        pair<real> physical_size,
+        real rotation,
+        pair<real> pixfrac,
+        pair<int> grid_size):
             AbstractGrid(grid_size.first, grid_size.second),
             PlacedGrid(centre, grid_size, physical_size, rotation, pixfrac),
             Image(grid_size.first, grid_size.second)
@@ -23,11 +27,11 @@ namespace Astar {
 
     /**
      * Load a detector image from a BMP file (quick and easy, only minimal error checking, requires 8bpp greyscale)
-     * @param centre            Position of the centre of the image in world coordinates
+     * @param centre            Position of the image centre in world coordinates
      * @param physical_size     Physical dimensions of the image (w × h)
      * @param rotation          Rotation of the image (radians)
      * @param pixfrac           Fill factor of pixels (horizontal, vertical)
-     * @param filename          Filename to load the pixels from (8 bit BMP)
+     * @param filename          Filename to load the pixels from (8-bit BMP)
      */
     DetectorImage::DetectorImage(Point centre, pair<real> physical_size, real rotation, pair<real> pixfrac,
                                  const std::string & filename):

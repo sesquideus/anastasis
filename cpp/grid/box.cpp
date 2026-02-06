@@ -8,9 +8,8 @@ namespace Astar {
     real interval_overlap(pair<real> a, pair<real> b) {
         if ((a.second <= b.first) || (a.first >= b.second)) {
             return 0;
-        } else {
-            return std::min(a.second, b.second) - std::max(a.first, b.first);
         }
+        return std::min(a.second, b.second) - std::max(a.first, b.first);
     }
 
     real Box::overlap(const Box & other) const {

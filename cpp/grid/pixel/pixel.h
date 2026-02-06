@@ -14,20 +14,25 @@ namespace Astar {
     class Pixel {
     private:
         std::array<std::array<Point, 2>, 2> corners_;
-        constexpr static real Slack = 1e-12;
     public:
+        constexpr static real Slack = 1e-12;
+
         explicit Pixel();
         explicit Pixel(Point bottomleft, Point bottomright, Point topleft, Point topright);
         explicit Pixel(const Box & box);
-        inline static Pixel invalid() { return Pixel(Point::invalid(), Point::invalid(), Point::invalid(), Point::invalid()); };
 
+        static Pixel invalid() {
+            return Pixel(Point::invalid(), Point::invalid(), Point::invalid(), Point::invalid());
+        };
+
+        // Point accessors (anti-clockwise from left bottom)
         [[nodiscard]] inline Point a() const { return this->corners_[0][0]; }
         [[nodiscard]] inline Point b() const { return this->corners_[0][1]; }
         [[nodiscard]] inline Point c() const { return this->corners_[1][1]; }
         [[nodiscard]] inline Point d() const { return this->corners_[1][0]; }
 
         [[nodiscard]] inline std::array<std::array<Point, 2>, 2> corners() const { return this->corners_; };
-        [[nodiscard]] Box bounding_box(real slack = Pixel::Slack) const;
+        [[nodiscard]] Box bounding_box(real slack = Slack) const;
         [[nodiscard]] bool contains(Point point) const;
 
         [[nodiscard]] real area() const;

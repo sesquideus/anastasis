@@ -1,13 +1,12 @@
 #include "placedgrid.h"
-#include <iostream>
 
 namespace Astar {
     template<class Derived>
     PlacedGrid<Derived>::PlacedGrid(Point centre,
-                           pair<int> grid_size,
-                           pair<real> physical_size,
-                           real rotation,
-                           pair<real> pixfrac):
+                                    const pair<int> & grid_size,
+                                    const pair<real> & physical_size,
+                                    real rotation,
+                                    pair<real> pixfrac):
         AbstractGrid(grid_size),
         centre_(centre),
         physical_size_(physical_size),
@@ -22,7 +21,7 @@ namespace Astar {
     template<class Derived>
     PlacedGrid<Derived> PlacedGrid<Derived>::from_pixel_size(Point centre,
                                                              pair<int> grid_size,
-                                                             pair<real> pixel_size,
+                                                             const pair<real> & pixel_size,
                                                              real rotation,
                                                              pair<real> pixfrac) {
         real width = pixel_size.first * static_cast<real>(grid_size.first);
@@ -31,7 +30,7 @@ namespace Astar {
     }
 
     template<class Derived>
-    Point PlacedGrid<Derived>::grid_centre(unsigned int x, unsigned int y) const {
+    Point PlacedGrid<Derived>::grid_centre(const unsigned int x, const unsigned int y) const {
         return {
             ((static_cast<real>(x) + 0.5) / static_cast<real>(this->width()) - 0.5) * this->physical_size_.first,
             ((static_cast<real>(y) + 0.5) / static_cast<real>(this->height()) - 0.5) * this->physical_size_.second
@@ -169,10 +168,10 @@ namespace Astar {
 
     template<class Derived>
     Derived & PlacedGrid<Derived>::scale(pair<real> scale) {
-        this->phys_w_ *= scale.first;
-        this->phys_h_ *= scale.second;
-        this->pixel_width_ *= scale.first;
-        this->pixel_height_ *= scale.second;
+        this->physical_size_.first *= scale.first;
+        this->physical_size_.second *= scale.second;
+        this->pixel_size_.first *= scale.first;
+        this->pixel_size_.second *= scale.second;
         return static_cast<Derived &>(*this);
     }
 
@@ -186,5 +185,9 @@ namespace Astar {
     Derived & PlacedGrid<Derived>::operator>>=(real angle) {
         this->rotation_ += angle;
         return static_cast<Derived &>(*this);
+    }
+
+    template<class Derived>
+    Derived & PlacedGrid<Derived>::transform(const AffineTransform & transform) {
     }
 }

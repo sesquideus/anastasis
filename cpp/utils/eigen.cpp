@@ -16,16 +16,15 @@ namespace Astar {
     }
 
     SparseMatrix stack(const std::vector<SparseMatrix> & matrices, bool vertical) {
-        /**
-         *  Stack a vector of sparse matrices, either vertically or horizontally, and produce a big sparse matrix.
+        /** Stack a vector of sparse matrices, either vertically or horizontally, and produce a big sparse matrix.
          *  The other (across) dimension must always match, the other one need not be equal.
          */
         long across = 0;
         long along = 0;
         long nonzeroes = 0;
         for (auto && matrix: matrices) {
-            long num_along = vertical ? matrix.rows() : matrix.cols();
-            long num_across = vertical ? matrix.cols() : matrix.rows();
+            const long num_along = vertical ? matrix.rows() : matrix.cols();
+            const long num_across = vertical ? matrix.cols() : matrix.rows();
             if (along > 0) {
                 assert((num_across == across) && "Across-concatenation dimensions do not match");
             }

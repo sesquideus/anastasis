@@ -146,9 +146,11 @@ namespace Astar {
     }
 
     template<class Derived>
-    real Image<Derived>::map_reduce(const std::function<real(real)> & map,
-                           const std::function<real(real, real)> & reduce,
-                           const real init) const {
+    real Image<Derived>::map_reduce(
+        const std::function<real(real)> & map,
+        const std::function<real(real, real)> & reduce,
+        const real init) const
+    {
         real value = init;
         for (int row = 0; row < this->height(); ++row) {
             for (int col = 0; col < this->width(); ++col) {
@@ -163,10 +165,8 @@ namespace Astar {
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<> weibull;
-
         return this->map_in_place([&] { return weibull(gen); });
     }
-
 
     /**
      * Save the image to a raw file of sequential real numbers with no size data. Very crude.
@@ -201,8 +201,8 @@ namespace Astar {
         out.write(reinterpret_cast<const char *>(&d), sizeof d);
         d = 0x76;
         out.write(reinterpret_cast<const char *>(&d), sizeof d);
-        std::string desc = fmt::format("{{'descr': '<f{}', 'fortran_order': False, 'shape': ({}, {})}}",
-                                       sizeof(real), this->height(), this->width());
+        const std::string desc = fmt::format("{{'descr': '<f{}', 'fortran_order': False, 'shape': ({}, {})}}",
+                                             sizeof(real), this->height(), this->width());
         out.write(desc.c_str(), desc.length());
         c = 0x20;
         // The length of the header must be a multiple of 64, so it is padded with spaces

@@ -53,7 +53,7 @@ namespace Astar {
         Point x = point - this->a();     // Line AX
         real t = (p * x) / (p * p);      // Projection of AX onto AB
         real u = (q * x) / (q * q);      // Projection of AX onto AD
-        return ((-Pixel::Slack <= t) && (t <= 1.0 + Pixel::Slack) && (-Pixel::Slack <= u) && (u <= 1.0 + Pixel::Slack));
+        return ((-Slack <= t) && (t <= 1.0 + Slack) && (-Slack <= u) && (u <= 1.0 + Slack));
     }
 
     real Pixel::area() const {
@@ -82,7 +82,7 @@ namespace Astar {
         }
 
         /* Find all the intersections over the Cartesian product of this and other pixel's edges
-         * The order of the evaluation is 00, 01, 10, 11 × 00, 01, 10, 11
+         * The order of the evaluation is (00, 01, 10, 11) × (00, 01, 10, 11)
          *
          * The index cycles through the edges of both rectangles in a clever way
          * See https://ksvi.mff.cuni.cz/~kryl/dokumentace.htm#koment, last line:

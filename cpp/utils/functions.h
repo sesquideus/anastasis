@@ -69,12 +69,18 @@ std::vector<U> map(const std::vector<T> & vec, std::function<U(T)> f) {
     return std::transform(vec.begin(), vec.end(), std::back_inserter(out), f);
 }
 
+template<class T, class U, class V>
+V map_reduce(std::function<U(T)> f, std::function<V(U, V)> g, const std::vector<T> vec, U initial) {
+    return g(map(f, vec), initial);
+}
+
 template<class T>
 std::vector<T> & for_each(std::vector<T> & vec, std::function<void(T)> f) {
     /**
      * Shorthand for map
      */
     std::for_each(vec.begin(), vec.end(), f);
+    return vec;
 }
 
 real trim(real value, real lower, real upper);

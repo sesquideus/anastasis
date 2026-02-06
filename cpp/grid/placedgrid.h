@@ -29,14 +29,14 @@ namespace Astar {
         constexpr static real NegligibleOverlap = 1e-15;
 
         PlacedGrid(Point centre,
-                   pair<int> grid_size,
-                   pair<real> physical_size,
+                   const pair<int> & grid_size,
+                   const pair<real> & physical_size,
                    real rotation,
                    pair<real> pixfrac);
 
         static PlacedGrid from_pixel_size(Point centre,
                                           pair<int> grid_size,
-                                          pair<real> pixel_size,
+                                          const pair<real> &pixel_size,
                                           real rotation,
                                           pair<real> pixfrac);
 

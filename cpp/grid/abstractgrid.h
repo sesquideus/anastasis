@@ -14,18 +14,18 @@ namespace Astar {
         int size_w_;
         int size_h_;
     public:
-        explicit AbstractGrid(int width, int height):
+        explicit AbstractGrid(const int width, const int height):
             size_w_(width),
             size_h_(height) {}
-        explicit AbstractGrid(pair<int> size):
+        explicit AbstractGrid(const pair<int> &size):
             AbstractGrid(size.first, size.second) {}
 
         virtual ~AbstractGrid() = default;
 
-        [[nodiscard]] inline int width() const { return this->size_w_; }
-        [[nodiscard]] inline int height() const { return this->size_h_; }
-        [[nodiscard]] inline pair<int> size() const { return {this->size_w_, this->size_h_}; }
-        [[nodiscard]] inline int count() const { return this->width() * this->height(); }
+        [[nodiscard]] int width() const { return this->size_w_; }
+        [[nodiscard]] int height() const { return this->size_h_; }
+        [[nodiscard]] pair<int> size() const { return {this->size_w_, this->size_h_}; }
+        [[nodiscard]] int count() const { return this->width() * this->height(); }
     };
 }
 
