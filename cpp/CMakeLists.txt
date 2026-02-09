@@ -18,16 +18,16 @@ add_executable(
         types/point.cpp
         utils/functions.h
         utils/functions.cpp
-        #spatial/spatial.h
-#        spatial/metrics.h
-#        spatial/structures/vpitree.tpp
-#        spatial/structures/vpitree.h
-#        spatial/distant.cpp
-#        spatial/distant.h
-#        spatial/structures/kdtree.cpp
-#        spatial/structures/kdtree.h
-#        spatial/structures/balltree.cpp
-#        spatial/structures/balltree.h
+        spatial/spatial.h
+        spatial/metrics.h
+        spatial/structures/vpitree.tpp
+        spatial/structures/vpitree.h
+        spatial/distant.cpp
+        spatial/distant.h
+        spatial/structures/kdtree.cpp
+        spatial/structures/kdtree.h
+        spatial/structures/balltree.cpp
+        spatial/structures/balltree.h
         grid/placedgrid.tpp
         grid/placedgrid.h
         grid/pixel/pixel.cpp

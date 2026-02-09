@@ -7,7 +7,7 @@
 namespace Astar {
     /* An arbitrary convex polygonal pixel (not just a parallelogram).
      * Slower, but more versatile for arbitrary projections or crazy instruments.
-     * And technically this is not the bottleneck anyway.
+     * And technically this is not the bottleneck anyway, so why not.
      */
     class PolyPixel {
         const std::vector<Point> _vertices;
@@ -20,6 +20,7 @@ namespace Astar {
 
         [[nodiscard]] int degree(void) const { return _degree; }
         const Point & operator[](int index) const;
+        Point centre(void) const;
 
         [[nodiscard]] real area(void) const;
 
@@ -27,7 +28,7 @@ namespace Astar {
         [[nodiscard]] PolyPixel to_zero(void) const;
 
         // Contains a point?
-        bool contains(const Point & point) const;
+        [[nodiscard]] bool contains(const Point & point) const;
 
         friend PolyPixel operator & (const PolyPixel & first, const PolyPixel & second);
     };
