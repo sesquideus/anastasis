@@ -1,8 +1,6 @@
 #ifndef ANASTASIS_CPP_TYPES_H
 #define ANASTASIS_CPP_TYPES_H
 
-#include <Eigen/Sparse>
-
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 

@@ -7,7 +7,7 @@
 namespace Astar {
     /**
      * Extends an abstract placed grid with actual pixel data, hence a combination of an Image and a PlacedGrid.
-     * Implemented in separate structures in hope to be cache-friendly.
+     * Implemented in separate structures in the hope of being cache-friendly.
      */
     class DetectorImage: public PlacedGrid<DetectorImage>, public Image<DetectorImage> {
     public:

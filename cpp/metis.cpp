@@ -45,7 +45,7 @@ std::vector<DetectorImage> prepare(
 
 ModelImage prepare_direct(
         const DetectorImage & original,
-        const pair<int> resolution
+        const pair<int> & resolution
 ) {
     ModelImage out(resolution);
     auto copy = original;
@@ -85,6 +85,7 @@ int main(int argc, char * argv[]) {
         print_usage(1);
     }
 
+
     Point centre = Point(model_size) / 2;
 
     try {
@@ -101,7 +102,7 @@ int main(int argc, char * argv[]) {
         pair<int> output_size = {84, 84};
         ModelImage output(output_size);
         output.naive_drizzle(downsampled) /= (6.0 * original.count() / output.count());
-        output.save_npy("out/drizzled.npy");
+        output.save_npy("./out/drizzled.npy");
 
         raw_original.save_npy("out/original.npy");
 

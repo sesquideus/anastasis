@@ -1,4 +1,5 @@
 #include "box.h"
+#include "pixel/pixel.h"
 
 namespace Astar {
     Pixel Box::as_pixel() const {

@@ -50,7 +50,6 @@ namespace Astar {
         static pair<int> read_bitmap_header(const std::string & filename);
         Derived map(const std::function<real(real)> & function);
 
-        Derived & fill(real value);
         /** Apply a parameterless function to every pixel (constant, random, ...) **/
         Derived & map_in_place(const std::function<real()> & function);
         /** Apply a R -> R function to every pixel **/
@@ -71,6 +70,8 @@ namespace Astar {
         [[nodiscard]] const Matrix & data() const { return this->data_; }
         [[nodiscard]] inline real operator[](int x, int y) const { return this->data_(y, x); };
         [[nodiscard]] inline real & operator[](int x, int y) { return this->data_(y, x); };
+
+        Derived & fill(real value);
 
         /*PlacedGrid<Derived> as_grid() const {
             return PlacedGrid<Derived>(Point(this->width(), this->height()) / 2, this->size(), this->size(), 0, {1, 1});

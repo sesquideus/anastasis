@@ -95,9 +95,9 @@ namespace Astar {
                 m.startVec(c);
                 for (SparseMatrix::InnerIterator it(matrix, c); it; ++it) {
                     matrix.startVec(c);
-                    fmt::print("s {} {}\n", it, c);
+                    // fmt::print("s {} {}\n", it, c);
                     m.insertBack(base + it.row(), c) = it.value();
-                    fmt::print("e {} {}\n", it, c);
+                    // fmt::print("e {} {}\n", it, c);
                 }
                 base += matrix.rows();
             }

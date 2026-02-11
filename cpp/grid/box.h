@@ -1,7 +1,7 @@
 #ifndef ANASTASIS_CPP_BOX_H
 #define ANASTASIS_CPP_BOX_H
 
-#include "grid/pixel/pixel.h"
+#include "types/types.h"
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -24,6 +24,8 @@ namespace Astar {
                 left(left), right(right), bottom(bottom), top(top) {}
         [[nodiscard]] Pixel as_pixel() const;
         [[nodiscard]] real overlap(const Box & other) const;
+
+        friend struct fmt::formatter<Box>;
     };
 }
 

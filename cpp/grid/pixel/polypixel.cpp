@@ -10,13 +10,13 @@ namespace Astar {
         /* Determine whether the triangle 0-p-q contains point x. */
         const real s = (p * x) / (p * p) + (q * x) / (q * q);
         const real prod = (p ^ x) * (q ^ x);
+
         /* The point is inside the triangle if
            - it's in opposite half-planes with respect to p and q,
            - projects positively onto both vectors,
            - and is not further than the convex combination line.
-
-        Some slack is included since false positives only change the result a tiny bit,
-        but while false negatives are catastrophic. */
+        Some slack is included since false positives only change the result in at most quadratic proportion,
+        but false negatives are catastrophic. */
         return (-Pixel::Slack <= s) && (s <= 1 + Pixel::Slack) && (prod <= Pixel::Slack);
     }
 
@@ -64,6 +64,13 @@ namespace Astar {
     }
 
     bool PolyPixel::contains(const Point & point) const {
+        /*
+         * Contains a Point iff any of the triangles contains it.
+         */
+        if (this->degree() < 3) {
+            return false;
+        }
+
         for (int i = 1; i < this->degree() - 1; ++i) {
             if (triangle_contains((*this)[0], (*this)[i], (*this)[i + 1], point)) {
                 return true;

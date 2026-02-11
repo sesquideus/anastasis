@@ -55,12 +55,12 @@ namespace Astar {
 
     long int bit_ceil(long int x) {
         static const unsigned int t[5] = {
-                0xFFFF0000,
-                0x0000FF00,
-                0x000000F0,
-                0x0000000C,
-                0x00000002
-        };
+            0xFFFF0000,
+            0x0000FF00,
+            0x000000F0,
+            0x0000000C,
+            0x00000002
+    };
 
         int y = (((x & (x - 1)) == 0) ? 0 : 1);
         int j = 16;
@@ -341,4 +341,5 @@ namespace Astar {
         std::cout << std::endl;
     }
     */
+}
 #endif // VPITREE_H

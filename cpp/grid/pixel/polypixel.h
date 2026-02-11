@@ -18,9 +18,9 @@ namespace Astar {
             _vertices(points),
             _degree(points.size()) {}
 
-        [[nodiscard]] int degree(void) const { return _degree; }
+        [[nodiscard]] int degree(void) const { return this->_degree; }
         const Point & operator[](int index) const;
-        Point centre(void) const;
+        [[nodiscard]] Point centre(void) const;
 
         [[nodiscard]] real area(void) const;
 

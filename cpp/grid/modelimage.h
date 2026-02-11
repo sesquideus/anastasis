@@ -22,7 +22,7 @@ namespace Astar {
 
         ModelImage & apply(const ModelImage & other, const std::function<real(real &, real)> & op);
     public:
-        explicit ModelImage(int width, int height);
+        ModelImage(int width, int height);
         explicit ModelImage(pair<int> size);
         explicit ModelImage(const DetectorImage & image);
         explicit ModelImage(const Image & image);

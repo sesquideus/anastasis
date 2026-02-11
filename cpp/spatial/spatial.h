@@ -1,7 +1,6 @@
 #ifndef SPATIAL_H
 #define SPATIAL_H
 
-#include <cmath>
 #include <vector>
 
 #include "../types/types.h"

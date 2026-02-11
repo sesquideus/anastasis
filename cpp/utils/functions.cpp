@@ -2,6 +2,8 @@
 #include <fmt/format.h>
 
 #include <chrono>
+#include <functional>
+
 #include "types/types.h"
 
 

@@ -1,7 +1,6 @@
 #ifndef GRID_H
 #define GRID_H
 
-#include <cstddef>
 #include "types/types.h"
 #include "utils/eigen.h"
 #include "grid/abstractgrid.h"
